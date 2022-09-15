@@ -29,3 +29,5 @@ cc-outputs.log
 /k-diffusion/
 /src/taming-transformers/
 /MiDaS/
+/src/latent-diffusion/
+/src/k-diffusion/
