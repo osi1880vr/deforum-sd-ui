@@ -1,0 +1,28 @@
+# Unnecessary compiled python files.
+__pycache__
+*.pyc
+*.pyo
+
+# Output Images
+outputs
+
+# Log files for colab-convert
+cc-outputs.log
+
+#models
+/content/
+/pretrained/
+
+#jupyter
+/.ipynb_checkpoints/
+
+#intellij
+/.idea/
+
+
+#not in this repo, to be installed on your side
+/src/taming-transformers/
+/pytorch3d-lite/
+/AdaBins/
+/stable-diffusion/
+/src/clip/
