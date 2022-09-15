@@ -26,3 +26,6 @@ cc-outputs.log
 /AdaBins/
 /stable-diffusion/
 /src/clip/
+/k-diffusion/
+/src/taming-transformers/
+/MiDaS/
