@@ -107,7 +107,6 @@ def layout():
             #st.session_state["weights_path"] = f"CompVis/{slugify(custom_model.lower())}"
 
             st.session_state["steps"] = st.number_input('Sample Steps', value=st.session_state['defaults'].txt2vid.steps,step=1)
-            st.session_state["strength_schedule"] = st.text_input("Strength Schedule:", value=st.session_state['defaults'].txt2vid.strength_schedule)
             st.session_state["sampler"] = st.selectbox(
                 'Sampler',
                 ("plms","klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "ddim"))
