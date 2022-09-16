@@ -29,7 +29,7 @@ def sanitize(prompt):
 
 
 def get_output_folder(output_path, batch_folder):
-    out_path = os.path.join(output_path, time.strftime('%Y-%m'))
+    out_path = os.path.join(output_path, time.strftime('%Y-%m'), time.strftime('%D'))
     if batch_folder != "":
         out_path = os.path.join(out_path, batch_folder)
     print(f"Saving animation frames to {args.outdir}")
@@ -248,7 +248,7 @@ def DeforumAnimArgs():
     border = 'wrap'  # @param ['wrap', 'replicate'] {type:'string'}
 
     # @markdown ####**Motion Parameters:**
-    angle = "0:(0)"  # @param {type:"string"}
+    angle = "0:(8)"  # @param {type:"string"}
     zoom = "0:(1.04)"  # @param {type:"string"}
     translation_x = "0:(0)"  # @param {type:"string"}
     translation_y = "0:(0)"  # @param {type:"string"}
@@ -257,7 +257,7 @@ def DeforumAnimArgs():
     rotation_3d_y = "0:(1)"  # @param {type:"string"}
     rotation_3d_z = "0:(1)"  # @param {type:"string"}
     noise_schedule = "0: (0.02)"  # @param {type:"string"}
-    strength_schedule = "0: (0.65)"  # @param {type:"string"}
+    strength_schedule = "0: (0.45)"  # @param {type:"string"}
     contrast_schedule = "0: (1.0)"  # @param {type:"string"}
 
     # @markdown ####**Coherence:**
@@ -291,13 +291,13 @@ def DeforumAnimArgs():
 
 def DeforumArgs():
     # @markdown **Image Settings**
-    W = 256  # @param
-    H = 256  # @param
+    W = 512  # @param
+    H = 512  # @param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
 
     # @markdown **Sampling Settings**
     seed = -1  # @param
-    sampler = 'dpm2_ancestral'  # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
+    sampler = 'plms'  # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
     steps = 50  # @param
     scale = 7  # @param
     ddim_eta = 0.0  # @param
@@ -353,9 +353,9 @@ prompts = [
 ]
 
 animation_prompts = {
-    0: "year 2100 soviet cyberpunk buildings by Escher 8k hd hyperreality detailed architecture unnatural angles intertwined",
+    0: "Ultra realistic illustration, cyborg woman, exposed parts, yakuza, cyberpunk, sci-fi, fantasy, intricate, elegant, highly detailed, digital painting, artstation, concept art, smooth, sharp focus, illustration, art by artgerm",
+    20: "a beautiful portrait of a woman by Artgerm, trending on Artstation",
     40: "Concept art of scifi rainforest city in the negev dessert. tall glass building covered in plants. cinematic. epic framing, beautiful, highly detailed art station, behance, realistic",
-    100: "Beautiful Woman dissolving into colorful liquid oil paint, wind, cinematic lighting, photo realistic, by karol bak",
     180: "lucy in the sky with diamonds, trending on Artstation",
 }
 
@@ -363,8 +363,13 @@ output_path = "./content/output"  # @param {type:"string"}
 os.makedirs(output_path, exist_ok=True)
 print(f"output_path: {output_path}")
 
+test = DeforumArgs()
+
+
 args = SimpleNamespace(**DeforumArgs())
 anim_args = SimpleNamespace(**DeforumAnimArgs())
+
+
 
 now = datetime.now()  # current date and time
 batch_name = now.strftime("%H_%M_%S")
@@ -373,6 +378,10 @@ args.outdir = get_output_folder(output_path, batch_name)
 
 args.timestring = time.strftime('%Y%m%d%H%M%S')
 args.strength = max(0.0, min(1.0, args.strength))
+
+print(anim_args)
+print(args)
+
 
 if args.seed == -1:
     args.seed = random.randint(0, 2 ** 32 - 1)

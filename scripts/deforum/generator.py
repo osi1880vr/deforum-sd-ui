@@ -175,7 +175,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     # expand key frame strings to values
     keys = DeformAnimKeys(anim_args)
-
+    print(keys)
     # resume animation
     start_frame = 0
     if anim_args.resume_from_timestring:
@@ -187,6 +187,10 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     # create output folder for the batch
     #os.makedirs(args.outdir, exist_ok=True)
     #print(f"Saving animation frames to {args.outdir}")
+
+    image_pipe = args.image
+
+    args.image = 'ignoreMe'
 
     # save settings for the batch
     settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
@@ -346,6 +350,8 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
                 depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx:05}.png"), depth)
             frame_idx += 1
 
+        image_pipe.image(image)
+
         #display.clear_output(wait=True)
         #display.display(image)
 
@@ -481,6 +487,7 @@ def load_model():
         global model
         global device
         local_config = OmegaConf.load(f"{ckpt_config_path}")
+        print(local_config)
         model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         model = model.to(device)
