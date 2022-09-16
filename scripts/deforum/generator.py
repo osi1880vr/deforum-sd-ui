@@ -27,6 +27,10 @@ from omegaconf import OmegaConf
 import random
 import sys
 
+from deforum.modelloader import load_models
+
+import streamlit as st
+
 sys.path.extend([
     'src/taming-transformers',
     'src/clip',
@@ -169,7 +173,10 @@ def sample_to_cv2( sample: torch.Tensor, type=np.uint8) -> np.ndarray:
 def render_animation( args, anim_args, animation_prompts, model_path, half_precision=True):
 
     global device
-    load_model()
+
+    load_models()
+    #load_model()
+
     # animations use key framed prompts
     args.prompts = animation_prompts
 
@@ -491,7 +498,9 @@ def load_model():
         model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         model = model.to(device)
-
+        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        model = model.to(device)
 
 def load_model_from_config(config, ckpt, verbose=False, device='cuda', half_precision=True):
     map_location = "cuda"  # @param ["cpu", "cuda"]
@@ -657,8 +666,11 @@ def make_callback(sampler_name, dynamic_threshold=None, static_threshold=None, m
 
 def generate(args, return_latent=False, return_sample=False, return_c=False):
     global device
+    device = st.session_state["device"]
     seed_everything(args.seed)
     os.makedirs(args.outdir, exist_ok=True)
+
+    model = st.session_state["model"]
 
     sampler = PLMSSampler(model) if args.sampler == 'plms' else DDIMSampler(model)
     model_wrap = CompVisDenoiser(model)

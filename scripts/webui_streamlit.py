@@ -27,8 +27,10 @@ try:
 except:
 	pass
 
+
+
 # remove some annoying deprecation warnings that show every now and then.
-warnings.filterwarnings("ignore", category=DeprecationWarning)     
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 st.session_state["defaults"] = OmegaConf.load("scripts/ui/config/webui_streamlit.yaml")
 if (os.path.exists("scripts/ui/config/userconfig_streamlit.yaml")):
@@ -57,6 +59,8 @@ def load_css(isLocal, nameOrURL):
 def layout():
 	"""Layout functions to define all the streamlit layout here."""
 	st.set_page_config(page_title="Stable Diffusion Playground", layout="wide")
+
+
 
 	with st.empty():
 		# load css as an external file, function has an option to local or remote url. Potential use when running from cloud infra that might not have access to local path.

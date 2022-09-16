@@ -142,10 +142,8 @@ class runner:
 
     def run_batch(self,data):
 
-        args,anim_args = self.get_args(data)
 
-        print(anim_args)
-        print(args)
+        args,anim_args = self.get_args(data)
 
         args.timestring = time.strftime('%Y%m%d%H%M%S')
         args.strength = max(0.0, min(1.0, args.strength))
@@ -168,8 +166,6 @@ class runner:
         # clean up unused memory
         gc.collect()
         torch.cuda.empty_cache()
-
-        models_path = "content/models"  # @param {type:"string"}
 
         models_path = os.path.join(os.getcwd(),'content', 'models')
 
