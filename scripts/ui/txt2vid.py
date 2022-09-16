@@ -38,14 +38,6 @@ if os.path.exists(os.path.join(st.session_state['defaults'].general.RealESRGAN_d
     RealESRGAN_available = True
 else:
     RealESRGAN_available = False
-
-def get_single_step_count():
-    steps = float(st.session_state["steps"])
-    strength = float(st.session_state["strength_schedule"])
-
-    return int(steps - (strength * steps))
-
-
 #
 def layout():
     def_runner = runner()
@@ -116,19 +108,6 @@ def layout():
 
             st.session_state["steps"] = st.number_input('Sample Steps', value=st.session_state['defaults'].txt2vid.steps,step=1)
             st.session_state["strength_schedule"] = st.text_input("Strength Schedule:", value=st.session_state['defaults'].txt2vid.strength_schedule)
-            single_step_count = get_single_step_count()
-
-#steps - (strength_schedule * steps) = subsequent steps iterations per frame.
-
-#So your example:
-#50 - (0.65 * 50)
-#50 - (32.5)
-#17.5
-#round
-#17 steps
-
-
-            st.text('Single step Steps') #steps - (strength_schedule * steps)
             st.session_state["sampler"] = st.selectbox(
                 'Sampler',
                 ("plms","klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "ddim"))
