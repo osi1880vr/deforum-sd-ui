@@ -1,3 +1,4 @@
+import gc
 from inspect import isfunction
 import math
 import torch
@@ -174,7 +175,39 @@ class CrossAttention(nn.Module):
         else:
             self.mem_total = psutil.virtual_memory().total / (1024**3)
             self.einsum_op = self.einsum_op_mps_v1 if self.mem_total >= 32 else self.einsum_op_mps_v2
-    
+
+    def einsum_op_cuda(self, q, k, v, r1):
+        stats = torch.cuda.memory_stats(q.device)
+        mem_active = stats['active_bytes.all.current']
+        mem_reserved = stats['reserved_bytes.all.current']
+        mem_free_cuda, _ = torch.cuda.mem_get_info(torch.cuda.current_device())
+        mem_free_torch = mem_reserved - mem_active
+        mem_free_total = mem_free_cuda + mem_free_torch
+
+        gb = 1024 ** 3
+        tensor_size = q.shape[0] * q.shape[1] * k.shape[1] * 4
+        mem_required = tensor_size * 2.5
+        steps = 1
+
+        if mem_required > mem_free_total:
+            steps = 2**(math.ceil(math.log(mem_required / mem_free_total, 2)))
+
+        if steps > 64:
+            max_res = math.floor(math.sqrt(math.sqrt(mem_free_total / 2.5)) / 8) * 64
+            raise RuntimeError(f'Not enough memory, use lower resolution (max approx. {max_res}x{max_res}). '
+                               f'Need: {mem_required/64/gb:0.1f}GB free, Have:{mem_free_total/gb:0.1f}GB free')
+
+        slice_size = q.shape[1] // steps if (q.shape[1] % steps) == 0 else q.shape[1]
+        for i in range(0, q.shape[1], slice_size):
+            end = min(q.shape[1], i + slice_size)
+            s1 = einsum('b i d, b j d -> b i j', q[:, i:end], k) * self.scale
+            s2 = s1.softmax(dim=-1, dtype=r1.dtype)
+            del s1
+            r1[:, i:end] = einsum('b i j, b j d -> b i d', s2, v)
+            del s2
+        return r1
+
+
     def einsum_op_compvis(self, q, k, v, r1):
         s1 = einsum('b i d, b j d -> b i j', q, k) * self.scale # faster
         s2 = s1.softmax(dim=-1, dtype=q.dtype)
@@ -212,7 +245,6 @@ class CrossAttention(nn.Module):
                 del s2
         return r1
 
-    def einsum_op_cuda(self, q, k, v, r1):
         stats = torch.cuda.memory_stats(q.device)
         mem_active = stats['active_bytes.all.current']
         mem_reserved = stats['reserved_bytes.all.current']
@@ -227,6 +259,8 @@ class CrossAttention(nn.Module):
 
         if mem_required > mem_free_total:
             steps = 2**(math.ceil(math.log(mem_required / mem_free_total, 2)))
+            # print(f"Expected tensor size:{tensor_size/gb:0.1f}GB, cuda free:{mem_free_cuda/gb:0.1f}GB "
+            #       f"torch free:{mem_free_torch/gb:0.1f} total:{mem_free_total/gb:0.1f} steps:{steps}")
 
         if steps > 64:
             max_res = math.floor(math.sqrt(math.sqrt(mem_free_total / 2.5)) / 8) * 64
