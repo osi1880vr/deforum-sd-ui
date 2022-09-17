@@ -1,12 +1,25 @@
 # base webui import and utils.
 from webui_streamlit import st
+import os, sys, re, random, datetime, time, math
 
 
 # streamlit imports
 
 
 #other imports
-
+import platform
+if "Linux" in platform.platform():
+    sys.path.extend([
+        './src/taming-transformers',
+        './src/clip',
+        './',
+        './src/k-diffusion',
+        './src/pytorch3d-lite',
+        './src/AdaBins',
+        './src/MiDaS',
+        './soup',
+        './src/Real-ESRGAN'
+    ])
 import warnings
 import json
 
@@ -40,7 +53,7 @@ import piexif
 import piexif.helper
 from tqdm import trange
 
-# Temp imports 
+# Temp imports
 
 
 # end of imports
@@ -55,7 +68,7 @@ except:
     pass
 
 # remove some annoying deprecation warnings that show every now and then.
-warnings.filterwarnings("ignore", category=DeprecationWarning)     
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # this is a fix for Windows users. Without it, javascript files will be served with text/html content-type and the bowser will not show any UI
 mimetypes.init()
@@ -137,16 +150,16 @@ def load_models(continue_prev_run = False, use_GFPGAN=False, use_RealESRGAN=Fals
                 except Exception:
                     import traceback
                     print("Error loading GFPGAN:", file=sys.stderr)
-                    print(traceback.format_exc(), file=sys.stderr)          
+                    print(traceback.format_exc(), file=sys.stderr)
     else:
         if "GFPGAN" in st.session_state:
-            del st.session_state["GFPGAN"]        
+            del st.session_state["GFPGAN"]
 
     if use_RealESRGAN:
         if "RealESRGAN" in st.session_state and st.session_state["RealESRGAN"].model.name == RealESRGAN_model:
             print("RealESRGAN already loaded")
         else:
-            #Load RealESRGAN 
+            #Load RealESRGAN
             try:
                 # We first remove the variable in case it has something there,
                 # some errors can load the model incorrectly and leave things in memory.
@@ -161,10 +174,10 @@ def load_models(continue_prev_run = False, use_GFPGAN=False, use_RealESRGAN=Fals
 
     else:
         if "RealESRGAN" in st.session_state:
-            del st.session_state["RealESRGAN"]        
+            del st.session_state["RealESRGAN"]
 
     if "model" in st.session_state:
-        if "model" in st.session_state and st.session_state["loaded_model"] == custom_model:
+        if "model" in st.session_state: #and st.session_state["loaded_model"] == custom_model:
             # TODO: check if the optimized mode was changed?
             print("Model already loaded")
 
@@ -324,9 +337,9 @@ def _fft2(data):
         out_fft = np.zeros((data.shape[0], data.shape[1]), dtype=np.complex128)
         out_fft[:,:] = np.fft.fft2(np.fft.fftshift(data),norm="ortho")
         out_fft[:,:] = np.fft.ifftshift(out_fft[:,:])
-    
+
     return out_fft
-   
+
 def _ifft2(data):
     if data.ndim > 2: # has channels
         out_ifft = np.zeros((data.shape[0], data.shape[1], data.shape[2]), dtype=np.complex128)
@@ -338,14 +351,14 @@ def _ifft2(data):
         out_ifft = np.zeros((data.shape[0], data.shape[1]), dtype=np.complex128)
         out_ifft[:,:] = np.fft.ifft2(np.fft.fftshift(data),norm="ortho")
         out_ifft[:,:] = np.fft.ifftshift(out_ifft[:,:])
-        
+
     return out_ifft
-            
+
 def _get_gaussian_window(width, height, std=3.14, mode=0):
 
     window_scale_x = float(width / min(width, height))
     window_scale_y = float(height / min(width, height))
-    
+
     window = np.zeros((width, height))
     x = (np.arange(width) / width * 2. - 1.) * window_scale_x
     for y in range(height):
@@ -354,7 +367,7 @@ def _get_gaussian_window(width, height, std=3.14, mode=0):
             window[:, y] = np.exp(-(x**2+fy**2) * std)
         else:
             window[:, y] = (1/((x**2+1.) * (fy**2+1.))) ** (std/3.14) # hey wait a minute that's not gaussian
-            
+
     return window
 
 def _get_masked_window_rgb(np_mask_grey, hardness=1.):
@@ -367,14 +380,14 @@ def _get_masked_window_rgb(np_mask_grey, hardness=1.):
         np_mask_rgb[:,:,c] = hardened[:]
     return np_mask_rgb
 
-def get_matched_noise(_np_src_image, np_mask_rgb, noise_q, color_variation): 
+def get_matched_noise(_np_src_image, np_mask_rgb, noise_q, color_variation):
     """
      Explanation:
      Getting good results in/out-painting with stable diffusion can be challenging.
      Although there are simpler effective solutions for in-painting, out-painting can be especially challenging because there is no color data
      in the masked area to help prompt the generator. Ideally, even for in-painting we'd like work effectively without that data as well.
      Provided here is my take on a potential solution to this problem.
-     
+
      By taking a fourier transform of the masked src img we get a function that tells us the presence and orientation of each feature scale in the unmasked src.
      Shaping the init/seed noise for in/outpainting to the same distribution of feature scales, orientations, and positions increases output coherence
      by helping keep features aligned. This technique is applicable to any continuous generation task such as audio or video, each of which can
@@ -382,61 +395,61 @@ def get_matched_noise(_np_src_image, np_mask_rgb, noise_q, color_variation):
      or stereo sound the "color tone" or histogram of the seed noise can be matched to improve quality (using scikit-image currently)
      This method is quite robust and has the added benefit of being fast independently of the size of the out-painted area.
      The effects of this method include things like helping the generator integrate the pre-existing view distance and camera angle.
-     
+
      Carefully managing color and brightness with histogram matching is also essential to achieving good coherence.
-     
+
      noise_q controls the exponent in the fall-off of the distribution can be any positive number, lower values means higher detail (range > 0, default 1.)
      color_variation controls how much freedom is allowed for the colors/palette of the out-painted area (range 0..1, default 0.01)
      This code is provided as is under the Unlicense (https://unlicense.org/)
      Although you have no obligation to do so, if you found this code helpful please find it in your heart to credit me [parlance-zz].
-     
+
      Questions or comments can be sent to parlance@fifth-harmonic.com (https://github.com/parlance-zz/)
      This code is part of a new branch of a discord bot I am working on integrating with diffusers (https://github.com/parlance-zz/g-diffuser-bot)
-     
+
     """
 
     global DEBUG_MODE
     global TMP_ROOT_PATH
-    
+
     width = _np_src_image.shape[0]
     height = _np_src_image.shape[1]
     num_channels = _np_src_image.shape[2]
 
     np_src_image = _np_src_image[:] * (1. - np_mask_rgb)
-    np_mask_grey = (np.sum(np_mask_rgb, axis=2)/3.) 
-    np_src_grey = (np.sum(np_src_image, axis=2)/3.) 
+    np_mask_grey = (np.sum(np_mask_rgb, axis=2)/3.)
+    np_src_grey = (np.sum(np_src_image, axis=2)/3.)
     all_mask = np.ones((width, height), dtype=bool)
     img_mask = np_mask_grey > 1e-6
     ref_mask = np_mask_grey < 1e-3
-    
+
     windowed_image = _np_src_image * (1.-_get_masked_window_rgb(np_mask_grey))
     windowed_image /= np.max(windowed_image)
     windowed_image += np.average(_np_src_image) * np_mask_rgb# / (1.-np.average(np_mask_rgb))  # rather than leave the masked area black, we get better results from fft by filling the average unmasked color
     #windowed_image += np.average(_np_src_image) * (np_mask_rgb * (1.- np_mask_rgb)) / (1.-np.average(np_mask_rgb)) # compensate for darkening across the mask transition area
     #_save_debug_img(windowed_image, "windowed_src_img")
-    
+
     src_fft = _fft2(windowed_image) # get feature statistics from masked src img
     src_dist = np.absolute(src_fft)
     src_phase = src_fft / src_dist
     #_save_debug_img(src_dist, "windowed_src_dist")
-    
+
     noise_window = _get_gaussian_window(width, height, mode=1)  # start with simple gaussian noise
     noise_rgb = np.random.random_sample((width, height, num_channels))
-    noise_grey = (np.sum(noise_rgb, axis=2)/3.) 
+    noise_grey = (np.sum(noise_rgb, axis=2)/3.)
     noise_rgb *=  color_variation # the colorfulness of the starting noise is blended to greyscale with a parameter
     for c in range(num_channels):
         noise_rgb[:,:,c] += (1. - color_variation) * noise_grey
-        
+
     noise_fft = _fft2(noise_rgb)
     for c in range(num_channels):
         noise_fft[:,:,c] *= noise_window
     noise_rgb = np.real(_ifft2(noise_fft))
     shaped_noise_fft = _fft2(noise_rgb)
     shaped_noise_fft[:,:,:] = np.absolute(shaped_noise_fft[:,:,:])**2 * (src_dist ** noise_q) * src_phase # perform the actual shaping
-    
+
     brightness_variation = 0.#color_variation # todo: temporarily tieing brightness variation to color variation for now
     contrast_adjusted_np_src = _np_src_image[:] * (brightness_variation + 1.) - brightness_variation * 2.
-    
+
     # scikit-image is used for histogram matching, very convenient!
     shaped_noise = np.real(_ifft2(shaped_noise_fft))
     shaped_noise -= np.min(shaped_noise)
@@ -444,20 +457,20 @@ def get_matched_noise(_np_src_image, np_mask_rgb, noise_q, color_variation):
     shaped_noise[img_mask,:] = skimage.exposure.match_histograms(shaped_noise[img_mask,:]**1., contrast_adjusted_np_src[ref_mask,:], channel_axis=1)
     shaped_noise = _np_src_image[:] * (1. - np_mask_rgb) + shaped_noise * np_mask_rgb
     #_save_debug_img(shaped_noise, "shaped_noise")
-    
+
     matched_noise = np.zeros((width, height, num_channels))
     matched_noise = shaped_noise[:]
     #matched_noise[all_mask,:] = skimage.exposure.match_histograms(shaped_noise[all_mask,:], _np_src_image[ref_mask,:], channel_axis=1)
     #matched_noise = _np_src_image[:] * (1. - np_mask_rgb) + matched_noise * np_mask_rgb
-    
+
     #_save_debug_img(matched_noise, "matched_noise")
-    
+
     """
     todo:
     color_variation doesnt have to be a single number, the overall color tone of the out-painted area could be param controlled
     """
-    
-    return np.clip(matched_noise, 0., 1.) 
+
+    return np.clip(matched_noise, 0., 1.)
 
 
 #
@@ -789,7 +802,7 @@ def ModelLoader(models,load=False,unload=False,imgproc_realesrgan_model_name='Re
 def generation_callback(img, i=0):
 
     try:
-        if i == 0:	
+        if i == 0:
             if img['i']: i = img['i']
     except TypeError:
         pass
@@ -798,24 +811,24 @@ def generation_callback(img, i=0):
         #print (img)
         #print (type(img))
         # The following lines will convert the tensor we got on img to an actual image we can render on the UI.
-        # It can probably be done in a better way for someone who knows what they're doing. I don't.		
+        # It can probably be done in a better way for someone who knows what they're doing. I don't.
         #print (img,isinstance(img, torch.Tensor))
         if isinstance(img, torch.Tensor):
             x_samples_ddim = (st.session_state["model"] if not st.session_state['defaults'].general.optimized else st.session_state.modelFS).decode_first_stage(img)
         else:
             # When using the k Diffusion samplers they return a dict instead of a tensor that look like this:
-            # {'x': x, 'i': i, 'sigma': sigmas[i], 'sigma_hat': sigmas[i], 'denoised': denoised}			
+            # {'x': x, 'i': i, 'sigma': sigmas[i], 'sigma_hat': sigmas[i], 'denoised': denoised}
             x_samples_ddim = (st.session_state["model"] if not st.session_state['defaults'].general.optimized else st.session_state.modelFS).decode_first_stage(img["denoised"])
 
-        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)  
+        x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
 
-        pil_image = transforms.ToPILImage()(x_samples_ddim.squeeze_(0)) 			
+        pil_image = transforms.ToPILImage()(x_samples_ddim.squeeze_(0))
 
         # update image on the UI so we can see the progress
-        st.session_state["preview_image"].image(pil_image) 	
+        st.session_state["preview_image"].image(pil_image)
 
     # Show a progress bar so we can keep track of the progress even when the image progress is not been shown,
-    # Dont worry, it doesnt affect the performance.	
+    # Dont worry, it doesnt affect the performance.
     if st.session_state["generation_mode"] == "txt2img":
         percent = int(100 * float(i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps)/float(st.session_state.sampling_steps))
         st.session_state["progress_bar_text"].text(
@@ -831,7 +844,7 @@ def generation_callback(img, i=0):
                 percent = int(100 * float(i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps)/float(st.session_state.sampling_steps))
                 st.session_state["progress_bar_text"].text(
                                     f"Running step: {i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps}"
-                                        f"{percent if percent < 100 else 100}%")	
+                                        f"{percent if percent < 100 else 100}%")
 
     st.session_state["progress_bar"].progress(percent if percent < 100 else 100)
 
@@ -841,10 +854,10 @@ prompt_parser = re.compile("""
     [^:]+                      # match one or more non ':' characters
     )                          # end 'prompt'
     (?:                        # non-capture group
-    :+                         # match one or more ':' characters  
+    :+                         # match one or more ':' characters
     (?P<weight>                # capture group for 'weight'
     -?\\d+(?:\\.\\d+)?            # match positive or negative decimal number
-    )?                         # end weight capture group, make optional 
+    )?                         # end weight capture group, make optional
     \\s*                        # strip spaces after weight
     |                          # OR
     $                          # else, if no ':' then match end of line
@@ -885,22 +898,22 @@ def slerp(device, t, v0:torch.Tensor, v1:torch.Tensor, DOT_THRESHOLD=0.9995):
 
 #
 def optimize_update_preview_frequency(current_chunk_speed, previous_chunk_speed_list, update_preview_frequency, update_preview_frequency_list):
-    """Find the optimal update_preview_frequency value maximizing 
+    """Find the optimal update_preview_frequency value maximizing
     performance while minimizing the time between updates."""
     from statistics import mean
-       
+
     previous_chunk_avg_speed = mean(previous_chunk_speed_list)
-    
+
     previous_chunk_speed_list.append(current_chunk_speed)
     current_chunk_avg_speed = mean(previous_chunk_speed_list)
-    
+
     if current_chunk_avg_speed >= previous_chunk_avg_speed:
         #print(f"{current_chunk_speed} >= {previous_chunk_speed}")
         update_preview_frequency_list.append(update_preview_frequency + 1)
     else:
         #print(f"{current_chunk_speed} <= {previous_chunk_speed}")
         update_preview_frequency_list.append(update_preview_frequency - 1)
-        
+
     update_preview_frequency = round(mean(update_preview_frequency_list))
 
     return current_chunk_speed, previous_chunk_speed_list, update_preview_frequency, update_preview_frequency_list
@@ -1055,7 +1068,7 @@ def check_prompt_length(prompt, comments):
 
     comments.append(f"Warning: too many input tokens; some ({len(overflowing_words)}) have been truncated:\n{overflowing_text}\n")
 
-def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale, 
+def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
                 normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
                 save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images):
 
@@ -1137,7 +1150,7 @@ def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, widt
             piexif.insert(piexif.dump(exif_dict), f"{filename_i}.{save_ext}")
 
     # render the image on the frontend
-    st.session_state["preview_image"].image(image)    
+    st.session_state["preview_image"].image(image)
 
 def get_next_sequence_number(path, prefix=''):
     """
@@ -1216,7 +1229,7 @@ def oxlamon_matrix(prompt, seed, n_iter, batch_size):
                 texts.append( item.text )
                 parts.append( f"Seed: {itemseed}\n" + "\n".join(item.parts) )
                 seeds.append( itemseed )
-                itemseed += 1                
+                itemseed += 1
 
         return seeds, texts, parts
 
@@ -1321,9 +1334,9 @@ def process_images(
             target_seed_randomizer = seed_to_int('') # random seed
             torch.manual_seed(seed) # this has to be the single starting seed (not per-iteration)
             base_x = create_random_tensors([opt_C, height // opt_f, width // opt_f], seeds=[seed])
-            # we don't want all_seeds to be sequential from starting seed with variants, 
-            # since that makes the same variants each time, 
-            # so we add target_seed_randomizer as a random offset 
+            # we don't want all_seeds to be sequential from starting seed with variants,
+            # since that makes the same variants each time,
+            # so we add target_seed_randomizer as a random offset
             for si in range(len(all_seeds)):
                 all_seeds[si] += target_seed_randomizer
 
@@ -1377,7 +1390,7 @@ def process_images(
                 x = create_random_tensors(shape, seeds=seeds)
 
             if variant_amount > 0.0: # we are making variants
-                # using variant_seed as sneaky toggle, 
+                # using variant_seed as sneaky toggle,
                 # when not None or '' use the variant_seed
                 # otherwise use seeds
                 if variant_seed != None and variant_seed != '':
@@ -1395,7 +1408,7 @@ def process_images(
             x_samples_ddim = (st.session_state["model"] if not st.session_state['defaults'].general.optimized else st.session_state.modelFS).decode_first_stage(samples_ddim)
             x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
 
-            for i, x_sample in enumerate(x_samples_ddim):				
+            for i, x_sample in enumerate(x_samples_ddim):
                 sanitized_prompt = slugify(prompts[i])
 
                 if sort_samples:
@@ -1431,7 +1444,7 @@ def process_images(
                     gfpgan_image = Image.fromarray(gfpgan_sample)
                     gfpgan_filename = original_filename + '-gfpgan'
 
-                    save_sample(gfpgan_image, sample_path_i, gfpgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale, 
+                    save_sample(gfpgan_image, sample_path_i, gfpgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
                                                     normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback,
                                                     uses_random_seed_loopback, save_grid, sort_samples, sampler_name, ddim_eta,
                                                     n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
@@ -1453,11 +1466,11 @@ def process_images(
                     esrgan_sample = output[:,:,::-1]
                     esrgan_image = Image.fromarray(esrgan_sample)
 
-                    #save_sample(image, sample_path_i, original_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale, 
+                    #save_sample(image, sample_path_i, original_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
                             #normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback, skip_save,
                             #save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode)
 
-                    save_sample(esrgan_image, sample_path_i, esrgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale, 
+                    save_sample(esrgan_image, sample_path_i, esrgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
                                                     normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
                                                     save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
 
@@ -1478,9 +1491,9 @@ def process_images(
                     output, img_mode = st.session_state["RealESRGAN"].enhance(gfpgan_sample[:,:,::-1])
                     gfpgan_esrgan_filename = original_filename + '-gfpgan-esrgan4x'
                     gfpgan_esrgan_sample = output[:,:,::-1]
-                    gfpgan_esrgan_image = Image.fromarray(gfpgan_esrgan_sample)						    
+                    gfpgan_esrgan_image = Image.fromarray(gfpgan_esrgan_sample)
 
-                    save_sample(gfpgan_esrgan_image, sample_path_i, gfpgan_esrgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale, 
+                    save_sample(gfpgan_esrgan_image, sample_path_i, gfpgan_esrgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
                                                     normalize_prompt_weights, False, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
                                                     save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
 
@@ -1512,7 +1525,7 @@ def process_images(
                     image = Image.composite(init_img, image, init_mask)
 
                 if save_individual_images:
-                    save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale, 
+                    save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
                                                     normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
                                                     save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images)
 

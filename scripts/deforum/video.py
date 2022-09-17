@@ -1,7 +1,12 @@
 import os
 import subprocess
 from base64 import b64encode
+import platform
 
+if "Linux" in platform.platform():
+  ffmpeg = 'ffmpeg'
+else:
+  ffmpeg = 'C:\\tools\\ffmpeg\\bin\\ffmpeg.exe'
 
 fps = 12 #@param {type:"number"}
 #@markdown **Manual Settings**
@@ -17,7 +22,7 @@ def produce_video(image_path, mp4_path, max_frames, fps = 12):
 
     # make video
     cmd = [
-        'C:\\tools\\ffmpeg\\bin\\ffmpeg.exe',
+        ffmpeg,
         '-y',
         '-vcodec', 'png',
         '-r', str(fps),
