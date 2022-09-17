@@ -1,6 +1,7 @@
 import os
 from pytorch_lightning import seed_everything
 from torch import autocast
+from torchvision.utils import make_grid
 from contextlib import contextmanager, nullcontext
 from einops import rearrange, repeat
 import numpy as np
@@ -47,6 +48,93 @@ from k_diffusion.external import CompVisDenoiser
 device = None
 models_path = "./content/models"  # @param {type:"string"}
 model = None
+
+def sanitize(prompt):
+    whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    tmp = ''.join(filter(whitelist.__contains__, prompt))
+    return tmp.replace(' ', '_')
+
+
+def render_image_batch(args):
+
+    load_models()
+
+    prompts = args.prompts
+    args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
+    # create output folder for the batch
+    os.makedirs(args.outdir, exist_ok=True)
+    if args.save_settings or args.save_samples:
+        print(f"Saving to {os.path.join(args.outdir, args.timestring)}_*")
+
+    image_pipe = args.image
+
+    args.image = 'ignoreMe'
+
+    # save settings for the batch
+    if args.save_settings:
+        filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        with open(filename, "w+", encoding="utf-8") as f:
+            json.dump(dict(args.__dict__), f, ensure_ascii=False, indent=4)
+
+    index = 0
+
+    # function for init image batching
+    init_array = []
+    if args.use_init:
+        if args.init_image == "":
+            raise FileNotFoundError("No path was given for init_image")
+        if args.init_image.startswith('http://') or args.init_image.startswith('https://'):
+            init_array.append(args.init_image)
+        elif not os.path.isfile(args.init_image):
+            if args.init_image[-1] != "/":  # avoids path error by adding / to end if not there
+                args.init_image += "/"
+            for image in sorted(os.listdir(args.init_image)):  # iterates dir and appends images to init_array
+                if image.split(".")[-1] in ("png", "jpg", "jpeg"):
+                    init_array.append(args.init_image + image)
+        else:
+            init_array.append(args.init_image)
+    else:
+        init_array = [""]
+
+    # when doing large batches don't flood browser with images
+    clear_between_batches = args.n_batch >= 32
+
+    for iprompt, prompt in enumerate(prompts):
+        args.prompt = prompt
+        print(f"Prompt {iprompt + 1} of {len(prompts)}")
+        print(f"{args.prompt}")
+
+        all_images = []
+
+        for batch_index in range(args.n_batch):
+            # if clear_between_batches and batch_index % 32 == 0:
+            # display.clear_output(wait=True)
+            print(f"Batch {batch_index + 1} of {args.n_batch}")
+
+            for image in init_array:  # iterates the init images
+                args.init_image = image
+                results = generate(args)
+                for image in results:
+                    if args.make_grid:
+                        all_images.append(T.functional.pil_to_tensor(image))
+                    if args.save_samples:
+                        if args.filename_format == "{timestring}_{index}_{prompt}.png":
+                            filename = f"{args.timestring}_{index:05}_{sanitize(prompt)[:160]}.png"
+                        else:
+                            filename = f"{args.timestring}_{index:05}_{args.seed}.png"
+                        image.save(os.path.join(args.outdir, filename))
+                    image_pipe.image(image)
+                    index += 1
+                args.seed = next_seed(args)
+
+        # print(len(all_images))
+        if args.make_grid:
+            grid = make_grid(all_images, nrow=int(len(all_images) / args.grid_rows))
+            grid = rearrange(grid, 'c h w -> h w c').cpu().numpy()
+            filename = f"{args.timestring}_{iprompt:05d}_grid_{args.seed}.png"
+            grid_image = Image.fromarray(grid.astype(np.uint8))
+            grid_image.save(os.path.join(args.outdir, filename))
+
 
 class DeformAnimKeys:
     def __init__(self, anim_args):

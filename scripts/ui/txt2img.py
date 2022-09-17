@@ -11,6 +11,8 @@ from typing import Union
 from io import BytesIO
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.plms import PLMSSampler
+from ui.deforum_runner import runner
+
 
 from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
 from streamlit.elements import image as STImage
@@ -50,13 +52,14 @@ else:
 
 
 def layout():
+    def_runner = runner()
     with st.form("txt2img-inputs"):
         st.session_state["generation_mode"] = "txt2img"
 
         input_col1, generate_col1 = st.columns([10,1])
         with input_col1:
             #prompt = st.text_area("Input Text","")
-            prompt = st.text_input("Input Text","", placeholder="A corgi wearing a top hat as an oil painting.")
+            st.session_state["prompt"] = st.text_input("Input Text","", placeholder="A corgi wearing a top hat as an oil painting.")
 
             # Every form must have a submit button, the extra blank spaces is a temp way to align it with the input field. Needs to be done in CSS or some other way.
             generate_col1.write("")
@@ -211,6 +214,9 @@ def layout():
                     st.session_state["variant_seed"] = st.text_input("Variant Seed:", value=st.session_state['defaults'].txt2vid.seed, help="The seed to use when generating a variant, if left blank a random seed will be generated.")
                     st.session_state["beta_start"] = st.slider("Beta Start:", value=st.session_state['defaults'].txt2vid.beta_start, min_value=0.0001, max_value=0.03, step=0.0001, format="%.4f")
                     st.session_state["beta_end"] = st.slider("Beta End:", value=st.session_state['defaults'].txt2vid.beta_end, min_value=0.0001, max_value=0.03, step=0.0001, format="%.4f")
+
+        if generate_button:
+            def_runner.run_txt2img(st.session_state)
 
 #on import run init
 def createHTMLGallery(images,info):

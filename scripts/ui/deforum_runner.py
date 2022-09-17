@@ -85,7 +85,7 @@ class runner:
                        'C': 4,
                        'f': 8,
 
-                       'prompt': "",
+                       'prompt': data['prompt'],
                        'timestring': "",
                        'init_latent': None,
                        'init_sample': None,
@@ -192,3 +192,46 @@ class runner:
             mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
             max_frames = anim_args.max_frames
             video.produce_video(image_path, mp4_path, max_frames)
+
+
+
+    def run_txt2img(self, data):
+
+        args, anim_args = self.get_args(data)
+
+        args.timestring = time.strftime('%Y%m%d%H%M%S')
+        args.strength = max(0.0, min(1.0, args.strength))
+
+        if args.seed == -1:
+            args.seed = random.randint(0, 2 ** 32 - 1)
+        if not args.use_init:
+            args.init_image = None
+        if args.sampler == 'plms' and (args.use_init or anim_args.animation_mode != 'None'):
+            print(f"Init images aren't supported with PLMS yet, switching to KLMS")
+            args.sampler = 'klms'
+        if args.sampler != 'ddim':
+            args.ddim_eta = 0
+
+        if anim_args.animation_mode == 'None':
+            anim_args.max_frames = 1
+        elif anim_args.animation_mode == 'Video Input':
+            args.use_init = True
+
+        # clean up unused memory
+        gc.collect()
+        torch.cuda.empty_cache()
+
+        models_path = os.path.join(os.getcwd(), 'content', 'models')
+
+        prompts = [
+            "a beautiful forest by Asher Brown Durand, trending on Artstation", #the first prompt I want
+            "a beautiful portrait of a woman by Artgerm, trending on Artstation", #the second prompt I want
+            #"the third prompt I don't want it I commented it with an",
+        ]
+
+        prompts = [
+            args.prompt
+        ]
+        args.prompts = prompts
+
+        generator.render_image_batch(args)
