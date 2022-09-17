@@ -33,11 +33,7 @@ def get_timestep_embedding(timesteps, embedding_dim):
 
 def nonlinearity(x):
     # swish
-    t = torch.sigmoid(x)
-    x *= t
-    del t
-
-    return x
+    return x*torch.sigmoid(x)
 
 
 def Normalize(in_channels, num_groups=32):
@@ -135,7 +131,7 @@ class ResnetBlock(nn.Module):
         del h3
 
         if temb is not None:
-            h4 = h4 + self.temb_proj(nonlinearity(temb))[:,:,None,None]
+            h4 += self.temb_proj(nonlinearity(temb))[:,:,None,None]
 
         h5 = self.norm2(h4)
         del h4
@@ -155,7 +151,8 @@ class ResnetBlock(nn.Module):
             else:
                 x = self.nin_shortcut(x)
 
-        return x + h8
+        h8 += x
+        return h8
 
 
 class LinAttnBlock(LinearAttention):
@@ -191,6 +188,7 @@ class AttnBlock(nn.Module):
                                         stride=1,
                                         padding=0)
 
+
     def forward(self, x):
         h_ = x
         h_ = self.norm(h_)
@@ -219,7 +217,7 @@ class AttnBlock(nn.Module):
         mem_free_torch = mem_reserved - mem_active
         mem_free_total = mem_free_cuda + mem_free_torch
 
-        tensor_size = q.shape[0] * q.shape[1] * k.shape[2] * q.element_size()
+        tensor_size = q.shape[0] * q.shape[1] * k.shape[2] * 4
         mem_required = tensor_size * 2.5
         steps = 1
 
@@ -231,18 +229,17 @@ class AttnBlock(nn.Module):
             end = i + slice_size
 
             w1 = torch.bmm(q[:, i:end], k)     # b,hw,hw    w[b,i,j]=sum_c q[b,i,c]k[b,c,j]
-            w2 = w1 * (int(c)**(-0.5))
+            w1 *= (int(c)**(-0.5))
+            w2 = torch.nn.functional.softmax(w1, dim=2)
             del w1
-            w3 = torch.nn.functional.softmax(w2, dim=2, dtype=q.dtype)
-            del w2
 
             # attend to values
             v1 = v.reshape(b, c, h*w)
-            w4 = w3.permute(0, 2, 1)   # b,hw,hw (first hw of k, second of q)
-            del w3
+            w3 = w2.permute(0, 2, 1)   # b,hw,hw (first hw of k, second of q)
+            del w2
 
-            h_[:, :, i:end] = torch.bmm(v1, w4)     # b, c,hw (hw of q) h_[b,c,j] = sum_i v[b,c,i] w_[b,i,j]
-            del v1, w4
+            h_[:, :, i:end] = torch.bmm(v1, w3)     # b, c,hw (hw of q) h_[b,c,j] = sum_i v[b,c,i] w_[b,i,j]
+            del v1, w3
 
         h2 = h_.reshape(b, c, h, w)
         del h_
