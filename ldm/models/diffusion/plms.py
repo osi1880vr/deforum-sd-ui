@@ -2,7 +2,6 @@
 
 import torch
 import numpy as np
-#from tqdm.notebook import tqdm
 from tqdm import tqdm
 from functools import partial
 
@@ -162,7 +161,7 @@ class PLMSSampler(object):
             if len(old_eps) >= 4:
                 old_eps.pop(0)
             if callback: callback(i)
-            if img_callback: img_callback(img, i)
+            if img_callback: img_callback(pred_x0, i)
 
             if index % log_every_t == 0 or index == total_steps - 1:
                 intermediates['x_inter'].append(img)

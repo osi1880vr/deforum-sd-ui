@@ -13,7 +13,6 @@ import os
 #import k_diffusion as K
 from omegaconf import OmegaConf
 import warnings
-from ui.sd_utils import *
 
 
 # end of imports
@@ -36,6 +35,9 @@ st.session_state["defaults"] = OmegaConf.load("scripts/ui/config/webui_streamlit
 if (os.path.exists("scripts/ui/config/userconfig_streamlit.yaml")):
 	user_defaults = OmegaConf.load("scripts/ui/config/userconfig_streamlit.yaml")
 	st.session_state["defaults"] = OmegaConf.merge(st.session_state["defaults"], user_defaults)
+
+#We import sd_utils after we have our defaults loaded
+from ui.sd_utils import *
 
 # this should force GFPGAN and RealESRGAN onto the selected gpu as well
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
