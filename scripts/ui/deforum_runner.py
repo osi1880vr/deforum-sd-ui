@@ -38,6 +38,7 @@ class runner:
             data['seed'] = int(data['seed'])
         seed = int(random.randrange(0, 4200000000))
         DeforumArgs = {'image': data['preview_image'],
+                       'video': data['preview_video'],
                        'W': W,
                        'H': H,
                        'seed': seed,  # @param
@@ -191,7 +192,7 @@ class runner:
             image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
             mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
             max_frames = anim_args.max_frames
-            video.produce_video(image_path, mp4_path, max_frames)
+            video.produce_video(args, image_path, mp4_path, max_frames)
         elif anim_args.animation_mode == 'None':
             generator.render_animation(args, anim_args, animation_prompts, models_path)
 

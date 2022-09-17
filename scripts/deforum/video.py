@@ -16,7 +16,8 @@ mp4_path = "./content/output/2022-09/23_07_20/20220915230720.mp4" #@param {type:
 max_frames = '137'
 
 
-def produce_video(image_path, mp4_path, max_frames, fps = 12):
+def produce_video(args, image_path, mp4_path, max_frames, fps = 12):
+    video_pipe = args.video
 
     print(f"{image_path} -> {mp4_path}")
 
@@ -44,6 +45,7 @@ def produce_video(image_path, mp4_path, max_frames, fps = 12):
         print(stderr)
         raise RuntimeError(stderr)
 
-    mp4 = open(mp4_path,'rb').read()
-    data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
+    #mp4 = open(mp4_path,'rb').read()
+    #data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
+    video_pipe.video(mp4_path)
     #display.display( display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )

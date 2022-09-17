@@ -233,10 +233,11 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     args.image = 'ignoreMe'
 
     # save settings for the batch
-    settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
-    with open(settings_filename, "w+", encoding="utf-8") as f:
-        s = {**dict(args.__dict__), **dict(anim_args.__dict__)}
-        json.dump(s, f, ensure_ascii=False, indent=4)
+    if args.save_settings:
+        settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        with open(settings_filename, "w+", encoding="utf-8") as f:
+            s = {**dict(args.__dict__), **dict(anim_args.__dict__)}
+            json.dump(s, f, ensure_ascii=False, indent=4)
 
     # resume from timestring
     if anim_args.resume_from_timestring:

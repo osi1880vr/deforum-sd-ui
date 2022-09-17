@@ -173,7 +173,7 @@ def layout():
             with st.expander("Single Frame"):
                 st.session_state["ddim_eta"] = st.number_input('DDIM ETA', value=st.session_state['defaults'].txt2vid.ddim_eta,step=1e-1,format="%.1f")
                 st.session_state["save_samples"] = st.checkbox('Save Samples', value=True)
-                st.session_state["save_settings"] = st.checkbox('Save Settings', value=True)
+                st.session_state["save_settings"] = st.checkbox('Save Settings', value=False)#For now
                 st.session_state["display_samples"] = st.checkbox('Display Samples', value=True)
                 st.session_state["filename_format"] = st.selectbox(
                     'Filename Format',
