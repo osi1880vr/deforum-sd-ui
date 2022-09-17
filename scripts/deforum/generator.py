@@ -43,10 +43,9 @@ sys.path.extend([
 
 from k_diffusion.external import CompVisDenoiser
 
-
-device = None
+device = ('cuda')
 models_path = "./content/models"  # @param {type:"string"}
-model = None
+#model = None
 
 class DeformAnimKeys:
     def __init__(self, anim_args):
@@ -211,7 +210,8 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     #load_model()
 
     # animations use key framed prompts
-    args.prompts = animation_prompts
+    #args.prompts = animation_prompts
+    animation_prompts = args.prompt
 
     # expand key frame strings to values
     keys = DeformAnimKeys(anim_args)
@@ -245,9 +245,27 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     # expand prompts out to per-frame
     prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
-    for i, prompt in animation_prompts.items():
-        prompt_series[i] = prompt
+
+
+    prom = args.prompt
+    key = args.keyframes
+
+    new_prom = list(prom.split("\n"))
+    new_key = list(key.split("\n"))
+
+    prompts = dict(zip(new_key, new_prom))
+
+
+    #for i in animation_prompts:
+    #    prompt_series[i] = animation_prompts
+    #    print(prompt_series[i])
+
+    for i, prompt in prompts.items():
+        n = int(i)
+        prompt_series[n] = prompt
     prompt_series = prompt_series.ffill().bfill()
+
+    print(prompt_series)
 
     # check for video inits
     using_vid_init = anim_args.animation_mode == 'Video Input'
@@ -867,7 +885,7 @@ def getRotationMatrixManual(rotation_angles):
 
     rotation_angles = [np.deg2rad(x) for x in rotation_angles]
 
-    phi         = rotation_angles[0] # around x
+    phi = rotation_angles[0] # around x
     gamma       = rotation_angles[1] # around y
     theta       = rotation_angles[2] # around z
 
