@@ -727,10 +727,10 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
     seed_everything(args.seed)
     os.makedirs(args.outdir, exist_ok=True)
 
-    model = st.session_state["model"]
+    #model = st.session_state["model"]
 
-    sampler = PLMSSampler(model) if args.sampler == 'plms' else DDIMSampler(model)
-    model_wrap = CompVisDenoiser(model)
+    sampler = PLMSSampler(st.session_state["model"]) if args.sampler == 'plms' else DDIMSampler(st.session_state["model"])
+    model_wrap = CompVisDenoiser(st.session_state["model"])
     batch_size = args.n_samples
     prompt = args.prompt
     assert prompt is not None
@@ -744,7 +744,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
         init_latent = args.init_latent
     elif args.init_sample is not None:
         with precision_scope("cuda"):
-            init_latent = model.get_first_stage_encoding(model.encode_first_stage(args.init_sample))
+            init_latent = st.session_state["model"].get_first_stage_encoding(st.session_state["model"].encode_first_stage(args.init_sample))
     elif args.use_init and args.init_image != None and args.init_image != '':
         init_image, mask_image = load_img(args.init_image,
                                           shape=(args.W, args.H),
@@ -800,14 +800,14 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
     results = []
     with torch.no_grad():
         with precision_scope("cuda"):
-            with model.ema_scope():
+            with st.session_state["model"].ema_scope():
                 for prompts in data:
                     uc = None
                     if args.scale != 1.0:
-                        uc = model.get_learned_conditioning(batch_size * [""])
+                        uc = st.session_state["model"].get_learned_conditioning(batch_size * [""])
                     if isinstance(prompts, tuple):
                         prompts = list(prompts)
-                    c = model.get_learned_conditioning(prompts)
+                    c = st.session_state["model"].get_learned_conditioning(prompts)
 
                     if args.init_c != None:
                         c = args.init_c
@@ -855,7 +855,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
                     if return_latent:
                         results.append(samples.clone())
 
-                    x_samples = model.decode_first_stage(samples)
+                    x_samples = st.session_state["model"].decode_first_stage(samples)
                     if return_sample:
                         results.append(x_samples.clone())
 
