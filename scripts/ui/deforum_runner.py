@@ -6,7 +6,7 @@ import random
 import torch
 import gc
 from datetime import date
-
+import streamlit as st
 
 
 from types import SimpleNamespace
@@ -194,6 +194,8 @@ class runner:
             image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
             mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
             max_frames = anim_args.max_frames
+            st.session_state.preview_image.empty()
+
             video.produce_video(args, image_path, mp4_path, max_frames)
 
         elif anim_args.animation_mode == 'None':
