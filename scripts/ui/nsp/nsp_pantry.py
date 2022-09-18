@@ -1,3 +1,6 @@
+
+import random, os, json
+
 nspterminology = None
 
 def wget(url, output):
@@ -5,13 +8,21 @@ def wget(url, output):
     res = subprocess.run(['wget', '-q', url, '-O', output], stdout=subprocess.PIPE).stdout.decode('utf-8')
     print(res)
 
+def get_data():
+    global nspterminology
+    if not os.path.exists('./scripts/ui/nsp/nsp_pantry.json'):
+        wget('https://raw.githubusercontent.com/WASasquatch/noodle-soup-prompts/main/nsp_pantry.json', './scripts/ui/nsp/nsp_pantry.json')
+
+    if nspterminology is None:
+        with open('./scripts/ui/nsp/nsp_pantry.json', 'r', encoding="utf-8") as f:
+            nspterminology = json.loads(f.read())
+
+
+
 # nsp_parse( prompt )
 # Input: dict, list, str
 # Parse strings for terminology keys and replace them with random terms
 def nsp_parse(prompt):
-
-    import random, os, json
-
     global nspterminology
 
     new_prompt = ''
@@ -19,12 +30,7 @@ def nsp_parse(prompt):
     new_dict = {}
     ptype = type(prompt)
 
-    if not os.path.exists('./scripts/ui/nsp/nsp_pantry.json'):
-        wget('https://raw.githubusercontent.com/WASasquatch/noodle-soup-prompts/main/nsp_pantry.json', './scripts/ui/nsp/nsp_pantry.json')
-
-    if nspterminology is None:
-        with open('./scripts/ui/nsp/nsp_pantry.json', 'r', encoding="utf-8") as f:
-            nspterminology = json.loads(f.read())
+    get_data()
 
     if ptype == dict:
         for pstep, pvalue in prompt.items():
@@ -61,3 +67,9 @@ def nsp_parse(prompt):
         return new_prompt
     else:
         return
+
+
+
+def get_nsp_keys():
+    get_data()
+    return list(nspterminology.keys())

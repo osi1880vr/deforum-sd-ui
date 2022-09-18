@@ -57,6 +57,7 @@ def layout():
     col1, col2, col3 = st.columns([1,2,1], gap="small")
     with col1:
         with st.expander("Noodle Soup", expanded=False):
+            nsp_keys = get_nsp_keys()
             inputprompt = st.text_input('Raw Noodle', placeholder='_adj-beauty_')
             outputprompt = st.empty()
             noodle_btn = st.button(label='Cook!')
