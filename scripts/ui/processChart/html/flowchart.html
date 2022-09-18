@@ -304,16 +304,9 @@
 
   // print the diagram by opening a new window holding SVG images of the diagram contents for each page
   function printDiagram() {
-    console.log(document)
-    console.log(parent.document)
 
-    id = parent.document.querySelectorAll('[placeholder="alwaysFindMe"]');
-    console.log('id = ', id)
-    var s = parent.document.getElementById(id);
-    console.log('s = ', s)
-    var output = this.document.getElementById('mySavedModel').value;
-    //console.log('output = ',output)
-            s.value = output;
+
+    parent.document.querySelectorAll('[placeholder="alwaysFindMe"]')[0].value = document.getElementById('mySavedModel').value;
 
   }
   window.addEventListener('DOMContentLoaded', init);
