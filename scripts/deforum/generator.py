@@ -44,10 +44,9 @@ sys.path.extend([
 
 from k_diffusion.external import CompVisDenoiser
 
-
-device = None
+device = ('cuda')
 models_path = "./content/models"  # @param {type:"string"}
-model = None
+#model = None
 
 def sanitize(prompt):
     whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ')
@@ -298,7 +297,8 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
 
     # animations use key framed prompts
-    args.prompts = animation_prompts
+    #args.prompts = animation_prompts
+    animation_prompts = args.prompt
 
     # expand key frame strings to values
     keys = DeformAnimKeys(anim_args)
@@ -331,9 +331,27 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     # expand prompts out to per-frame
     prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
-    for i, prompt in animation_prompts.items():
-        prompt_series[i] = prompt
+
+
+    prom = args.prompt
+    key = args.keyframes
+
+    new_prom = list(prom.split("\n"))
+    new_key = list(key.split("\n"))
+
+    prompts = dict(zip(new_key, new_prom))
+
+
+    #for i in animation_prompts:
+    #    prompt_series[i] = animation_prompts
+    #    print(prompt_series[i])
+
+    for i, prompt in prompts.items():
+        n = int(i)
+        prompt_series[n] = prompt
     prompt_series = prompt_series.ffill().bfill()
+
+    print(prompt_series)
 
     # check for video inits
     using_vid_init = anim_args.animation_mode == 'Video Input'
@@ -695,10 +713,10 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
     seed_everything(args.seed)
     os.makedirs(args.outdir, exist_ok=True)
 
-    model = st.session_state["model"]
+    #model = st.session_state["model"]
 
-    sampler = PLMSSampler(model) if args.sampler == 'plms' else DDIMSampler(model)
-    model_wrap = CompVisDenoiser(model)
+    sampler = PLMSSampler(st.session_state["model"]) if args.sampler == 'plms' else DDIMSampler(st.session_state["model"])
+    model_wrap = CompVisDenoiser(st.session_state["model"])
     batch_size = args.n_samples
     prompt = args.prompt
     assert prompt is not None
@@ -712,7 +730,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
         init_latent = args.init_latent
     elif args.init_sample is not None:
         with precision_scope("cuda"):
-            init_latent = model.get_first_stage_encoding(model.encode_first_stage(args.init_sample))
+            init_latent = st.session_state["model"].get_first_stage_encoding(st.session_state["model"].encode_first_stage(args.init_sample))
     elif args.use_init and args.init_image != None and args.init_image != '':
         init_image, mask_image = load_img(args.init_image,
                                           shape=(args.W, args.H),
@@ -768,14 +786,14 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
     results = []
     with torch.no_grad():
         with precision_scope("cuda"):
-            with model.ema_scope():
+            with st.session_state["model"].ema_scope():
                 for prompts in data:
                     uc = None
                     if args.scale != 1.0:
-                        uc = model.get_learned_conditioning(batch_size * [""])
+                        uc = st.session_state["model"].get_learned_conditioning(batch_size * [""])
                     if isinstance(prompts, tuple):
                         prompts = list(prompts)
-                    c = model.get_learned_conditioning(prompts)
+                    c = st.session_state["model"].get_learned_conditioning(prompts)
 
                     if args.init_c != None:
                         c = args.init_c
@@ -823,7 +841,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
                     if return_latent:
                         results.append(samples.clone())
 
-                    x_samples = model.decode_first_stage(samples)
+                    x_samples = st.session_state["model"].decode_first_stage(samples)
                     if return_sample:
                         results.append(x_samples.clone())
 
@@ -853,7 +871,7 @@ def getRotationMatrixManual(rotation_angles):
 
     rotation_angles = [np.deg2rad(x) for x in rotation_angles]
 
-    phi         = rotation_angles[0] # around x
+    phi = rotation_angles[0] # around x
     gamma       = rotation_angles[1] # around y
     theta       = rotation_angles[2] # around z
 
