@@ -108,22 +108,22 @@ def layout():
 		
 		tabs = on_hover_tabs(tabName=['Stable Diffusion', "Textual Inversion","Model Manager","Settings"], 
                          iconName=['dashboard','model_training' ,'cloud_download', 'settings'], default_choice=0)
-		
-	if tabs =='Stable Diffusion':		
-		home_tab, txt2img_tab, img2img_tab, txt2vid_tab, postprocessing_tab = st.tabs(["Home","Text-to-Image", "Image-to-Image",
-	                                                                                                "Text-to-Video","Post-Processing"])
+
+	if tabs =='Stable Diffusion':
+		home_tab, txt2img_tab, img2img_tab, txt2vid_tab, postprocessing_tab, noodle_tab = st.tabs(["Home","Text-to-Image", "Image-to-Image",
+																								   "Text-to-Video","Post-Processing","Noodle-Lab"])
 		with home_tab:
 			from ui.home import layout
-			layout()		
-		
+			layout()
+
 		with txt2img_tab:
 			from ui.txt2img import layout
 			layout()
-		
+
 		with img2img_tab:
 			from ui.img2img import layout
 			layout()
-		
+
 		with txt2vid_tab:
 			from ui.txt2vid import layout
 			layout()
@@ -131,11 +131,15 @@ def layout():
 		with postprocessing_tab:
 			from ui.imglab import layout
 			layout()
+
+		with noodle_tab:
+			from ui.noodletab import layout
+			layout()
 	#
 	elif tabs == 'Model Manager':
 		from ui.ModelManager import layout
 		layout()
-	
+
 	elif tabs == 'Textual Inversion':
 		from ui.TextualInversion import layout
 		layout()
