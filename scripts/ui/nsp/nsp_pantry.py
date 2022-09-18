@@ -23,7 +23,7 @@ def nsp_parse(prompt):
         wget('https://raw.githubusercontent.com/WASasquatch/noodle-soup-prompts/main/nsp_pantry.json', './scripts/ui/nsp/nsp_pantry.json')
 
     if nspterminology is None:
-        with open('./scripts/ui/nsp/nsp_pantry.json', 'r') as f:
+        with open('./scripts/ui/nsp/nsp_pantry.json', 'r', encoding="utf-8") as f:
             nspterminology = json.loads(f.read())
 
     if ptype == dict:
