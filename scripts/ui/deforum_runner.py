@@ -88,7 +88,10 @@ class runner:
                        'C': 4,
                        'f': 8,
 
+
+                       'keyframes': st.session_state['keyframes'],
                        'prompt': st.session_state['prompt'],
+
                        'timestring': "",
                        'init_latent': None,
                        'init_sample': None,
@@ -192,6 +195,7 @@ class runner:
             generator.render_animation(args, anim_args, animation_prompts, models_path)
 
             image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
+
             mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
             max_frames = anim_args.max_frames
             st.session_state.preview_image.empty()

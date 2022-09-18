@@ -10,16 +10,18 @@ import os, sys, re, random, datetime, time, math
 import platform
 if "Linux" in platform.platform():
     sys.path.extend([
-        './src/taming-transformers',
-        './src/clip',
-        './',
-        './src/k-diffusion',
-        './src/pytorch3d-lite',
-        './src/AdaBins',
-        './src/MiDaS',
-        './soup',
-        './src/Real-ESRGAN'
+        '/content/src/taming-transformers',
+        '/content/src/clip',
+        '/content/deforum-sd-ui-colab',
+        '/content/src/k-diffusion',
+        '/content/src/pytorch3d-lite',
+        '/content/src/AdaBins',
+        '/content/src/MiDaS',
+        '/content/src/soup',
+        '/content/src/Real-ESRGAN'
     ])
+
+
 import warnings
 import json
 
@@ -53,9 +55,17 @@ import piexif
 import piexif.helper
 from tqdm import trange
 
+import nsp_pantry
+from nsp_pantry import nsp_parse
 # Temp imports
+#terminology_database = nspterminology
 
+test = nsp_parse("_adj-beauty_")
+print(test)
 
+#Note: nsp_parse() can accept dict, list and str input.
+#wget -q --show-progress --no-cache 'https://raw.githubusercontent.com/WASasquatch/noodle-soup-prompts/main/nsp_pantry.py'
+#Update: You do not use import nspterminology anymore. NSP will download the terminology database json on first run.
 # end of imports
 #---------------------------------------------------------------------------------------------------------------
 
@@ -120,21 +130,26 @@ elif save_format[0] == 'webp':
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = str(st.session_state["defaults"].general.gpu)
 
+def torch_gc():
+    gc.collect()
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+
 @retry(tries=5)
 def load_models(continue_prev_run = False, use_GFPGAN=False, use_RealESRGAN=False, RealESRGAN_model="RealESRGAN_x4plus",
                 CustomModel_available=False, custom_model="Stable Diffusion v1.4"):
     """Load the different models. We also reuse the models that are already in memory to speed things up instead of loading them again. """
 
     print ("Loading models.")
-
+    torch_gc()
     st.session_state["progress_bar_text"].text("Loading models...")
 
     # Generate random run ID
     # Used to link runs linked w/ continue_prev_run which is not yet implemented
     # Use URL and filesystem safe version just in case.
     st.session_state["run_id"] = base64.urlsafe_b64encode(
-            os.urandom(6)
-                ).decode("ascii")
+        os.urandom(6)
+    ).decode("ascii")
 
     # check what models we want to use and if the they are already loaded.
 
@@ -323,6 +338,24 @@ def get_sigmas_karras(n, sigma_min, sigma_max, rho=7., device='cpu'):
     max_inv_rho = sigma_max ** (1 / rho)
     sigmas = (max_inv_rho + ramp * (min_inv_rho - max_inv_rho)) ** rho
     return append_zero(sigmas).to(device)
+
+class log:
+    f = lambda color: lambda string: print(color + string + "\33[0m")
+    black = f("\33[30m")
+    red = f("\33[31m")
+    green = f("\33[32m")
+    yellow = f("\33[33m")
+    blue = f("\33[34m")
+    megenta = f("\33[35m")
+    cyan = f("\33[36m")
+    white = f("\33[37m")
+
+
+#if terminology_database:
+#	log.green("Loaded terminology database from the pantry.")
+#	print("\x1B[3mMmm. Noodle Soup.\x1B[0m")
+#else:
+#	log.red("Unable to load terminology database")
 
 #
 # helper fft routines that keep ortho normalization and auto-shift before and after fft
@@ -564,8 +597,8 @@ class KDiffusionSampler:
         model_wrap_cfg = CFGDenoiser(self.model_wrap)
         samples_ddim = None
         samples_ddim = K.sampling.__dict__[f'sample_{self.schedule}'](model_wrap_cfg, x, sigmas,
-                                                                              extra_args={'cond': conditioning, 'uncond': unconditional_conditioning,
-                                                                                          'cond_scale': unconditional_guidance_scale}, disable=False, callback=generation_callback)
+                                                                      extra_args={'cond': conditioning, 'uncond': unconditional_conditioning,
+                                                                                  'cond_scale': unconditional_guidance_scale}, disable=False, callback=generation_callback)
         #
         return samples_ddim, None
 
@@ -631,9 +664,9 @@ def load_GFPGAN():
 def load_RealESRGAN(model_name: str):
     from basicsr.archs.rrdbnet_arch import RRDBNet
     RealESRGAN_models = {
-            'RealESRGAN_x4plus': RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4),
-                'RealESRGAN_x4plus_anime_6B': RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=4)
-        }
+        'RealESRGAN_x4plus': RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4),
+        'RealESRGAN_x4plus_anime_6B': RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=4)
+    }
 
     model_path = os.path.join(st.session_state['defaults'].general.RealESRGAN_dir, 'experiments/pretrained_models', model_name + '.pth')
     if not os.path.exists(os.path.join(st.session_state['defaults'].general.RealESRGAN_dir, "experiments","pretrained_models", f"{model_name}.pth")):
@@ -832,19 +865,19 @@ def generation_callback(img, i=0):
     if st.session_state["generation_mode"] == "txt2img":
         percent = int(100 * float(i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps)/float(st.session_state.sampling_steps))
         st.session_state["progress_bar_text"].text(
-                    f"Running step: {i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps} {percent if percent < 100 else 100}%")
+            f"Running step: {i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps} {percent if percent < 100 else 100}%")
     else:
         if st.session_state["generation_mode"] == "img2img":
             round_sampling_steps = round(st.session_state.sampling_steps * st.session_state["denoising_strength"])
             percent = int(100 * float(i+1 if i+1 < round_sampling_steps else round_sampling_steps)/float(round_sampling_steps))
             st.session_state["progress_bar_text"].text(
-                            f"""Running step: {i+1 if i+1 < round_sampling_steps else round_sampling_steps}/{round_sampling_steps} {percent if percent < 100 else 100}%""")
+                f"""Running step: {i+1 if i+1 < round_sampling_steps else round_sampling_steps}/{round_sampling_steps} {percent if percent < 100 else 100}%""")
         else:
             if st.session_state["generation_mode"] == "txt2vid":
                 percent = int(100 * float(i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps)/float(st.session_state.sampling_steps))
                 st.session_state["progress_bar_text"].text(
-                                    f"Running step: {i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps}"
-                                        f"{percent if percent < 100 else 100}%")
+                    f"Running step: {i+1 if i+1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps}"
+                    f"{percent if percent < 100 else 100}%")
 
     st.session_state["progress_bar"].progress(percent if percent < 100 else 100)
 
@@ -1056,7 +1089,7 @@ def check_prompt_length(prompt, comments):
     max_length = (st.session_state["model"] if not st.session_state['defaults'].general.optimized else st.session_state.modelCS).cond_stage_model.max_length
 
     info = (st.session_state["model"] if not st.session_state['defaults'].general.optimized else st.session_state.modelCS).cond_stage_model.tokenizer([prompt], truncation=True, max_length=max_length,
-                                                                                                                     return_overflowing_tokens=True, padding="max_length", return_tensors="pt")
+                                                                                                                                                      return_overflowing_tokens=True, padding="max_length", return_tensors="pt")
     ovf = info['overflowing_tokens'][0]
     overflowing_count = ovf.shape[0]
     if overflowing_count == 0:
@@ -1098,11 +1131,11 @@ def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, widt
         if use_GFPGAN:
             toggles.append(6 + offset)
         metadata = \
-                    dict(
-                            target="txt2img" if init_img is None else "img2img",
-                                prompt=prompts[i], ddim_steps=steps, toggles=toggles, sampler_name=sampler_name,
-                                ddim_eta=ddim_eta, n_iter=n_iter, batch_size=batch_size, cfg_scale=cfg_scale,
-                                seed=seeds[i], width=width, height=height, normalize_prompt_weights=normalize_prompt_weights)
+            dict(
+                target="txt2img" if init_img is None else "img2img",
+                prompt=prompts[i], ddim_steps=steps, toggles=toggles, sampler_name=sampler_name,
+                ddim_eta=ddim_eta, n_iter=n_iter, batch_size=batch_size, cfg_scale=cfg_scale,
+                seed=seeds[i], width=width, height=height, normalize_prompt_weights=normalize_prompt_weights)
         # Not yet any use for these, but they bloat up the files:
         # info_dict["init_img"] = init_img
         # info_dict["init_mask"] = init_mask
@@ -1134,10 +1167,10 @@ def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, widt
         else:
             if jpg_sample:
                 image.save(f"{filename_i}.jpg", quality=save_quality,
-                                           optimize=True)
+                           optimize=True)
             elif save_ext == "webp":
                 image.save(f"{filename_i}.{save_ext}", f"webp", quality=save_quality,
-                                           lossless=save_lossless)
+                           lossless=save_lossless)
             else:
                 # not sure what file format this is
                 image.save(f"{filename_i}.{save_ext}", f"{save_ext}")
@@ -1146,7 +1179,7 @@ def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, widt
             except:
                 exif_dict = { "Exif": dict() }
             exif_dict["Exif"][piexif.ExifIFD.UserComment] = piexif.helper.UserComment.dump(
-                            json.dumps(metadata), encoding="unicode")
+                json.dumps(metadata), encoding="unicode")
             piexif.insert(piexif.dump(exif_dict), f"{filename_i}.{save_ext}")
 
     # render the image on the frontend
@@ -1249,7 +1282,7 @@ def oxlamon_matrix(prompt, seed, n_iter, batch_size):
 
 #
 def process_images(
-    outpath, func_init, func_sample, prompt, seed, sampler_name, save_grid, batch_size,
+        outpath, func_init, func_sample, prompt, seed, sampler_name, save_grid, batch_size,
         n_iter, steps, cfg_scale, width, height, prompt_matrix, use_GFPGAN, use_RealESRGAN, realesrgan_model_name,
         fp=None, ddim_eta=0.0, normalize_prompt_weights=True, init_img=None, init_mask=None,
         mask_blur_strength=3, mask_restore=False, denoising_strength=0.75, noise_mode=0, find_noise_steps=1, resize_mode=None, uses_loopback=False,
@@ -1381,10 +1414,10 @@ def process_images(
             if noise_mode == 1 or noise_mode == 3:
                 # TODO params for find_noise_to_image
                 x = torch.cat(batch_size * [find_noise_for_image.find_noise_for_image(
-                                    st.session_state["model"], st.session_state["device"],
-                                        init_img.convert('RGB'), '', find_noise_steps, 0.0, normalize=True,
-                                        generation_callback=generation_callback,
-                                        )], dim=0)
+                    st.session_state["model"], st.session_state["device"],
+                    init_img.convert('RGB'), '', find_noise_steps, 0.0, normalize=True,
+                    generation_callback=generation_callback,
+                )], dim=0)
             else:
                 # we manually generate all input noises because each one should have a specific seed
                 x = create_random_tensors(shape, seeds=seeds)
@@ -1445,9 +1478,9 @@ def process_images(
                     gfpgan_filename = original_filename + '-gfpgan'
 
                     save_sample(gfpgan_image, sample_path_i, gfpgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
-                                                    normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback,
-                                                    uses_random_seed_loopback, save_grid, sort_samples, sampler_name, ddim_eta,
-                                                    n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
+                                normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback,
+                                uses_random_seed_loopback, save_grid, sort_samples, sampler_name, ddim_eta,
+                                n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
 
                     output_images.append(gfpgan_image) #287
                     if simple_templating:
@@ -1467,12 +1500,12 @@ def process_images(
                     esrgan_image = Image.fromarray(esrgan_sample)
 
                     #save_sample(image, sample_path_i, original_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
-                            #normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback, skip_save,
-                            #save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode)
+                    #normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback, skip_save,
+                    #save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode)
 
                     save_sample(esrgan_image, sample_path_i, esrgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
-                                                    normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
-                                                    save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
+                                normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
+                                save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
 
                     output_images.append(esrgan_image) #287
                     if simple_templating:
@@ -1494,8 +1527,8 @@ def process_images(
                     gfpgan_esrgan_image = Image.fromarray(gfpgan_esrgan_sample)
 
                     save_sample(gfpgan_esrgan_image, sample_path_i, gfpgan_esrgan_filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
-                                                    normalize_prompt_weights, False, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
-                                                    save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
+                                normalize_prompt_weights, False, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
+                                save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
 
                     output_images.append(gfpgan_esrgan_image) #287
 
@@ -1526,16 +1559,16 @@ def process_images(
 
                 if save_individual_images:
                     save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
-                                                    normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
-                                                    save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images)
+                                normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback,
+                                save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images)
 
                     if not use_GFPGAN or not use_RealESRGAN:
                         output_images.append(image)
 
                     #if add_original_image or not simple_templating:
-                        #output_images.append(image)
-                        #if simple_templating:
-                            #grid_captions.append( captions[i] )
+                    #output_images.append(image)
+                    #if simple_templating:
+                    #grid_captions.append( captions[i] )
 
                 if st.session_state['defaults'].general.optimized:
                     mem = torch.cuda.memory_allocated()/1e6
