@@ -55,8 +55,8 @@ import piexif
 import piexif.helper
 from tqdm import trange
 
-import nsp_pantry
-from nsp_pantry import nsp_parse
+import ui.nsp.nsp_pantry
+from ui.nsp.nsp_pantry import nsp_parse
 # Temp imports
 #terminology_database = nspterminology
 
