@@ -41,6 +41,13 @@ else:
 #
 def layout():
     def_runner = runner()
+    with st.expander("Noodle Soup", expanded=False):
+        inputprompt = st.text_input('Raw Noodle', placeholder='_adj-beauty_')
+        outputprompt = st.empty()
+        noodle_btn = st.button(label='Cook!')
+        if noodle_btn:
+            outputprompt = st.write(nsp_parse(inputprompt))
+
     with st.form("txt2vid-inputs"):
         st.session_state["generation_mode"] = "txt2vid"
 
@@ -146,7 +153,6 @@ def layout():
             #with basic_tab:
             #summit_on_enter = st.radio("Submit on enter?", ("Yes", "No"), horizontal=True,
             #help="Press the Enter key to summit, when 'No' is selected you can use the Enter key to write multiple lines.")
-
 
             with st.expander("Animation", expanded=True):
                 st.session_state["animation_mode"] = st.selectbox(
