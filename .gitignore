@@ -31,3 +31,9 @@ cc-outputs.log
 /MiDaS/
 /src/latent-diffusion/
 /src/k-diffusion/
+.DS_Store
+configs/.DS_Store
+data/.DS_Store
+ldm/.DS_Store
+models/.DS_Store
+scripts/.DS_Store

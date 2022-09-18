@@ -317,6 +317,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     image_pipe = st.session_state["preview_image"]
     video_pipe = st.session_state["preview_video"]
+    video_pipe.empty()
 
     # save settings for the batch
     if args.save_settings:
