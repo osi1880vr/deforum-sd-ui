@@ -66,9 +66,8 @@ def render_image_batch(args):
     if args.save_settings or args.save_samples:
         print(f"Saving to {os.path.join(args.outdir, args.timestring)}_*")
 
-    image_pipe = args.image
-
-    args.image = 'ignoreMe'
+    image_pipe = st.session_state["preview_image"]
+    video_pipe = st.session_state["preview_video"]
 
     # save settings for the batch
     if args.save_settings:
@@ -296,7 +295,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     global device
 
     load_models()
-    #load_model()
+
 
     # animations use key framed prompts
     args.prompts = animation_prompts
@@ -316,9 +315,8 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     #os.makedirs(args.outdir, exist_ok=True)
     #print(f"Saving animation frames to {args.outdir}")
 
-    image_pipe = args.image
-
-    args.image = 'ignoreMe'
+    image_pipe = st.session_state["preview_image"]
+    video_pipe = st.session_state["preview_video"]
 
     # save settings for the batch
     if args.save_settings:
@@ -551,106 +549,6 @@ def transform_image_3d( prev_img_cv2, depth_tensor, rot_mat, translate, anim_arg
     ).cpu().numpy().astype(prev_img_cv2.dtype)
     return result
 
-def load_model():
-    global model_path
-
-    os.makedirs(models_path, exist_ok=True)
-
-
-    print(f"models_path: {models_path}")
-
-
-    model_config = "v1-inference.yaml"  # @param ["custom","v1-inference.yaml"]
-    # @param ["custom","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt",
-    # "sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt"]
-    model_checkpoint = "sd-v1-4.ckpt"
-    custom_config_path = ""  # @param {type:"string"}
-    custom_checkpoint_path = ""  # @param {type:"string"}
-
-    load_on_run_all = True  # @param {type: 'boolean'}
-    half_precision = True  # check
-    check_sha256 = False  # @param {type:"boolean"}
-
-    model_map = {
-        "sd-v1-4-full-ema.ckpt": {'sha256': '14749efc0ae8ef0329391ad4436feb781b402f4fece4883c7ad8d10556d8a36a'},
-        "sd-v1-4.ckpt": {'sha256': 'fe4efff1e174c627256e44ec2991ba279b3816e364b49f9be2abc0b3ff3f8556'},
-        "sd-v1-3-full-ema.ckpt": {'sha256': '54632c6e8a36eecae65e36cb0595fab314e1a1545a65209f24fde221a8d4b2ca'},
-        "sd-v1-3.ckpt": {'sha256': '2cff93af4dcc07c3e03110205988ff98481e86539c51a8098d4f2236e41f7f2f'},
-        "sd-v1-2-full-ema.ckpt": {'sha256': 'bc5086a904d7b9d13d2a7bccf38f089824755be7261c7399d92e555e1e9ac69a'},
-        "sd-v1-2.ckpt": {'sha256': '3b87d30facd5bafca1cbed71cfb86648aad75d1c264663c0cc78c7aea8daec0d'},
-        "sd-v1-1-full-ema.ckpt": {'sha256': 'efdeb5dc418a025d9a8cc0a8617e106c69044bc2925abecc8a254b2910d69829'},
-        "sd-v1-1.ckpt": {'sha256': '86cd1d3ccb044d7ba8db743d717c9bac603c4043508ad2571383f954390f3cea'}
-    }
-
-    # config path
-    ckpt_config_path = custom_config_path if model_config == "custom" else os.path.join(models_path, model_config)
-    if os.path.exists(ckpt_config_path):
-        print(f"{ckpt_config_path} exists")
-    else:
-        ckpt_config_path = "./configs/stable-diffusion/v1-inference.yaml"
-    print(f"Using config: {ckpt_config_path}")
-
-    # checkpoint path or download
-    ckpt_path = custom_checkpoint_path if model_checkpoint == "custom" else os.path.join(models_path, model_checkpoint)
-    ckpt_valid = True
-    print(f"checking for {ckpt_path}")
-    if os.path.exists(ckpt_path):
-        print(f"{ckpt_path} exists")
-    else:
-        print(f"Please download model checkpoint and place in {os.path.join(models_path, model_checkpoint)}")
-        ckpt_valid = False
-
-    if check_sha256 and model_checkpoint != "custom" and ckpt_valid:
-        import hashlib
-
-        print("\n...checking sha256")
-        with open(ckpt_path, "rb") as f:
-            bytes = f.read()
-            hash = hashlib.sha256(bytes).hexdigest()
-            del bytes
-        if model_map[model_checkpoint]["sha256"] == hash:
-            print("hash is correct\n")
-        else:
-            print("hash in not correct\n")
-            ckpt_valid = False
-
-    if ckpt_valid:
-        print(f"Using ckpt: {ckpt_path}")
-
-    if load_on_run_all and ckpt_valid:
-        global model
-        global device
-        local_config = OmegaConf.load(f"{ckpt_config_path}")
-        print(local_config)
-        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        model = model.to(device)
-        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        model = model.to(device)
-
-def load_model_from_config(config, ckpt, verbose=False, device='cuda', half_precision=True):
-    map_location = "cuda"  # @param ["cpu", "cuda"]
-    print(f"Loading model from {ckpt}")
-    pl_sd = torch.load(ckpt, map_location=map_location)
-    if "global_step" in pl_sd:
-        print(f"Global Step: {pl_sd['global_step']}")
-    sd = pl_sd["state_dict"]
-    model = instantiate_from_config(config.model)
-    m, u = model.load_state_dict(sd, strict=False)
-    if len(m) > 0 and verbose:
-        print("missing keys:")
-        print(m)
-    if len(u) > 0 and verbose:
-        print("unexpected keys:")
-        print(u)
-
-    if half_precision:
-        model = model.half().to(device)
-    else:
-        model = model.to(device)
-    model.eval()
-    return model
 
 def load_mask_latent(mask_input, shape):
     # mask_input (str or PIL Image.Image): Path to the mask image or a PIL Image object

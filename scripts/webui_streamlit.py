@@ -110,7 +110,7 @@ def layout():
                          iconName=['dashboard','model_training' ,'cloud_download', 'settings'], default_choice=0)
 		
 	if tabs =='Stable Diffusion':		
-		home_tab, txt2img_tab, img2img_tab, txt2vid_tab, postprocessing_tab = st.tabs(["Home","Text-to-Image Unified", "Image-to-Image Unified", 
+		home_tab, txt2img_tab, img2img_tab, txt2vid_tab, postprocessing_tab = st.tabs(["Home","Text-to-Image", "Image-to-Image",
 	                                                                                                "Text-to-Video","Post-Processing"])
 		with home_tab:
 			from ui.home import layout
