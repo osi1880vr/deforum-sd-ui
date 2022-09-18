@@ -39,6 +39,8 @@ if os.path.exists(os.path.join(st.session_state['defaults'].general.RealESRGAN_d
 else:
     RealESRGAN_available = False
 #
+soup_options = ['_adj-beauty_', '_camera_']
+
 def layout():
     def_runner = runner()
 
@@ -57,11 +59,11 @@ def layout():
     col1, col2, col3 = st.columns([1,2,1], gap="small")
     with col1:
         with st.expander("Noodle Soup", expanded=False):
-            inputprompt = st.text_input('Raw Noodle', placeholder='_adj-beauty_')
+            options = st.multiselect('Soup Ingredients', soup_options)
             outputprompt = st.empty()
             noodle_btn = st.button(label='Cook!')
             if noodle_btn:
-                outputprompt = st.write(nsp_parse(inputprompt))
+                outputprompt = st.write(nsp_parse(' '.join(options)))
 
         with st.expander("Basic Settings", expanded=True):
             generate_button = st.button("Generate")
