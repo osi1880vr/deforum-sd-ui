@@ -1,6 +1,6 @@
 # base webui import and utils.
-from webui_streamlit import st
-from ui.sd_utils import *
+import streamlit as st
+from tools.sd_utils import *
 
 # streamlit imports
 from streamlit import StopException
@@ -22,9 +22,15 @@ try:
 except:
 	pass
 
+class PluginInfo():
+        plugname = "img2img"
+        description = "Image to Image"
+        isTab = True
+        displayPriority = 3
+        
 
 
-def layout():
+def layoutFunc():
 	with st.form("img2img-inputs"):
 		st.session_state["generation_mode"] = "img2img"
 	
@@ -45,7 +51,8 @@ def layout():
 		with col1_img2img_layout:
 			# If we have custom models available on the "models/custom" 
 			#folder then we show a menu to select which model we want to use, otherwise we use the main model for SD
-			if st.session_state["CustomModel_available"]:
+			"""
+      if st.session_state["CustomModel_available"]:
 				st.session_state["custom_model"] = st.selectbox("Custom Model:", st.session_state["custom_models"],
 									    index=st.session_state["custom_models"].index(st.session_state['defaults'].general.default_model),
 							    help="Select the model you want to use. This option is only available if you have custom models \
@@ -54,7 +61,7 @@ def layout():
 							    will make it easier for you to distinguish it from other models. Default: Stable Diffusion v1.4") 	
 			else:
 				st.session_state["custom_model"] = "Stable Diffusion v1.4"
-				
+			"""	
 				
 			st.session_state["sampling_steps"] = st.slider("Sampling Steps", value=st.session_state['defaults'].img2img.sampling_steps, min_value=1, max_value=500)
 			
@@ -102,21 +109,21 @@ def layout():
 				write_info_files = st.checkbox("Write Info file", value=st.session_state['defaults'].img2img.write_info_files, 
 									       help="Save a file next to the image with informartion about the generation.")						
 				save_as_jpg = st.checkbox("Save samples as jpg", value=st.session_state['defaults'].img2img.save_as_jpg, help="Saves the images as jpg instead of png.")
+        
+				#if st.session_state["GFPGAN_available"]:
+				#	use_GFPGAN = st.checkbox("Use GFPGAN", value=st.session_state['defaults'].img2img.use_GFPGAN, help="Uses the GFPGAN model to improve faces after the generation.\
+				#			This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
+				#else:
+				#	use_GFPGAN = False
 	
-				if st.session_state["GFPGAN_available"]:
-					use_GFPGAN = st.checkbox("Use GFPGAN", value=st.session_state['defaults'].img2img.use_GFPGAN, help="Uses the GFPGAN model to improve faces after the generation.\
-							This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
-				else:
-					use_GFPGAN = False
-	
-				if st.session_state["RealESRGAN_available"]:
-					st.session_state["use_RealESRGAN"] = st.checkbox("Use RealESRGAN", value=st.session_state['defaults'].img2img.use_RealESRGAN,
-										     help="Uses the RealESRGAN model to upscale the images after the generation.\
-							This greatly improve the quality and lets you have high resolution images but uses extra VRAM. Disable if you need the extra VRAM.")
-					st.session_state["RealESRGAN_model"] = st.selectbox("RealESRGAN model", ["RealESRGAN_x4plus", "RealESRGAN_x4plus_anime_6B"], index=0)  
-				else:
-					st.session_state["use_RealESRGAN"] = False
-					st.session_state["RealESRGAN_model"] = "RealESRGAN_x4plus"
+				#if st.session_state["RealESRGAN_available"]:
+				#	st.session_state["use_RealESRGAN"] = st.checkbox("Use RealESRGAN", value=st.session_state['defaults'].img2img.use_RealESRGAN,
+				#						     help="Uses the RealESRGAN model to upscale the images after the generation.\
+				#			This greatly improve the quality and lets you have high resolution images but uses extra VRAM. Disable if you need the extra VRAM.")
+				#	st.session_state["RealESRGAN_model"] = st.selectbox("RealESRGAN model", ["RealESRGAN_x4plus", "RealESRGAN_x4plus_anime_6B"], index=0)  
+				#else:
+				#	st.session_state["use_RealESRGAN"] = False
+				#	st.session_state["RealESRGAN_model"] = "RealESRGAN_x4plus"
 	
 				variant_amount = st.slider("Variant Amount:", value=st.session_state['defaults'].img2img.variant_amount, min_value=0.0, max_value=1.0, step=0.01)
 				variant_seed = st.text_input("Variant Seed:", value=st.session_state['defaults'].img2img.variant_seed,

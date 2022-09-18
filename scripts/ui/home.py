@@ -1,6 +1,6 @@
 # base webui import and utils.
-from webui_streamlit import st
-from ui.sd_utils import *
+import streamlit as st
+#from ui.sd_utils import *
 
 # streamlit imports
 
@@ -24,11 +24,11 @@ try:
 except:
 	pass
 
-class plugin_info():
-	plugname = "home"
-	description = "Home"
-	isTab = True
-	displayPriority = 0
+class PluginInfo():
+        plugname = "home"
+        description = "Home"
+        isTab = True
+        displayPriority = 0
 
 def getLatestGeneratedImagesFromPath():
 	#get the latest images from the generated images folder
@@ -100,7 +100,7 @@ def get_images_from_lexica():
 	print(image_urls)
 	return image_urls
 
-def layout():
+def layoutFunc():
 	#streamlit home page layout
 	#center the title
 	st.markdown("<h1 style='text-align: center; color: white;'>Welcome, let's make some 🎨</h1>", unsafe_allow_html=True)

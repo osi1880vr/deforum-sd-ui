@@ -1,8 +1,8 @@
 # base webui import and utils.
-from webui_streamlit import st
-from ui.sd_utils import *
+import streamlit as st
+#from ui.sd_utils import *
 
-from ui.deforum_runner import runner
+from scripts.tools.deforum_runner import runner
 
 
 # streamlit imports
@@ -14,7 +14,7 @@ from typing import Union
 from io import BytesIO
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.plms import PLMSSampler
-from ui.deforum_runner import runner
+from scripts.tools.deforum_runner import runner
 
 
 from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
@@ -34,11 +34,12 @@ try:
 except:
     pass
 
-class plugin_info():
-    plugname = "txt2img"
-    description = "Text to Image"
-    isTab = True
-    displayPriority = 1
+class PluginInfo():
+        plugname = "txt2img"
+        description = "Text to Image"
+        isTab = True
+        displayPriority = 2
+        
 
 
 if os.path.exists(os.path.join(st.session_state['defaults'].general.GFPGAN_dir, "experiments", "pretrained_models", "GFPGANv1.3.pth")):
@@ -54,7 +55,7 @@ else:
 #
 
 
-def layout():
+def layoutFunc():
     def_runner = runner()
     with st.form("txt2img-inputs"):
         st.session_state["generation_mode"] = "txt2img"

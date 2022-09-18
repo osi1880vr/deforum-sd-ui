@@ -1,5 +1,6 @@
 import os
 import streamlit.components.v1 as components
+import streamlit as st
 
 # Create a _RELEASE constant. We'll set this to False while we're developing
 # the component, and True when we're ready to package and distribute it.
@@ -7,6 +8,13 @@ import streamlit.components.v1 as components
 # release process.)
 _RELEASE = False
 
+
+class PluginInfo():
+        plugname = "comps"
+        description = "Components Test"
+        isTab = True
+        displayPriority = 6
+        
 # Declare a Streamlit component. `declare_component` returns a function
 # that is used to create instances of the component. We're naming this
 # function "_component_func", with an underscore prefix, because we don't want
@@ -78,7 +86,7 @@ def my_component(name, key=None):
 # During development, we can run this just as we would any other Streamlit
 # app: `$ streamlit run my_component/__init__.py`
 
-def layout():
+def layoutFunc():
 #if not _RELEASE:
     import streamlit as st
 

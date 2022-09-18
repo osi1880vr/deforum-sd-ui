@@ -1,6 +1,6 @@
 # base webui import and utils.
-from webui_streamlit import st
-from ui.sd_utils import *
+import streamlit as st
+#from ui.sd_utils import *
 
 #home plugin
 import os
@@ -14,7 +14,12 @@ from streamlit.elements import image as STImage
 
 # end of imports
 #---------------------------------------------------------------------------------------------------------------
-
+class PluginInfo():
+        plugname = "imglab"
+        description = "Image Lab"
+        isTab = True
+        displayPriority = 4
+        
 try:
 	# this silences the annoying "Some weights of the model checkpoint were not used when initializing..." message at start.
 	from transformers import logging
@@ -145,7 +150,7 @@ def createHTMLGallery(images):
 	html3 += "".join(mkdwn_array)
 	html3 += '</div>'
 	return html3
-def layout():
+def layoutFunc():
 
 	col1, col2 = st.columns(2)
 	with col1:
