@@ -60,7 +60,7 @@ def load_css(isLocal, nameOrURL):
 
 def layout():
 	"""Layout functions to define all the streamlit layout here."""
-	st.set_page_config(page_title="Stable Diffusion Playground", layout="wide")
+	st.set_page_config(page_title="Text to Art Studio", layout="wide")
 
 
 
