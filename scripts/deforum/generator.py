@@ -64,9 +64,9 @@ class DeformAnimKeys:
         self.rotation_3d_z_series = get_inbetweens(parse_key_frames(anim_args.rotation_3d_z), anim_args.max_frames)
         self.noise_schedule_series = get_inbetweens(parse_key_frames(anim_args.noise_schedule), anim_args.max_frames)
         self.strength_schedule_series = get_inbetweens(parse_key_frames(anim_args.strength_schedule),
-                                                            anim_args.max_frames)
+                                                       anim_args.max_frames)
         self.contrast_schedule_series = get_inbetweens(parse_key_frames(anim_args.contrast_schedule),
-                                                            anim_args.max_frames)
+                                                       anim_args.max_frames)
 
 def get_inbetweens(key_frames, max_frames, integer=False, interp_method='Linear'):
     key_frame_series = pd.Series([np.nan for a in range(max_frames)])
@@ -233,10 +233,11 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     args.image = 'ignoreMe'
 
     # save settings for the batch
-    settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
-    with open(settings_filename, "w+", encoding="utf-8") as f:
-        s = {**dict(args.__dict__), **dict(anim_args.__dict__)}
-        json.dump(s, f, ensure_ascii=False, indent=4)
+    if args.save_settings:
+        settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        with open(settings_filename, "w+", encoding="utf-8") as f:
+            s = {**dict(args.__dict__), **dict(anim_args.__dict__)}
+            json.dump(s, f, ensure_ascii=False, indent=4)
 
     # resume from timestring
     if anim_args.resume_from_timestring:
@@ -254,8 +255,13 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     # load depth model for 3D
     predict_depths = (anim_args.animation_mode == '3D' and anim_args.use_depth_warping) or anim_args.save_depth_maps
     if predict_depths:
-        depth_model = DepthModel(device)
-        depth_model.load_midas(model_path)
+        if "depth_model" in st.session_state:
+            print("Using depth model from cache")
+            depth_model = st.session_state["depth_model"]
+        else:
+            st.session_state["depth_model"] = DepthModel(device)
+            depth_model = st.session_state["depth_model"]
+            depth_model.load_midas(model_path)
         if anim_args.midas_weight < 1.0:
             depth_model.load_adabins()
     else:
