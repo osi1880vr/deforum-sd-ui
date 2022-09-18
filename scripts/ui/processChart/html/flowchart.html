@@ -1,18 +1,18 @@
-
-  <!DOCTYPE html>
-  <html lang="en">
-  <body>
-  <script src="https://unpkg.com/gojs@2.2.15/release/go.js"></script>
-  <p>
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<script src="https://unpkg.com/gojs@2.2.15/release/go.js"></script>
+<p>
     This is a minimalist HTML and JavaScript skeleton of the GoJS Sample
-    <a href="https://gojs.net/latest/samples/flowchart.html">flowchart.html</a>. It was automatically generated from a button on the sample page,
+    <a href="https://gojs.net/latest/samples/flowchart.html">flowchart.html</a>. It was automatically generated from a
+    button on the sample page,
     and does not contain the full HTML. It is intended as a starting point to adapt for your own usage.
     For many samples, you may need to inspect the
     <a href="https://github.com/NorthwoodsSoftware/GoJS/blob/master/samples/flowchart.html">full source on Github</a>
     and copy other files or scripts.
-  </p>
-  <div id="allSampleContent" class="p-4 w-full">
-<script id="code">
+</p>
+<div id="allSampleContent" class="p-4 w-full">
+    <script id="code">
   function init() {
     if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
 
@@ -322,31 +322,50 @@
     setTimeout(() => svgWindow.print(), 1);
   }
   window.addEventListener('DOMContentLoaded', init);
-</script>
 
-<div id="sample">
-<div style="width: 100%; display: flex; justify-content: space-between">
-  <div id="myPaletteDiv" style="width: 100px; margin-right: 2px; background-color: rgb(40, 44, 52); position: relative; -webkit-tap-highlight-color: rgba(255, 255, 255, 0); cursor: auto;"><canvas tabindex="0" width="100" height="750" style="position: absolute; top: 0px; left: 0px; z-index: 2; user-select: none; touch-action: none; width: 100px; height: 750px; cursor: auto;">This text is displayed if your browser does not support the Canvas HTML element.</canvas><div style="position: absolute; overflow: auto; width: 100px; height: 750px; z-index: 1;"><div style="position: absolute; width: 1px; height: 1px;"></div></div></div>
-  <div id="myDiagramDiv" style="flex-grow: 1; height: 750px; background-color: rgb(40, 44, 52); position: relative; -webkit-tap-highlight-color: rgba(255, 255, 255, 0); cursor: auto;"><canvas tabindex="0" width="954" height="750" style="position: absolute; top: 0px; left: 0px; z-index: 2; user-select: none; touch-action: none; width: 954px; height: 750px; cursor: auto;">This text is displayed if your browser does not support the Canvas HTML element.</canvas><div style="position: absolute; overflow: auto; width: 954px; height: 750px; z-index: 1;"><div style="position: absolute; width: 1px; height: 1px;"></div></div></div>
-</div>
-<p>
-The FlowChart sample demonstrates several key features of GoJS,
-namely <a href="../intro/palette.html">Palette</a>s,
-<a href="../intro/links.html">Linkable nodes</a>, Drag/Drop behavior,
-<a href="../intro/textBlocks.html">Text Editing</a>, and the use of
-<a href="../intro/templateMaps.html">Node Template Maps</a> in Diagrams.
-</p>
-<p>
-Mouse-over a Node to view its ports.
-Drag from these ports to create new Links.
-Selecting Links allows you to re-shape and re-link them.
-Selecting a Node and then clicking its TextBlock will allow
-you to edit text (except on the Start and End Nodes).
-</p>
-<button id="SaveButton" onclick="save()" disabled="">Save</button>
-<button onclick="load()">Load</button>
-Diagram Model saved in JSON format:
-<textarea id="mySavedModel" style="width:100%;height:300px">{ "class": "go.GraphLinksModel",
+    </script>
+
+    <div id="sample">
+        <div style="width: 100%; display: flex; justify-content: space-between">
+            <div id="myPaletteDiv"
+                 style="width: 100px; margin-right: 2px; background-color: rgb(40, 44, 52); position: relative; -webkit-tap-highlight-color: rgba(255, 255, 255, 0); cursor: auto;">
+                <canvas tabindex="0" width="100" height="750"
+                        style="position: absolute; top: 0px; left: 0px; z-index: 2; user-select: none; touch-action: none; width: 100px; height: 750px; cursor: auto;">
+                    This text is displayed if your browser does not support the Canvas HTML element.
+                </canvas>
+                <div style="position: absolute; overflow: auto; width: 100px; height: 750px; z-index: 1;">
+                    <div style="position: absolute; width: 1px; height: 1px;"></div>
+                </div>
+            </div>
+            <div id="myDiagramDiv"
+                 style="flex-grow: 1; height: 750px; background-color: rgb(40, 44, 52); position: relative; -webkit-tap-highlight-color: rgba(255, 255, 255, 0); cursor: auto;">
+                <canvas tabindex="0" width="954" height="750"
+                        style="position: absolute; top: 0px; left: 0px; z-index: 2; user-select: none; touch-action: none; width: 954px; height: 750px; cursor: auto;">
+                    This text is displayed if your browser does not support the Canvas HTML element.
+                </canvas>
+                <div style="position: absolute; overflow: auto; width: 954px; height: 750px; z-index: 1;">
+                    <div style="position: absolute; width: 1px; height: 1px;"></div>
+                </div>
+            </div>
+        </div>
+        <p>
+            The FlowChart sample demonstrates several key features of GoJS,
+            namely <a href="../intro/palette.html">Palette</a>s,
+            <a href="../intro/links.html">Linkable nodes</a>, Drag/Drop behavior,
+            <a href="../intro/textBlocks.html">Text Editing</a>, and the use of
+            <a href="../intro/templateMaps.html">Node Template Maps</a> in Diagrams.
+        </p>
+        <p>
+            Mouse-over a Node to view its ports.
+            Drag from these ports to create new Links.
+            Selecting Links allows you to re-shape and re-link them.
+            Selecting a Node and then clicking its TextBlock will allow
+            you to edit text (except on the Start and End Nodes).
+        </p>
+        <button id="SaveButton" onclick="save()" disabled="">Save</button>
+        <button onclick="load()">Load</button>
+        Diagram Model saved in JSON format:
+        <textarea id="mySavedModel" style="width:100%;height:300px">{ "class": "go.GraphLinksModel",
 "linkFromPortIdProperty": "fromPort",
 "linkToPortIdProperty": "toPort",
 "nodeDataArray": [
@@ -378,9 +397,10 @@ Diagram Model saved in JSON format:
 {"from":0, "to":4, "fromPort":"B", "toPort":"T"}
 ]}
 </textarea>
-<button onclick="printDiagram()">Print Diagram Using SVG</button>
-<p class="text-xs">GoJS version 2.2.15. Copyright 1998-2022 by Northwoods Software.</p></div>
-<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&amp;swap" rel="stylesheet" type="text/css">
-    <p><a href="https://github.com/NorthwoodsSoftware/GoJS/blob/master/samples/flowchart.html" target="_blank">View this sample page's source on GitHub</a></p></div>
-  </body>
-  </html>
+        <button onclick="printDiagram()">Print Diagram Using SVG</button>
+        <p class="text-xs">GoJS version 2.2.15. Copyright 1998-2022 by Northwoods Software.</p></div>
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&amp;swap" rel="stylesheet" type="text/css">
+    <p><a href="https://github.com/NorthwoodsSoftware/GoJS/blob/master/samples/flowchart.html" target="_blank">View this
+        sample page's source on GitHub</a></p></div>
+</body>
+</html>
