@@ -39,14 +39,14 @@ general:
 
 txt2img:
     prompt:
-    height: 512
-    width: 512
-    cfg_scale: 7.5
+    W: 512  # @param
+    H: 512  # @param
+    scale: 7.5
     seed: ""
-    batch_count: 1
+    iterations: 1
     batch_size: 1
-    sampling_steps: 30
-    default_sampler: "k_euler"
+    steps: 30
+    sampler: "k_euler"
     separate_prompts: False
     update_preview: True
     update_preview_frequency: 5
@@ -61,7 +61,41 @@ txt2img:
     variant_amount: 0.0
     variant_seed: ""
     write_info_files: True
-    
+    ddim_eta: 0.0  # @param
+    dynamic_threshold: None
+    static_threshold: None
+    beta_start: 0.00085
+    beta_end: 0.012
+    # @markdown **Save & Display Settings**
+    save_samples: True  # @param {type:"boolean"}
+    save_settings: True  # @param {type:"boolean"}
+    display_samples: True  # @param {type:"boolean"}
+
+    # @markdown **Batch Settings**
+    n_batch: 1  # @param
+    batch_name: 'time'  # @param {type:"string"}
+    filename_format: "{timestring}_{index}_{prompt}.png"  # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
+    seed_behavior: "iter"  # @param ["iter","fixed","random"]
+    make_grid: False  # @param {type:"boolean"}
+    grid_rows: 2  # @param
+    outdir: ''
+
+    # @markdown **Init Settings**
+    use_init: False  # @param {type:"boolean"}
+    strength: 0.0  # @param {type:"number"}
+    strength_0_no_init: True  # Set the strength to 0 automatically when no init image is used
+    init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
+    # Whiter areas of the mask are areas that change more
+    use_mask: False  # @param {type:"boolean"}
+    use_alpha_as_mask: False  # use the alpha channel of the init image as the mask
+    mask_file: "./scripts/deforum/init_files/mask.jpg"  # @param {type:"string"}
+    invert_mask: False  # @param {type:"boolean"}
+    # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
+    mask_brightness_adjust: 1.0  # @param {type:"number"}
+    mask_contrast_adjust: 1.0  # @param {type:"number"}
+
+
+
 txt2vid:
     default_model: "CompVis/stable-diffusion-v1-4"
     custom_models_list: ["CompVis/stable-diffusion-v1-4", "naclbit/trinart_stable_diffusion_v2", "hakurei/waifu-diffusion", "osanseviero/BigGAN-deep-128"]

@@ -1,6 +1,7 @@
 import os
 from pytorch_lightning import seed_everything
 from torch import autocast
+from torchvision.utils import make_grid
 from contextlib import contextmanager, nullcontext
 from einops import rearrange, repeat
 import numpy as np
@@ -46,6 +47,92 @@ from k_diffusion.external import CompVisDenoiser
 device = ('cuda')
 models_path = "./content/models"  # @param {type:"string"}
 #model = None
+
+def sanitize(prompt):
+    whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    tmp = ''.join(filter(whitelist.__contains__, prompt))
+    return tmp.replace(' ', '_')
+
+
+def render_image_batch(args):
+
+    load_models()
+
+    prompts = args.prompts
+    args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
+    # create output folder for the batch
+    os.makedirs(args.outdir, exist_ok=True)
+    if args.save_settings or args.save_samples:
+        print(f"Saving to {os.path.join(args.outdir, args.timestring)}_*")
+
+    image_pipe = st.session_state["preview_image"]
+    video_pipe = st.session_state["preview_video"]
+
+    # save settings for the batch
+    if args.save_settings:
+        filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        with open(filename, "w+", encoding="utf-8") as f:
+            json.dump(dict(args.__dict__), f, ensure_ascii=False, indent=4)
+
+    index = 0
+
+    # function for init image batching
+    init_array = []
+    if args.use_init:
+        if args.init_image == "":
+            raise FileNotFoundError("No path was given for init_image")
+        if args.init_image.startswith('http://') or args.init_image.startswith('https://'):
+            init_array.append(args.init_image)
+        elif not os.path.isfile(args.init_image):
+            if args.init_image[-1] != "/":  # avoids path error by adding / to end if not there
+                args.init_image += "/"
+            for image in sorted(os.listdir(args.init_image)):  # iterates dir and appends images to init_array
+                if image.split(".")[-1] in ("png", "jpg", "jpeg"):
+                    init_array.append(args.init_image + image)
+        else:
+            init_array.append(args.init_image)
+    else:
+        init_array = [""]
+
+    # when doing large batches don't flood browser with images
+    clear_between_batches = args.n_batch >= 32
+
+    for iprompt, prompt in enumerate(prompts):
+        args.prompt = prompt
+        print(f"Prompt {iprompt + 1} of {len(prompts)}")
+        print(f"{args.prompt}")
+
+        all_images = []
+
+        for batch_index in range(args.n_batch):
+            # if clear_between_batches and batch_index % 32 == 0:
+            # display.clear_output(wait=True)
+            print(f"Batch {batch_index + 1} of {args.n_batch}")
+
+            for image in init_array:  # iterates the init images
+                args.init_image = image
+                results = generate(args)
+                for image in results:
+                    if args.make_grid:
+                        all_images.append(T.functional.pil_to_tensor(image))
+                    if args.save_samples:
+                        if args.filename_format == "{timestring}_{index}_{prompt}.png":
+                            filename = f"{args.timestring}_{index:05}_{sanitize(prompt)[:160]}.png"
+                        else:
+                            filename = f"{args.timestring}_{index:05}_{args.seed}.png"
+                        image.save(os.path.join(args.outdir, filename))
+                    image_pipe.image(image)
+                    index += 1
+                args.seed = next_seed(args)
+
+        # print(len(all_images))
+        if args.make_grid:
+            grid = make_grid(all_images, nrow=int(len(all_images) / args.grid_rows))
+            grid = rearrange(grid, 'c h w -> h w c').cpu().numpy()
+            filename = f"{args.timestring}_{iprompt:05d}_grid_{args.seed}.png"
+            grid_image = Image.fromarray(grid.astype(np.uint8))
+            grid_image.save(os.path.join(args.outdir, filename))
+
 
 class DeformAnimKeys:
     def __init__(self, anim_args):
@@ -207,7 +294,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     global device
 
     load_models()
-    #load_model()
+
 
     # animations use key framed prompts
     #args.prompts = animation_prompts
@@ -228,9 +315,8 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     #os.makedirs(args.outdir, exist_ok=True)
     #print(f"Saving animation frames to {args.outdir}")
 
-    image_pipe = args.image
-
-    args.image = 'ignoreMe'
+    image_pipe = st.session_state["preview_image"]
+    video_pipe = st.session_state["preview_video"]
 
     # save settings for the batch
     if args.save_settings:
@@ -481,106 +567,6 @@ def transform_image_3d( prev_img_cv2, depth_tensor, rot_mat, translate, anim_arg
     ).cpu().numpy().astype(prev_img_cv2.dtype)
     return result
 
-def load_model():
-    global model_path
-
-    os.makedirs(models_path, exist_ok=True)
-
-
-    print(f"models_path: {models_path}")
-
-
-    model_config = "v1-inference.yaml"  # @param ["custom","v1-inference.yaml"]
-    # @param ["custom","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt",
-    # "sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt"]
-    model_checkpoint = "sd-v1-4.ckpt"
-    custom_config_path = ""  # @param {type:"string"}
-    custom_checkpoint_path = ""  # @param {type:"string"}
-
-    load_on_run_all = True  # @param {type: 'boolean'}
-    half_precision = True  # check
-    check_sha256 = False  # @param {type:"boolean"}
-
-    model_map = {
-        "sd-v1-4-full-ema.ckpt": {'sha256': '14749efc0ae8ef0329391ad4436feb781b402f4fece4883c7ad8d10556d8a36a'},
-        "sd-v1-4.ckpt": {'sha256': 'fe4efff1e174c627256e44ec2991ba279b3816e364b49f9be2abc0b3ff3f8556'},
-        "sd-v1-3-full-ema.ckpt": {'sha256': '54632c6e8a36eecae65e36cb0595fab314e1a1545a65209f24fde221a8d4b2ca'},
-        "sd-v1-3.ckpt": {'sha256': '2cff93af4dcc07c3e03110205988ff98481e86539c51a8098d4f2236e41f7f2f'},
-        "sd-v1-2-full-ema.ckpt": {'sha256': 'bc5086a904d7b9d13d2a7bccf38f089824755be7261c7399d92e555e1e9ac69a'},
-        "sd-v1-2.ckpt": {'sha256': '3b87d30facd5bafca1cbed71cfb86648aad75d1c264663c0cc78c7aea8daec0d'},
-        "sd-v1-1-full-ema.ckpt": {'sha256': 'efdeb5dc418a025d9a8cc0a8617e106c69044bc2925abecc8a254b2910d69829'},
-        "sd-v1-1.ckpt": {'sha256': '86cd1d3ccb044d7ba8db743d717c9bac603c4043508ad2571383f954390f3cea'}
-    }
-
-    # config path
-    ckpt_config_path = custom_config_path if model_config == "custom" else os.path.join(models_path, model_config)
-    if os.path.exists(ckpt_config_path):
-        print(f"{ckpt_config_path} exists")
-    else:
-        ckpt_config_path = "./configs/stable-diffusion/v1-inference.yaml"
-    print(f"Using config: {ckpt_config_path}")
-
-    # checkpoint path or download
-    ckpt_path = custom_checkpoint_path if model_checkpoint == "custom" else os.path.join(models_path, model_checkpoint)
-    ckpt_valid = True
-    print(f"checking for {ckpt_path}")
-    if os.path.exists(ckpt_path):
-        print(f"{ckpt_path} exists")
-    else:
-        print(f"Please download model checkpoint and place in {os.path.join(models_path, model_checkpoint)}")
-        ckpt_valid = False
-
-    if check_sha256 and model_checkpoint != "custom" and ckpt_valid:
-        import hashlib
-
-        print("\n...checking sha256")
-        with open(ckpt_path, "rb") as f:
-            bytes = f.read()
-            hash = hashlib.sha256(bytes).hexdigest()
-            del bytes
-        if model_map[model_checkpoint]["sha256"] == hash:
-            print("hash is correct\n")
-        else:
-            print("hash in not correct\n")
-            ckpt_valid = False
-
-    if ckpt_valid:
-        print(f"Using ckpt: {ckpt_path}")
-
-    if load_on_run_all and ckpt_valid:
-        global model
-        global device
-        local_config = OmegaConf.load(f"{ckpt_config_path}")
-        print(local_config)
-        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        model = model.to(device)
-        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        model = model.to(device)
-
-def load_model_from_config(config, ckpt, verbose=False, device='cuda', half_precision=True):
-    map_location = "cuda"  # @param ["cpu", "cuda"]
-    print(f"Loading model from {ckpt}")
-    pl_sd = torch.load(ckpt, map_location=map_location)
-    if "global_step" in pl_sd:
-        print(f"Global Step: {pl_sd['global_step']}")
-    sd = pl_sd["state_dict"]
-    model = instantiate_from_config(config.model)
-    m, u = model.load_state_dict(sd, strict=False)
-    if len(m) > 0 and verbose:
-        print("missing keys:")
-        print(m)
-    if len(u) > 0 and verbose:
-        print("unexpected keys:")
-        print(u)
-
-    if half_precision:
-        model = model.half().to(device)
-    else:
-        model = model.to(device)
-    model.eval()
-    return model
 
 def load_mask_latent(mask_input, shape):
     # mask_input (str or PIL Image.Image): Path to the mask image or a PIL Image object

@@ -79,7 +79,7 @@ def layout():
             st.session_state["steps"] = st.number_input('Sample Steps', value=st.session_state['defaults'].txt2vid.steps,step=1)
             st.session_state["sampler"] = st.selectbox(
                 'Sampler',
-                ("plms","klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "ddim"))
+                ("ddim", "plms","klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral" ), help="DDIM and PLMS are for quick results, you can use low sample steps. for the rest go up with the steps maybe start at 50 and raise from there")
 
             st.session_state["sampling_mode"] = st.selectbox(
                 'Sampling Mode',
@@ -285,7 +285,11 @@ def layout():
                 st.session_state["variant_seed"] = st.text_input("Variant Seed:", value=st.session_state['defaults'].txt2vid.seed, help="The seed to use when generating a variant, if left blank a random seed will be generated.")
                 st.session_state["beta_start"] = st.slider("Beta Start:", value=st.session_state['defaults'].txt2vid.beta_start, min_value=0.0001, max_value=0.03, step=0.0001, format="%.4f")
                 st.session_state["beta_end"] = st.slider("Beta End:", value=st.session_state['defaults'].txt2vid.beta_end, min_value=0.0001, max_value=0.03, step=0.0001, format="%.4f")
-"""
+
+
+
+        if generate_button:
+            def_runner.run_batch()
 
 
 
