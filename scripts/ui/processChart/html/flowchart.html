@@ -304,28 +304,24 @@
 
   // print the diagram by opening a new window holding SVG images of the diagram contents for each page
   function printDiagram() {
-    var svgWindow = window.open();
-    if (!svgWindow) return;  // failure to open a new Window
-    var printSize = new go.Size(700, 960);
-    var bnds = myDiagram.documentBounds;
-    var x = bnds.x;
-    var y = bnds.y;
-    while (y < bnds.bottom) {
-      while (x < bnds.right) {
-        var svg = myDiagram.makeSvg({ scale: 1.0, position: new go.Point(x, y), size: printSize });
-        svgWindow.document.body.appendChild(svg);
-        x += printSize.width;
-      }
-      x = bnds.x;
-      y += printSize.height;
-    }
-    setTimeout(() => svgWindow.print(), 1);
+    console.log(document)
+    console.log(parent.document)
+
+    id = parent.document.querySelectorAll('[placeholder="alwaysFindMe"]');
+    console.log('id = ', id)
+    var s = parent.document.getElementById(id);
+    console.log('s = ', s)
+    var output = this.document.getElementById('mySavedModel').value;
+    //console.log('output = ',output)
+            s.value = output;
+
   }
   window.addEventListener('DOMContentLoaded', init);
 
     </script>
 
     <div id="sample">
+        <button onclick="printDiagram()">Print Diagram Using SVG</button>
         <div style="width: 100%; display: flex; justify-content: space-between">
             <div id="myPaletteDiv"
                  style="width: 100px; margin-right: 2px; background-color: rgb(40, 44, 52); position: relative; -webkit-tap-highlight-color: rgba(255, 255, 255, 0); cursor: auto;">
@@ -397,7 +393,7 @@
 {"from":0, "to":4, "fromPort":"B", "toPort":"T"}
 ]}
 </textarea>
-        <button onclick="printDiagram()">Print Diagram Using SVG</button>
+
         <p class="text-xs">GoJS version 2.2.15. Copyright 1998-2022 by Northwoods Software.</p></div>
     <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&amp;swap" rel="stylesheet" type="text/css">
     <p><a href="https://github.com/NorthwoodsSoftware/GoJS/blob/master/samples/flowchart.html" target="_blank">View this

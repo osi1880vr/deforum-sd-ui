@@ -110,8 +110,8 @@ def layout():
                          iconName=['dashboard','model_training' ,'cloud_download', 'settings'], default_choice=0)
 
 	if tabs =='Stable Diffusion':
-		home_tab, txt2img_tab, img2img_tab, txt2vid_tab, postprocessing_tab, noodle_tab = st.tabs(["Home","Text-to-Image", "Image-to-Image",
-																								   "Text-to-Video","Post-Processing","Noodle-Lab"])
+		home_tab, txt2img_tab, img2img_tab, txt2vid_tab, postprocessing_tab, noodle_tab, component_tab = st.tabs(["Home","Text-to-Image", "Image-to-Image",
+																								   "Text-to-Video","Post-Processing","Noodle-Lab", "component_tab"])
 		with home_tab:
 			from ui.home import layout
 			layout()
@@ -134,6 +134,10 @@ def layout():
 
 		with noodle_tab:
 			from ui.noodletab import layout
+			layout()
+
+		with component_tab:
+			from ui.component_tab import layout
 			layout()
 	#
 	elif tabs == 'Model Manager':

@@ -28,13 +28,15 @@ with open('./scripts/ui/processChart/html/flowchart.html', 'r', encoding="utf-8"
 
 def layout():
 
-    list2 = createHTMLGallery()
-    st.markdown(list2)
+    #list2 = createHTMLGallery()
+    st.session_state["test"] = st.text_input("Input Text","", placeholder="A corgi wearing a top hat as an oil painting.")
+    st.session_state["findme"] = st.text_input("Input Text","", placeholder="alwaysFindMe", key='alwaysFindMe')
+    #st.markdown(list2)
     st.components.v1.html(components.html3, width=1600, height=1280, scrolling=False)
 
 def createHTMLGallery():
     list1 = []
-    for i in range(5):
-        list1.append(st.text_input(f'test{i}', key=i))
+    for i in range(1):
+        list1.append(st.text_input(f'test{i}', key='my unique keystring', placeholder="alwaysFindMe"))
     return list1
 
