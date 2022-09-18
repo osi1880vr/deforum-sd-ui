@@ -1,6 +1,6 @@
 # base webui import and utils.
 from webui_streamlit import st
-import os, sys, re, random, datetime, time, math
+import os, sys, re, random, datetime, time, math, gc
 
 
 # streamlit imports
@@ -60,8 +60,8 @@ from nsp_pantry import nsp_parse
 # Temp imports
 #terminology_database = nspterminology
 
-test = nsp_parse("_adj-beauty_")
-print(test)
+#test = nsp_parse("_adj-beauty_")
+#print(test)
 
 #Note: nsp_parse() can accept dict, list and str input.
 #wget -q --show-progress --no-cache 'https://raw.githubusercontent.com/WASasquatch/noodle-soup-prompts/main/nsp_pantry.py'
