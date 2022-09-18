@@ -738,7 +738,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
         init_image = init_image.to(device)
         init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)
         with precision_scope("cuda"):
-            init_latent = model.get_first_stage_encoding(model.encode_first_stage(init_image))  # move to latent space
+            init_latent = st.session_state["model"].get_first_stage_encoding(st.session_state["model"].encode_first_stage(init_image))  # move to latent space
 
     if not args.use_init and args.strength > 0 and args.strength_0_no_init:
         print("\nNo init image, but strength > 0. Strength has been auto set to 0, since use_init is False.")
