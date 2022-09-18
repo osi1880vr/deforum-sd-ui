@@ -54,7 +54,7 @@ def load_model_from_config(config, ckpt, verbose=False):
 
     print(f"Loading model from {ckpt}")
 
-    pl_sd = torch.load(ckpt, map_location="cpu")
+    pl_sd = torch.load(ckpt, map_location="cuda")
     if "global_step" in pl_sd:
         print(f"Global Step: {pl_sd['global_step']}")
     sd = pl_sd["state_dict"]
@@ -129,9 +129,9 @@ def load_models(continue_prev_run = False, use_GFPGAN=False, use_RealESRGAN=Fals
         print("Model already loaded")
     else:
         config = OmegaConf.load("configs/stable-diffusion/v1-inference.yaml")
-        model = load_model_from_config(config, st.session_state['defaults'].general.ckpt)
+        st.session_state["model"] = load_model_from_config(config, st.session_state['defaults'].general.ckpt)
 
         st.session_state["device"] = torch.device(f"cuda:{st.session_state['defaults'].general.gpu}") if torch.cuda.is_available() else torch.device("cpu")
-        st.session_state["model"] = (model if st.session_state['defaults'].general.no_half else model.half()).to(st.session_state["device"] )
+        st.session_state["model"] = (st.session_state["model"] if st.session_state['defaults'].general.no_half else st.session_state["model"].half()).to(st.session_state["device"] )
 
         print("Model loaded.")
