@@ -384,7 +384,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     if using_vid_init:
         video_in_frame_path = os.path.join(args.outdir,'', 'inputframes')
-        os.makedirs(os.path.join(args.outdir, video_in_frame_path), exist_ok=True)
+        os.makedirs(os.path.join(video_in_frame_path), exist_ok=True)
 
         # save the video frames from input video
         print(f"Exporting Video Frames (1 every {1}) frames to {video_in_frame_path}...")
@@ -394,12 +394,17 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
         except:
             pass
         vf = r'select=not(mod(n\,'+str(1)+'))'
-        subprocess.Popen([
+        process = subprocess.Popen([
             ffmpeg, '-i', f'{st.session_state["init_path"]}',
             '-vf', f'{vf}', '-vsync', 'vfr', '-q:v', '2',
             '-loglevel', 'error', '-stats',
             os.path.join(video_in_frame_path, '%04d.jpg')
-        ], stdout=subprocess.PIPE)   #.stdout.decode('utf-8')
+        ],stdout=subprocess.PIPE, stderr=subprocess.PIPE)   #.stdout.decode('utf-8')
+
+        stdout, stderr = process.communicate()
+        if process.returncode != 0:
+            print(stderr)
+            raise RuntimeError(stderr)
 
         # determine max frames from length of input frames
         max_frames = len([f for f in pathlib.Path(video_in_frame_path).glob('*.jpg')])
