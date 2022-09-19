@@ -302,22 +302,29 @@ dream_block.add_compute(dream_func)
 
 
 def layoutFunc():
-    st.session_state["block_txt2img"] = st.text_area('TextInput')
-    load_schema = st.selectbox('Select a saved schema:', barfi_schemas())
+    col1, col2 = st.columns([3,1], gap="medium")
 
-    compute_engine = st.checkbox('Activate barfi compute engine', value=False)
+    st.session_state["node_preview_image"] = st.empty
+    with col1:
+        load_schema = st.selectbox('Select a saved schema:', barfi_schemas())
 
-    barfi_result = st_barfi(base_blocks=[dream_block, upscale_block, label_encoder_block, slider_block, number_block, integer_block, select_block, select_file_block, file_block, textblock, feed, result, mixer, splitter],
-                            compute_engine=compute_engine, load_schema=load_schema)
+        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
 
-    if barfi_result:
-        print(barfi_result)
-        for a in barfi_result.keys():
-            if "Feed" in a:
-                print (barfi_result[a]['block'].get_interface(name='Output 1'))
-            elif 'Upscale' in a:
-                print (barfi_result[a]['block'].get_interface(name='Function'))
-                print (barfi_result[a]['block'].get_interface(name='Path'))
+        barfi_result = st_barfi(base_blocks=[dream_block, upscale_block, label_encoder_block, slider_block, number_block, integer_block, select_block, select_file_block, file_block, textblock, feed, result, mixer, splitter],
+                                compute_engine=compute_engine, load_schema=load_schema)
+
+        if barfi_result:
+            print(barfi_result)
+            for a in barfi_result.keys():
+                if "Feed" in a:
+                    print (barfi_result[a]['block'].get_interface(name='Output 1'))
+                elif 'Upscale' in a:
+                    print (barfi_result[a]['block'].get_interface(name='Function'))
+                    print (barfi_result[a]['block'].get_interface(name='Path'))
+    with col2:
+        if "node_image" in st.session_state:
+            st.session_state["node_preview_image"] = st.image(st.session_state["node_image"])
+
         #print(barfi_result['Feed-1']['block'].get_interface(name='Output 1'))
         #st.write(barfi_result['Integer-1']['block'].get_interface(name='Output 1'))
         #st.write(barfi_result['Label Encoder-1']['block'].get_interface(name='Labeled Data'))
