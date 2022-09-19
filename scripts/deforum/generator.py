@@ -60,7 +60,10 @@ def render_image_batch(args):
     load_models()
     if st.session_state["pathmode"] == 'root':
         args.outdir = f'{args.outdir}/_batch_images'
-    prompts = args.prompts
+    #= args.prompts
+
+    prompts = list(args.prompts.split("\n"))
+
     args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
     # create output folder for the batch
     os.makedirs(args.outdir, exist_ok=True)
@@ -72,9 +75,14 @@ def render_image_batch(args):
 
     # save settings for the batch
     if args.save_settings:
-        filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
-        with open(filename, "w+", encoding="utf-8") as f:
-            json.dump(dict(args.__dict__), f, ensure_ascii=False, indent=4)
+        if st.session_state["pathmode"] == "subfolders":
+            settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        else:
+            os.makedirs(os.path.join(args.outdir, f"_configs/_batch_configs"), exist_ok=True)
+            settings_filename = os.path.join(args.outdir, f"_configs/_batch_configs/{args.timestring}_settings.txt")
+        with open(settings_filename, "w+", encoding="utf-8") as f:
+            s = {**dict(args.__dict__)}
+            json.dump(s, f, ensure_ascii=False, indent=4)
 
     index = 0
 

@@ -249,15 +249,6 @@ class runner:
 
         models_path = os.path.join(os.getcwd(), 'content', 'models')
 
-        prompts = [
-            "a beautiful forest by Asher Brown Durand, trending on Artstation", #the first prompt I want
-            "a beautiful portrait of a woman by Artgerm, trending on Artstation", #the second prompt I want
-            #"the third prompt I don't want it I commented it with an",
-        ]
-
-        prompts = [
-            args.prompt
-        ]
-        args.prompts = prompts
+        args.prompts = st.session_state["prompt"]
 
         generator.render_image_batch(args)
