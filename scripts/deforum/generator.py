@@ -58,7 +58,8 @@ def sanitize(prompt):
 def render_image_batch(args):
 
     load_models()
-
+    if st.session_state["pathmode"] == 'root':
+        args.outdir = f'{args.outdir}/_batch_images'
     prompts = args.prompts
     args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
     # create output folder for the batch
@@ -334,12 +335,9 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     if anim_args.resume_from_timestring:
         args.timestring = anim_args.resume_timestring
     if st.session_state["pathmode"] == "root":
-        if args.animation_mode == 'None':
-            args.outdir = f'{args.outdir}/_batch_images'
-        else:
-            args.firstseed = args.seed
-            args.rootdir = args.outdir
-            args.outdir = f'{args.outdir}/_anim_stills/{args.batchname}_{args.firstseed}'
+        args.firstseed = args.seed
+        args.rootdir = args.outdir
+        args.outdir = f'{args.outdir}/_anim_stills/{args.batchname}_{args.firstseed}'
     # expand prompts out to per-frame
     prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
 
