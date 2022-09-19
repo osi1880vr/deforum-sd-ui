@@ -91,7 +91,7 @@ def layoutFunc():
 
         #with st.expander(""):
     with col2:
-        preview_tab, sequence_tab = st.tabs(["Preview", "Animation Sequence"])
+        preview_tab, sequence_tab, flip_sequence_tab = st.tabs(["Preview", "3D Animation Sequence", "2D Flip Sequence"])
 
         with preview_tab:
             #st.write("Image")
@@ -122,20 +122,18 @@ def layoutFunc():
             st.session_state["translation_x"] = st.text_input("X Translation:", value=st.session_state['defaults'].txt2vid.translation_x)
             st.session_state["translation_y"] = st.text_input("Y Translation:", value=st.session_state['defaults'].txt2vid.translation_y)
             st.session_state["translation_z"] = st.text_input("Z Translation:", value=st.session_state['defaults'].txt2vid.translation_z)
-            st.session_state["flip_2d_perspective"] = st.checkbox('Flip 2d Perspective', value=False)
-            st.session_state["perspective_flip_theta"] = st.text_input("Flip Theta:", value=st.session_state['defaults'].txt2vid.perspective_flip_theta)
-            st.session_state["perspective_flip_phi"] = st.text_input("Flip Phi:", value=st.session_state['defaults'].txt2vid.perspective_flip_phi)
-
-            st.session_state["perspective_flip_gamma"] = st.text_input("Flip Gamma:", value=st.session_state['defaults'].txt2vid.perspective_flip_gamma)
-            st.session_state["perspective_flip_fv"] = st.text_input("Flip FV:", value=st.session_state['defaults'].txt2vid.perspective_flip_fv)
             st.session_state["rotation_3d_x"] = st.text_input("X 3D Rotaion:", value=st.session_state['defaults'].txt2vid.rotation_3d_x)
             st.session_state["rotation_3d_y"] = st.text_input("Y 3D Rotaion:", value=st.session_state['defaults'].txt2vid.rotation_3d_y)
             st.session_state["rotation_3d_z"] = st.text_input("Z 3D Rotaion:", value=st.session_state['defaults'].txt2vid.rotation_3d_z)
             st.session_state["noise_schedule"] = st.text_input("Noise Schedule:", value=st.session_state['defaults'].txt2vid.noise_schedule)
             st.session_state["strength_schedule"] = st.text_input("Strength Schedule:", value=st.session_state['defaults'].txt2vid.strength_schedule)
             st.session_state["contrast_schedule"] = st.text_input("Contrast Schedule:", value=st.session_state['defaults'].txt2vid.contrast_schedule)
-
-
+        with flip_sequence_tab:
+            st.session_state["flip_2d_perspective"] = st.checkbox('Flip 2d Perspective', value=False)
+            st.session_state["perspective_flip_theta"] = st.text_input("Flip Theta:", value=st.session_state['defaults'].txt2vid.perspective_flip_theta)
+            st.session_state["perspective_flip_phi"] = st.text_input("Flip Phi:", value=st.session_state['defaults'].txt2vid.perspective_flip_phi)
+            st.session_state["perspective_flip_gamma"] = st.text_input("Flip Gamma:", value=st.session_state['defaults'].txt2vid.perspective_flip_gamma)
+            st.session_state["perspective_flip_fv"] = st.text_input("Flip FV:", value=st.session_state['defaults'].txt2vid.perspective_flip_fv)
 
     with col3:
         # If we have custom models available on the "models/custom"
@@ -186,7 +184,7 @@ def layoutFunc():
                 ('border', 'reflection', 'zeros'))
 
             st.session_state["save_depth_maps"] = st.checkbox('Save Depth Maps', value=False)
-            st.session_state["video_init_path"] = st.text_input("Video Init Path:", value=st.session_state['defaults'].txt2vid.video_init_path, help="Some Video Path")
+            st.session_state["video_init_path"] = ''
             st.session_state["extract_nth_frame"] = st.number_input('Extract Nth Frame', value=st.session_state['defaults'].txt2vid.extract_nth_frame,step=1)
             st.session_state["interpolate_key_frames"] = st.checkbox('Interpolate Key Frames', value=False)
             st.session_state["interpolate_x_frames"] = st.number_input('Number Frames to Interpolate', value=st.session_state['defaults'].txt2vid.interpolate_x_frames,step=1)

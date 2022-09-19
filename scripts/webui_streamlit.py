@@ -61,7 +61,7 @@ def load_css(isLocal, nameOrURL):
 		remote_css(nameOrURL)
 
 def layout():
-	
+
 	st.set_page_config(page_title="Stable Diffusion Playground", layout="wide", initial_sidebar_state="collapsed")
 
 	with st.empty():
@@ -76,7 +76,7 @@ def layout():
 	if os.path.exists(os.path.join(defaults.general.RealESRGAN_dir, "experiments","pretrained_models", f"{defaults.general.RealESRGAN_model}.pth")):
 		RealESRGAN_available = True
 	else:
-		RealESRGAN_available = False	
+		RealESRGAN_available = False
 
 	with st.sidebar:
 		# we should use an expander and group things together when more options are added so the sidebar is not too messy.
@@ -103,7 +103,7 @@ def layout():
 			# if the plugin is a tab, add it to the tabs
 			if pluginIsTab:
 				plugins[pluginDescription] = [pluginModule, pluginPriority]
-	
+
 	#print(plugins)
 	#print(pluginTabs)
 	#print(plugins)
@@ -121,4 +121,4 @@ def layout():
 			#plugin.layout
 	
 if __name__ == '__main__':
-	layout()
+	layout()     

@@ -7,6 +7,8 @@ from streamlit import StopException
 
 from PIL import Image, ImageOps
 
+#from img2img.img2img import img2img
+
 # Temp imports 
 
 
@@ -229,7 +231,7 @@ def layoutFunc():
 		if generate_button:
 			#print("Loading models")
 			# load the models when we hit the generate button for the first time, it wont be loaded after that so dont worry.
-			load_models(False, use_GFPGAN, st.session_state["use_RealESRGAN"], st.session_state["RealESRGAN_model"], st.session_state["CustomModel_available"],
+			load_models(False, st.session_state["use_GFPGAN"], st.session_state["use_RealESRGAN"], st.session_state["RealESRGAN_model"], st.session_state["CustomModel_available"],
 				    st.session_state["custom_model"])                
 			
 			if uploaded_images:
