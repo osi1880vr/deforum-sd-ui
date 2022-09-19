@@ -35,11 +35,11 @@ except:
     pass
 
 class PluginInfo():
-        plugname = "txt2img"
-        description = "Text to Image"
-        isTab = True
-        displayPriority = 2
-        
+    plugname = "txt2img"
+    description = "Text to Image"
+    isTab = True
+    displayPriority = 2
+
 
 
 if os.path.exists(os.path.join(st.session_state['defaults'].general.GFPGAN_dir, "experiments", "pretrained_models", "GFPGANv1.3.pth")):
@@ -74,7 +74,7 @@ def layoutFunc():
         # creating the page layout using columns
         col1, col2, col3 = st.columns([1,2,1], gap="large")
         with col1:
-            st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), value=st.session_state['defaults'].general.default_path_mode, help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root", key='pathmode-txt2img')
+            st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), index=st.session_state['defaults'].general.default_path_mode_index, help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root", key='pathmode-txt2img')
             st.session_state["outdir"] = st.text_input("Output Folder", value=st.session_state['defaults'].general.outdir, help=" Output folder", key='outdir-txt2img')
             st.session_state["W"] = st.slider("Width:", min_value=64, max_value=2048, value=st.session_state['defaults'].txt2img.W, step=64)
             st.session_state["H"] = st.slider("Height:", min_value=64, max_value=2048, value=st.session_state['defaults'].txt2img.H, step=64)
@@ -212,8 +212,8 @@ def layoutFunc():
 
                     st.session_state["variant_amount"] = st.slider("Variant Amount:", value=st.session_state['defaults'].txt2img.variant_amount, min_value=0.0, max_value=1.0, step=0.01)
                     st.session_state["variant_seed"] = st.text_input("Variant Seed:", value=st.session_state['defaults'].txt2img.seed, help="The seed to use when generating a variant, if left blank a random seed will be generated.")
-#        if generate_button:
-#            def_runner.run_batch()
+        #        if generate_button:
+        #            def_runner.run_batch()
 
         if generate_button:
             def_runner.run_txt2img()

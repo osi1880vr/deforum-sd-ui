@@ -10,6 +10,7 @@ general:
     default_model_config: "configs/stable-diffusion/v1-inference.yaml"
     default_model_path: "models/ldm/stable-diffusion-v1/model.ckpt"
     default_path_mode: "subfolders"
+    default_path_mode_index: 1
     fp:
         name: ''
     GFPGAN_dir: "./src/gfpgan"
