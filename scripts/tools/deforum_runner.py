@@ -204,6 +204,7 @@ class runner:
                 mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
             else:
                 image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
+                os.makedirs(os.path.join(args.rootoutdir, "_mp4s"), exist_ok=True)
                 mp4_path = os.path.join(args.rootoutdir, f"_mp4s/{args.timestring}_{args.firstseed}.mp4")
 
 
