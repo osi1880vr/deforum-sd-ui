@@ -40,63 +40,63 @@ class runner:
             st.session_state['seed'] = int(st.session_state['seed'])
         seed = int(random.randrange(0, 4200000000))
         DeforumArgs = {#'image': st.session_state['preview_image'],
-                       #'video': st.session_state['preview_video'],
-                       'W': W,
-                       'H': H,
-                       'seed': seed,  # @param
-                       'sampler': st.session_state['sampler'],
-                       # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
-                       'steps': st.session_state['steps'],  # @param
-                       'scale': st.session_state['scale'],  # @param
-                       'ddim_eta': st.session_state['ddim_eta'],  # @param
-                       'dynamic_threshold': None,
-                       'static_threshold': None,
+            #'video': st.session_state['preview_video'],
+            'W': W,
+            'H': H,
+            'seed': seed,  # @param
+            'sampler': st.session_state['sampler'],
+            # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
+            'steps': st.session_state['steps'],  # @param
+            'scale': st.session_state['scale'],  # @param
+            'ddim_eta': st.session_state['ddim_eta'],  # @param
+            'dynamic_threshold': None,
+            'static_threshold': None,
 
-                       # @markdown **Save & Display Settings**
-                       'save_samples': st.session_state['save_samples'],  # @param {type:"boolean"}
-                       'save_settings': st.session_state['save_settings'],  # @param {type:"boolean"}
-                       'display_samples': st.session_state['display_samples'],  # @param {type:"boolean"}
+            # @markdown **Save & Display Settings**
+            'save_samples': st.session_state['save_samples'],  # @param {type:"boolean"}
+            'save_settings': st.session_state['save_settings'],  # @param {type:"boolean"}
+            'display_samples': st.session_state['display_samples'],  # @param {type:"boolean"}
 
-                       # @markdown **Batch Settings**
-                       'n_batch': st.session_state["iterations"],  # @param
-                       'batch_name': batch_name,  # @param {type:"string"}
-                       'filename_format': st.session_state['filename_format'],
-                       # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
-                       'seed_behavior': st.session_state['seed_behavior'],  # @param ["iter","fixed","random"]
-                       'make_grid': st.session_state['make_grid'],  # @param {type:"boolean"}
-                       'grid_rows': st.session_state['grid_rows'],  # @param
-                       'outdir': out_folder,
+            # @markdown **Batch Settings**
+            'n_batch': st.session_state["iterations"],  # @param
+            'batch_name': batch_name,  # @param {type:"string"}
+            'filename_format': st.session_state['filename_format'],
+            # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
+            'seed_behavior': st.session_state['seed_behavior'],  # @param ["iter","fixed","random"]
+            'make_grid': st.session_state['make_grid'],  # @param {type:"boolean"}
+            'grid_rows': st.session_state['grid_rows'],  # @param
+            'outdir': out_folder,
 
-                       # @markdown **Init Settings**
-                       'use_init': st.session_state['use_init'],  # @param {type:"boolean"}
-                       'strength': st.session_state['strength'],  # @param {type:"number"}
-                       'strength_0_no_init': st.session_state['strength_0_no_init'],
-                       # Set the strength to 0 automatically when no init image is used
-                       'init_image': st.session_state['init_image'],  # @param {type:"string"}
-                       # Whiter areas of the mask are areas that change more
-                       'use_mask': st.session_state['use_mask'],  # @param {type:"boolean"}
-                       'use_alpha_as_mask': st.session_state['use_alpha_as_mask'],
-                       # use the alpha channel of the init image as the mask
-                       'mask_file': st.session_state['mask_file'],  # @param {type:"string"}
-                       'invert_mask': st.session_state['invert_mask'],  # @param {type:"boolean"}
-                       # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
-                       'mask_brightness_adjust': st.session_state['mask_brightness_adjust'],  # @param {type:"number"}
-                       'mask_contrast_adjust': st.session_state['mask_contrast_adjust'],  # @param {type:"number"}
+            # @markdown **Init Settings**
+            'use_init': st.session_state['use_init'],  # @param {type:"boolean"}
+            'strength': st.session_state['strength'],  # @param {type:"number"}
+            'strength_0_no_init': st.session_state['strength_0_no_init'],
+            # Set the strength to 0 automatically when no init image is used
+            'init_image': st.session_state['init_image'],  # @param {type:"string"}
+            # Whiter areas of the mask are areas that change more
+            'use_mask': st.session_state['use_mask'],  # @param {type:"boolean"}
+            'use_alpha_as_mask': st.session_state['use_alpha_as_mask'],
+            # use the alpha channel of the init image as the mask
+            'mask_file': st.session_state['mask_file'],  # @param {type:"string"}
+            'invert_mask': st.session_state['invert_mask'],  # @param {type:"boolean"}
+            # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
+            'mask_brightness_adjust': st.session_state['mask_brightness_adjust'],  # @param {type:"number"}
+            'mask_contrast_adjust': st.session_state['mask_contrast_adjust'],  # @param {type:"number"}
 
-                       'n_samples': st.session_state["batch_size"],
-                       'precision': 'autocast',
-                       'C': 4,
-                       'f': 8,
+            'n_samples': st.session_state["batch_size"],
+            'precision': 'autocast',
+            'C': 4,
+            'f': 8,
 
 
-                       'keyframes': st.session_state['keyframes'],
-                       'prompt': st.session_state['prompt'],
+            'keyframes': st.session_state['keyframes'],
+            'prompt': st.session_state['prompt'],
 
-                       'timestring': "",
-                       'init_latent': None,
-                       'init_sample': None,
-                       'init_c': None,
-                       }
+            'timestring': "",
+            'init_latent': None,
+            'init_sample': None,
+            'init_c': None,
+        }
 
         DeforumAnimArgs = {'animation_mode': st.session_state['animation_mode'],
                            # @param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
