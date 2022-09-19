@@ -65,8 +65,6 @@ def layoutFunc():
         with input_col1:
             #prompt = st.text_area("Input Text","")
             st.session_state["prompt"] = st.text_input("Input Text","", placeholder="A corgi wearing a top hat as an oil painting.")
-            st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root", key='pathmode-txt2img')
-            st.session_state["outdir"] = st.text_input("Output Folder", value=st.session_state['defaults'].general.outdir, help=" Output folder", key='outdir-txt2img')
 
             # Every form must have a submit button, the extra blank spaces is a temp way to align it with the input field. Needs to be done in CSS or some other way.
             generate_col1.write("")
@@ -76,13 +74,12 @@ def layoutFunc():
         # creating the page layout using columns
         col1, col2, col3 = st.columns([1,2,1], gap="large")
         with col1:
-
+            st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), value=st.session_state['defaults'].general.default_path_mode, help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root", key='pathmode-txt2img')
+            st.session_state["outdir"] = st.text_input("Output Folder", value=st.session_state['defaults'].general.outdir, help=" Output folder", key='outdir-txt2img')
             st.session_state["W"] = st.slider("Width:", min_value=64, max_value=2048, value=st.session_state['defaults'].txt2img.W, step=64)
             st.session_state["H"] = st.slider("Height:", min_value=64, max_value=2048, value=st.session_state['defaults'].txt2img.H, step=64)
             st.session_state["scale"] = st.slider("CFG (Classifier Free Guidance Scale):", min_value=1.0, max_value=30.0, value=st.session_state['defaults'].txt2img.scale, step=1e-1,format="%.1f", help="How strongly the image should follow the prompt.")
-
             st.session_state["seed"]  = st.text_input("Seed:", value=st.session_state['defaults'].txt2img.seed, help=" The seed to use, if left blank a random seed will be generated.")
-
             st.session_state["iterations"] = st.slider("Iterations:", min_value=1, max_value=2048, value=st.session_state['defaults'].txt2img.iterations, step=1)
             st.session_state["batch_size"] = st.slider("Batchsize:", min_value=1, max_value=50, value=st.session_state['defaults'].txt2img.batch_size, step=1)
 

@@ -90,7 +90,7 @@ def layoutFunc():
 			find_noise_steps = st.slider("Find Noise Steps", value=100, min_value=1, max_value=500)
 			batch_count = st.slider("Batch count.", min_value=1, max_value=100, value=st.session_state['defaults'].img2img.batch_count, step=1,
 								help="How many iterations or batches of images to generate in total.")
-			st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root", key='pathmode-img2img')
+			st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"),  value=st.session_state['defaults'].general.default_path_mode, help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root", key='pathmode-img2img')
 			st.session_state["outdir"] = st.text_input("Output Folder", value=st.session_state['defaults'].general.outdir, help=" Output folder", key='outdir-img2img')
 
 	#
