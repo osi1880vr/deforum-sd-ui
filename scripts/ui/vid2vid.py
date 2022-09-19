@@ -48,7 +48,9 @@ import tkinter as tk
 from tkinter import filedialog
 
 def save_uploaded(uploadedfile):
-    filepath = os.path.join("content",uploadedfile.name)
+    folder = st.session_state["outdir"]
+    os.makedirs(os.path.join(folder, '_init_videos'), exist_ok=True)
+    filepath = os.path.join(folder, '_init_videos' ,uploadedfile.name)
     with open(filepath,"wb") as f:
         f.write(uploadedfile.getbuffer())
     st.session_state["init_path"] = filepath
