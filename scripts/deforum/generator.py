@@ -58,7 +58,8 @@ def sanitize(prompt):
 def render_image_batch(args):
 
     load_models()
-
+    if st.session_state["pathmode"] == 'root':
+        args.outdir = f'{args.outdir}/_batch_images'
     prompts = args.prompts
     args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
     # create output folder for the batch
@@ -322,7 +323,10 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     # save settings for the batch
     if args.save_settings:
-        settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        if st.session_state["pathmode"] == "subfolders":
+            settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        else:
+            settings_filename = os.path.join(args.outdir, f"_configs/{args.timestring}_settings.txt")
         with open(settings_filename, "w+", encoding="utf-8") as f:
             s = {**dict(args.__dict__), **dict(anim_args.__dict__)}
             json.dump(s, f, ensure_ascii=False, indent=4)
@@ -330,11 +334,15 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     # resume from timestring
     if anim_args.resume_from_timestring:
         args.timestring = anim_args.resume_timestring
-
+    if st.session_state["pathmode"] == "root":
+        args.firstseed = args.seed
+        args.rootoutdir = args.outdir
+        args.outdir = f'{args.outdir}/_anim_stills/{args.batch_name}_{args.firstseed}'
     # expand prompts out to per-frame
     prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
 
-
+    if args.keyframes == '':
+        args.keyframes = "0"
     prom = args.prompt
     key = args.keyframes
 
@@ -359,7 +367,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     using_vid_init = anim_args.animation_mode == 'Video Input'
 
     if using_vid_init:
-        video_in_frame_path = os.path.join(args.outdir, 'inputframes')
+        video_in_frame_path = os.path.join(args.outdir,'', 'inputframes')
         os.makedirs(os.path.join(args.outdir, video_in_frame_path), exist_ok=True)
 
         # save the video frames from input video
