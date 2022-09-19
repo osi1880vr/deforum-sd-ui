@@ -1,4 +1,4 @@
-import os
+import os, subprocess
 from pytorch_lightning import seed_everything
 from torch import autocast
 from torchvision.utils import make_grid
@@ -27,6 +27,7 @@ import json
 from omegaconf import OmegaConf
 import random
 import sys
+import pathlib
 
 from deforum.modelloader import load_models
 
@@ -356,6 +357,32 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     # check for video inits
     using_vid_init = anim_args.animation_mode == 'Video Input'
+
+    if using_vid_init:
+        video_in_frame_path = os.path.join(args.outdir, 'inputframes')
+        os.makedirs(os.path.join(args.outdir, video_in_frame_path), exist_ok=True)
+
+        # save the video frames from input video
+        print(f"Exporting Video Frames (1 every {1}) frames to {video_in_frame_path}...")
+        try:
+            for f in pathlib.Path(video_in_frame_path).glob('*.jpg'):
+                f.unlink()
+        except:
+            pass
+        vf = r'select=not(mod(n\,'+str(1)+'))'
+        subprocess.run([
+            'ffmpeg', '-i', f'{st.session_state["init_path"]}',
+            '-vf', f'{vf}', '-vsync', 'vfr', '-q:v', '2',
+            '-loglevel', 'error', '-stats',
+            os.path.join(video_in_frame_path, '%04d.jpg')
+        ], stdout=subprocess.PIPE).stdout.decode('utf-8')
+
+        # determine max frames from length of input frames
+        max_frames = len([f for f in pathlib.Path(video_in_frame_path).glob('*.jpg')])
+
+        use_init = True
+        print(f"Loading {max_frames} input frames from {video_in_frame_path} and saving video frames to {args.outdir}")
+
 
     # load depth model for 3D
     predict_depths = (anim_args.animation_mode == '3D' and anim_args.use_depth_warping) or anim_args.save_depth_maps

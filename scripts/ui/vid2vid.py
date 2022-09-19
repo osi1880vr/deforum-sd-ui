@@ -25,6 +25,7 @@ try:
 except:
     pass
 
+videoinit = None
 
 class PluginInfo():
     plugname = "vid2vid"
@@ -46,7 +47,12 @@ else:
 import tkinter as tk
 from tkinter import filedialog
 
-
+def save_uploaded(uploadedfile):
+    filepath = os.path.join("/content",uploadedfile.name)
+    with open(filepath,"wb") as f:
+        f.write(uploadedfile.getbuffer())
+    st.session_state["init_path"] = filepath
+    return st.success(f"Saved File to {filepath}")
 
 def layoutFunc():
     def_runner = runner()
@@ -169,9 +175,18 @@ def layoutFunc():
         #summit_on_enter = st.radio("Submit on enter?", ("Yes", "No"), horizontal=True,
         #help="Press the Enter key to summit, when 'No' is selected you can use the Enter key to write multiple lines.")
 
+
+        #st.session_state["video_init_mp4"].save("/content/initvideo.mp4")
         with st.expander("Animation", expanded=True):
             videopath = st.button('Choose Path')
-            st.session_state["video_init_path"] = st.text_input("Video Init Path:", value=st.session_state['defaults'].vid2vid.video_init_path, help="Input Video Path", key='video_init_path-vid2vid')
+            videoinit = st.file_uploader('Upload mp4 video here..', type=['mp4'], accept_multiple_files=False, key=None, help=None, args=None, kwargs=None, disabled=False)
+            if videoinit != None:
+                save_uploaded(videoinit)
+                st.session_state["video_init_path"] = st.text_input("Video Init Path:", value=st.session_state["init_path"], help="Input Video Path", key='video_init_path-vid2vid')
+            else:
+                st.session_state["video_init_path"] = st.text_input("Video Init Path:", value=st.session_state['defaults'].vid2vid.video_init_path, help="Input Video Path", key='video_init_path-vid2vid')
+
+
 
             st.session_state["animation_mode"] = 'Video Input'
             st.session_state["border"] = st.selectbox(
