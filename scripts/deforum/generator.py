@@ -29,7 +29,7 @@ import random
 import sys
 import pathlib
 
-from deforum.modelloader import load_models
+from tools.modelloader import load_models
 import platform
 import streamlit as st
 

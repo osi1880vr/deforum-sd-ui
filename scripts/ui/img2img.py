@@ -233,8 +233,7 @@ def layoutFunc():
 		if generate_button:
 			#print("Loading models")
 			# load the models when we hit the generate button for the first time, it wont be loaded after that so dont worry.
-			load_models(False, st.session_state["use_GFPGAN"], st.session_state["use_RealESRGAN"], st.session_state["RealESRGAN_model"], st.session_state["CustomModel_available"],
-						st.session_state["custom_model"])
+
 
 			if uploaded_images:
 				image = Image.open(uploaded_images).convert('RGBA')
@@ -255,7 +254,7 @@ def layoutFunc():
 															   ddim_eta=0.0, write_info_files=write_info_files, RealESRGAN_model=st.session_state["RealESRGAN_model"],
 															   separate_prompts=separate_prompts, normalize_prompt_weights=normalize_prompt_weights,
 															   save_individual_images=save_individual_images, save_grid=save_grid,
-															   group_by_prompt=group_by_prompt, save_as_jpg=save_as_jpg, use_GFPGAN=use_GFPGAN,
+															   group_by_prompt=group_by_prompt, save_as_jpg=save_as_jpg, use_GFPGAN=st.session_state["use_GFPGAN"],
 															   use_RealESRGAN=st.session_state["use_RealESRGAN"] if not loopback else False, loopback=loopback
 															   )
 
