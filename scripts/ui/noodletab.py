@@ -1,7 +1,7 @@
 # base webui import and utils.
-from webui_streamlit import st
+import streamlit as st
 import streamlit.components.v1 as components
-from ui.sd_utils import *
+#from ui.sd_utils import *
 
 import os
 from PIL import Image
@@ -16,17 +16,18 @@ except:
 
 #prompt_parts = pd.Series([a for a in 5])
 
-class plugin_info():
-    plugname = "noodletab"
-    description = "Noodle-Lab"
-    isTab = True
-    displayPriority = 0
+class PluginInfo():
+        plugname = "noodle"
+        description = "Noodle"
+        isTab = True
+        displayPriority = 5
+        
 
-with open('./scripts/ui/processChart/html/flowchart.html', 'r', encoding="utf-8") as f:
+with open('./scripts/tools/processChart/html/flowchart.html', 'r', encoding="utf-8") as f:
     components.html3 = f.read()
 
 
-def layout():
+def layoutFunc():
 
     #list2 = createHTMLGallery()
     st.session_state["test"] = st.text_input("Input Text","", placeholder="A corgi wearing a top hat as an oil painting.")

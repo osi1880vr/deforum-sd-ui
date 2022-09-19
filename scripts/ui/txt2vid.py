@@ -1,8 +1,11 @@
 # base webui import and utils.
-from webui_streamlit import st
-from ui.sd_utils import *
+import streamlit as st
+#from ui.sd_utils import *
 
-from ui.deforum_runner import runner
+from scripts.tools.deforum_runner import runner
+import tools.nsp.nsp_pantry
+from tools.nsp.nsp_pantry import nsp_parse
+from tools.nsp.nsp_pantry import get_nsp_keys
 
 # streamlit imports
 from streamlit import StopException
@@ -23,9 +26,9 @@ except:
     pass
 
 
-class plugin_info():
-    plugname = "txt2img"
-    description = "Text to Image"
+class PluginInfo():
+    plugname = "txt2vid"
+    description = "Text to Video"
     isTab = True
     displayPriority = 1
 
@@ -39,7 +42,7 @@ if os.path.exists(os.path.join(st.session_state['defaults'].general.RealESRGAN_d
 else:
     RealESRGAN_available = False
 #
-def layout():
+def layoutFunc():
     def_runner = runner()
 
     #with st.form("txt2vid-inputs"):
