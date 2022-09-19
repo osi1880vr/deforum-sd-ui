@@ -71,7 +71,7 @@ def layoutFunc():
             generate_button = st.button("Generate")
 
             st.session_state["prompt"] = st.text_area("Input Text","", placeholder="A corgi wearing a top hat.\nSecond Prompt")
-            st.session_state["keyframes"] = st.text_area("Keyframes","", placeholder="0\n5\n10")
+            st.session_state["keyframes"] = st.text_area("Keyframes","0", placeholder="0\n5\n10")
 
             st.session_state["max_frames"] = st.slider("Max Frames:", min_value=1, max_value=2048, value=st.session_state['defaults'].txt2vid.max_frames, step=1)
             st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), index=st.session_state['defaults'].general.default_path_mode_index, help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root", key='pathmode-txt2vid')

@@ -48,7 +48,7 @@ import tkinter as tk
 from tkinter import filedialog
 
 def save_uploaded(uploadedfile):
-    filepath = os.path.join("/content",uploadedfile.name)
+    filepath = os.path.join("content",uploadedfile.name)
     with open(filepath,"wb") as f:
         f.write(uploadedfile.getbuffer())
     st.session_state["init_path"] = filepath

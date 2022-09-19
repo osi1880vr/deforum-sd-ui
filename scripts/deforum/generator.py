@@ -30,7 +30,7 @@ import sys
 import pathlib
 
 from deforum.modelloader import load_models
-
+import platform
 import streamlit as st
 
 sys.path.extend([
@@ -42,6 +42,12 @@ sys.path.extend([
     'src/AdaBins',
     'src/MiDaS',
 ])
+
+if "Linux" in platform.platform():
+    ffmpeg = 'ffmpeg'
+else:
+    ffmpeg = 'C:\\tools\\ffmpeg\\bin\\ffmpeg.exe'
+
 
 from k_diffusion.external import CompVisDenoiser
 
@@ -388,12 +394,12 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
         except:
             pass
         vf = r'select=not(mod(n\,'+str(1)+'))'
-        subprocess.run([
-            'ffmpeg', '-i', f'{st.session_state["init_path"]}',
+        subprocess.Popen([
+            ffmpeg, '-i', f'{st.session_state["init_path"]}',
             '-vf', f'{vf}', '-vsync', 'vfr', '-q:v', '2',
             '-loglevel', 'error', '-stats',
             os.path.join(video_in_frame_path, '%04d.jpg')
-        ], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        ], stdout=subprocess.PIPE)   #.stdout.decode('utf-8')
 
         # determine max frames from length of input frames
         max_frames = len([f for f in pathlib.Path(video_in_frame_path).glob('*.jpg')])
