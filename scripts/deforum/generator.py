@@ -322,7 +322,10 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
 
     # save settings for the batch
     if args.save_settings:
-        settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        if st.session_state["pathmode"] == "subfolders":
+            settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
+        else
+            settings_filename = os.path.join(args.outdir, f"_configs/{args.timestring}_settings.txt")
         with open(settings_filename, "w+", encoding="utf-8") as f:
             s = {**dict(args.__dict__), **dict(anim_args.__dict__)}
             json.dump(s, f, ensure_ascii=False, indent=4)
@@ -330,7 +333,13 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     # resume from timestring
     if anim_args.resume_from_timestring:
         args.timestring = anim_args.resume_timestring
-
+    if st.session_state["pathmode"] == "root":
+        if args.animation_mode == 'None':
+            args.outdir = f'{args.outdir}/_batch_images'
+        else:
+            args.firstseed = args.seed
+            args.rootdir = args.outdir
+            args.outdir = f'{args.outdir}/_anim_stills/{args.batchname}_{args.firstseed}'
     # expand prompts out to per-frame
     prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
 
@@ -359,7 +368,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     using_vid_init = anim_args.animation_mode == 'Video Input'
 
     if using_vid_init:
-        video_in_frame_path = os.path.join(args.outdir, 'inputframes')
+        video_in_frame_path = os.path.join(args.outdir,'', 'inputframes')
         os.makedirs(os.path.join(args.outdir, video_in_frame_path), exist_ok=True)
 
         # save the video frames from input video

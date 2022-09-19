@@ -35,7 +35,7 @@ def getLatestGeneratedVideosFromPath():
     #get the path to the generated images folder
     #generatedImagesPath = os.path.join(os.getcwd(), st.session_state['defaults'].general.sd_concepts_library_folder)
     #test path till we have defaults
-    generatedVideosPath = "/gdrive/MyDrive/sd_anims_new/_mp4s"
+    generatedVideosPath = st.session_state['defaults'].general.outdir
 
     #get all the files from the folders and subfolders
     files = []

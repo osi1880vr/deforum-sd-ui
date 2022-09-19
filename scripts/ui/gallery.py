@@ -35,7 +35,7 @@ def getLatestGeneratedImagesFromPath():
     #get the path to the generated images folder
     #generatedImagesPath = os.path.join(os.getcwd(), st.session_state['defaults'].general.sd_concepts_library_folder)
     #test path till we have defaults
-    generatedImagesPath = "/gdrive/MyDrive/sd_anims_new/_batch_images"
+    generatedImagesPath = st.session_state['defaults'].general.outdir
 
     #get all the files from the folders and subfolders
     files = []

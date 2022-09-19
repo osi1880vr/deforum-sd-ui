@@ -84,6 +84,8 @@ def layoutFunc():
 
             st.session_state["prompt"] = st.text_area("Input Text","", placeholder="A corgi wearing a top hat.\nSecond Prompt", key='Input Text-vid2vid')
             st.session_state["keyframes"] = st.text_area("Keyframes","", placeholder="0\n5\n10",key='Keyframes-vid2vid')
+            st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root")
+            st.session_state["outdir"] = st.text_input("Output Folder", value=st.session_state['defaults'].general.outdir, help=" Output folder", key='outdir-vid2vid')
 
             st.session_state["max_frames"] = st.slider("Max Frames:", min_value=1, max_value=2048, value=st.session_state['defaults'].vid2vid.max_frames, step=1, key='Max Frames-vid2vid')
 

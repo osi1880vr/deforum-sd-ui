@@ -65,6 +65,8 @@ def layoutFunc():
         with input_col1:
             #prompt = st.text_area("Input Text","")
             st.session_state["prompt"] = st.text_input("Input Text","", placeholder="A corgi wearing a top hat as an oil painting.")
+            st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"), help="subfolders structure will create daily folders plus many subfolders, root will use your outdir as root")
+            st.session_state["outdir"] = st.text_input("Output Folder", value=st.session_state['defaults'].general.outdir, help=" Output folder", key='outdir-txt2img')
 
             # Every form must have a submit button, the extra blank spaces is a temp way to align it with the input field. Needs to be done in CSS or some other way.
             generate_col1.write("")

@@ -32,8 +32,10 @@ class runner:
 
         now = datetime.now()  # current date and time
         batch_name = now.strftime("%H_%M_%S")
-        out_folder = self.get_output_folder('./content/output', batch_name)
-
+        if st.session_state["pathmode"] == "subfolders":
+            out_folder = self.get_output_folder('./content/output', batch_name)
+        else:
+            out_folder = st.session_state["outdir"]
         if st.session_state['seed'] == '':
             seed = int(random.randrange(0, 4200000000))
         else:
@@ -191,21 +193,21 @@ class runner:
         }
 
         # dispatch to appropriate renderer
-        if anim_args.animation_mode == '2D' or anim_args.animation_mode == '3D':
+        if anim_args.animation_mode == '2D' or anim_args.animation_mode == '3D' or anim_args.animation_mode == 'Video Input':
             generator.render_animation(args, anim_args, animation_prompts, models_path)
 
-            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
 
-            mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
-            max_frames = anim_args.max_frames
-            st.session_state.preview_image.empty()
 
-            video.produce_video(args, image_path, mp4_path, max_frames)
-        elif anim_args.animation_mode == 'Video Input':
-            generator.render_animation(args, anim_args, animation_prompts, models_path)
-            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
+            args.outdir = f'{args.outdir}/_anim_stills/{args.batchname}_{args.firstseed}'
+            if st.session_state["pathmode"] == "subfolders":
+                image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
+                mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
+            else:
+                image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
+                mp4_path = os.path.join(args.rootoutdir, f"_mp4s/{args.timestring}_{args.firstseed}.mp4")
 
-            mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
+
+
             max_frames = anim_args.max_frames
             st.session_state.preview_image.empty()
 
