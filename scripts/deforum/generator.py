@@ -336,12 +336,13 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
         args.timestring = anim_args.resume_timestring
     if st.session_state["pathmode"] == "root":
         args.firstseed = args.seed
-        args.rootdir = args.outdir
-        args.outdir = f'{args.outdir}/_anim_stills/{args.batchname}_{args.firstseed}'
+        args.rootoutdir = args.outdir
+        args.outdir = f'{args.outdir}/_anim_stills/{args.batch_name}_{args.firstseed}'
     # expand prompts out to per-frame
     prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
 
-
+    if args.keyframes == '':
+        args.keyframes = "0"
     prom = args.prompt
     key = args.keyframes
 

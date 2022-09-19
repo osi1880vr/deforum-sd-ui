@@ -198,7 +198,7 @@ class runner:
 
 
 
-            args.outdir = f'{args.outdir}/_anim_stills/{args.batchname}_{args.firstseed}'
+            #args.outdir = f'{args.outdir}/_anim_stills/{args.batch_name}_{args.firstseed}'
             if st.session_state["pathmode"] == "subfolders":
                 image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
                 mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
