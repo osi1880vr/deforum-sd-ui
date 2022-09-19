@@ -27,7 +27,7 @@ import json
 from omegaconf import OmegaConf
 import random
 import sys
-from pathlib import Path
+import pathlib
 
 from deforum.modelloader import load_models
 
@@ -371,7 +371,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
             pass
         vf = r'select=not(mod(n\,'+str(1)+'))'
         subprocess.run([
-            'ffmpeg', '-i', f'{anim_args.video_init_path}',
+            'ffmpeg', '-i', f'{st.session_state["init_path"]}',
             '-vf', f'{vf}', '-vsync', 'vfr', '-q:v', '2',
             '-loglevel', 'error', '-stats',
             os.path.join(video_in_frame_path, '%04d.jpg')

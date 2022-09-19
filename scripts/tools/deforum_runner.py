@@ -201,6 +201,13 @@ class runner:
             st.session_state.preview_image.empty()
 
             video.produce_video(args, image_path, mp4_path, max_frames)
+        elif anim_args.animation_mode == 'Video Input':
+            generator.render_animation(args, anim_args, animation_prompts, models_path)
+            mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
+            max_frames = anim_args.max_frames
+            st.session_state.preview_image.empty()
+
+            video.produce_video(args, image_path, mp4_path, max_frames)
 
         elif anim_args.animation_mode == 'None':
             generator.render_animation(args, anim_args, animation_prompts, models_path)
