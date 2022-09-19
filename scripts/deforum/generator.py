@@ -324,7 +324,7 @@ def render_animation( args, anim_args, animation_prompts, model_path, half_preci
     if args.save_settings:
         if st.session_state["pathmode"] == "subfolders":
             settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
-        else
+        else:
             settings_filename = os.path.join(args.outdir, f"_configs/{args.timestring}_settings.txt")
         with open(settings_filename, "w+", encoding="utf-8") as f:
             s = {**dict(args.__dict__), **dict(anim_args.__dict__)}
