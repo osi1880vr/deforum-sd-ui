@@ -107,6 +107,7 @@ def layoutFunc():
 
                 message = st.empty()
 
+
             with col3:
                 # If we have custom models available on the "models/custom"
                 #folder then we show a menu to select which model we want to use, otherwise we use the main model for SD

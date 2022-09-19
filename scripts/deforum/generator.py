@@ -122,8 +122,10 @@ def render_image_batch(args):
                             filename = f"{args.timestring}_{index:05}_{sanitize(prompt)[:160]}.png"
                         else:
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
-                        image.save(os.path.join(args.outdir, filename))
+                        fpath = os.path.join(args.outdir, filename)
+                        image.save(fpath)
                     image_pipe.image(image)
+                    st.session_state['currentImages'].append(fpath)
                     index += 1
                 args.seed = next_seed(args)
 
