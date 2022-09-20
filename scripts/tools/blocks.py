@@ -29,13 +29,11 @@ dream_block.add_input(name='Seed')
 dream_block.add_input(name='CFG Scale')
 
 dream_block.add_option(name='seedInfo', type='display', value='SEED:')
-if dream_block.get_interface(name='Seed') != None:
-    dream_block.add_option(name='Seed', type='input', value=dream_block.get_interface(name='Seed'))
-else:
-    dream_block.add_option(name='Seed', type='input')
+dream_block.add_option(name='Seed', type='input', value='')
+
 
 dream_block.add_option(name='promptInfo', type='display', value='PROMPT:')
-dream_block.add_option(name='Prompt', type='input')
+dream_block.add_option(name='Prompt', type='input', value='')
 dream_block.add_option(name='Sampler', type='select', items=["ddim", "plms", "klms", "dpm2", "dpm2_ancestral", "heun", "euler", "euler_ancestral"], value='klms')
 
 dream_block.add_output(name='PromptOut')
@@ -62,6 +60,16 @@ def dream_func(self):
     self.set_interface(name='SeedOut', value=seed)
 
 dream_block.add_compute(dream_func)
+
+#Number Input
+num_block = Block(name='Number')
+num_block.add_output(name='number')
+num_block.add_option(name='number', type='number')
+def num_func(self):
+    self.set_interface(name='number', value=self.get_option(name='number'))
+num_block.add_compute(num_func)
+
+
 
 #Debug Block
 debug_block = Block(name='Debug')
@@ -322,12 +330,4 @@ def label_encoder_block_func(self):
     self.set_interface(name='Labeled Data', value=le.transform(data))
 label_encoder_block.add_compute(label_encoder_block_func)
 
-
-
-
-
-
-
-
-
-
+default_blocks_category = {'generators': [dream_block], 'image functions':[upscale_block], 'test functions':[debug_block]}
