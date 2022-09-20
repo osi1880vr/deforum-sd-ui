@@ -11,8 +11,8 @@ import streamlit as st
 
 from types import SimpleNamespace
 
-from deforum import generator
-from deforum import video
+from tools.deforum import generator
+from tools.deforum import video
 
 
 class runner:

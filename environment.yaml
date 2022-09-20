@@ -50,5 +50,5 @@ dependencies:
     - transformers==4.19.2
     - regex==2019.11.1
     - timm
-    - nsp_pantry
+    - barfi
 

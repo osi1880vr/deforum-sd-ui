@@ -315,7 +315,7 @@ def integer_block_func(self):
 # Add the compute function to the block
 integer_block.add_compute(integer_block_func)
 
-from sklearn import preprocessing
+#from sklearn import preprocessing
 
 label_encoder_block = Block(name='Label Encoder')
 label_encoder_block.add_option(name='display-option', type='display', value='Label Encode of the input data.')
