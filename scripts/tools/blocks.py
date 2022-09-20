@@ -1,4 +1,7 @@
 from barfi import Block
+from scripts.tools.deforum_runner import runner
+import streamlit as st
+def_runner = runner()
 
 #SD Custom Blocks:
 #Upscaler Block - test
@@ -26,7 +29,11 @@ dream_block.add_input(name='Seed')
 dream_block.add_input(name='CFG Scale')
 
 dream_block.add_option(name='seedInfo', type='display', value='SEED:')
-dream_block.add_option(name='Seed', type='input')
+if dream_block.get_interface(name='Seed') != None:
+    dream_block.add_option(name='Seed', type='input', value=dream_block.get_interface(name='Seed'))
+else:
+    dream_block.add_option(name='Seed', type='input')
+
 dream_block.add_option(name='promptInfo', type='display', value='PROMPT:')
 dream_block.add_option(name='Prompt', type='input')
 dream_block.add_option(name='Sampler', type='select', items=["ddim", "plms", "klms", "dpm2", "dpm2_ancestral", "heun", "euler", "euler_ancestral"], value='klms')
@@ -42,6 +49,7 @@ def dream_func(self):
         prompt = self.get_option(name='Prompt')
     if self.get_interface(name='Seed') != None:
         seed = self.get_interface(name='Seed')
+        self.set_option(name='Seed', value='Works')
     else:
         seed = self.get_option(name='Seed')
 
