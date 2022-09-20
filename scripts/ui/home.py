@@ -45,9 +45,15 @@ def getLatestGeneratedImagesFromPath():
 	files.sort(key=os.path.getmtime)
 	
 	#reverse the list so the latest images are first
+	# we only want 10 images so we only open 10
+	n = 0
 	for f in files:
 		img = Image.open(f)
 		files[files.index(f)] = img
+		n += 1
+		if n >= 9:
+			break
+
 		
 	#get the latest 10 files
 	#get all the files with the .png or .jpg extension
