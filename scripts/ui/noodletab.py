@@ -291,20 +291,21 @@ dream_block.add_input(name='Prompt')
 dream_block.add_input(name='CFG Scale')
 
 dream_block.add_option(name='Prompt', type='input')
-dream_block.add_option(name='Sampler', type='select', items=["ddim", "plms","klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral"], value='klms')
+dream_block.add_option(name='Sampler', type='select', items=["ddim", "plms", "klms", "dpm2", "dpm2_ancestral", "heun", "euler", "euler_ancestral"], value='klms')
 
 dream_block.add_output(name='PromptOut')
-dream_block.add_output(name='Image')
+dream_block.add_output(name='ImageOut')
 
 def dream_func(self):
     if self.get_interface(name='Prompt') != None:
         prompt = self.get_interface(name='Prompt')
     else:
         prompt = self.get_option(name='Prompt')
-    print(prompt)
     st.session_state["prompt"] = prompt
+    st.session_state['sampler'] = self.get_option(name='Sampler')
     def_runner.run_txt2img()
-    self.set_interface(name='PromptOut', value=prompt)
+    self.set_interface(name='ImageOutt', value=prompt)
+    self.set_interface(name='PromptOut', value=st.session_state["node_pipe"])
 
 dream_block.add_compute(dream_func)
 
@@ -359,8 +360,8 @@ def layoutFunc():
                     print (barfi_result[a]['block'].get_interface(name='Function'))
                     print (barfi_result[a]['block'].get_interface(name='Path'))
     with col2:
-        if "node_image" in st.session_state:
-            st.session_state["node_preview_image"] = st.image(st.session_state["node_image"])
+        if 'node_pipe' in st.session_state:
+            st.session_state["node_preview_image"] = st.image(st.session_state['node_pipe'])
 
         #print(barfi_result['Feed-1']['block'].get_interface(name='Output 1'))
         #st.write(barfi_result['Integer-1']['block'].get_interface(name='Output 1'))
