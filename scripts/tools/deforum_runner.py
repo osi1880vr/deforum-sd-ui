@@ -37,7 +37,7 @@ class runner:
         else:
             out_folder = st.session_state["outdir"]
         if st.session_state['seed'] == '':
-            seed = int(random.randrange(0, 4200000000))
+            st.session_state['seed'] = int(random.randrange(0, 4200000000))
         else:
             st.session_state['seed'] = int(st.session_state['seed'])
         seed = int(random.randrange(0, 4200000000))
@@ -45,7 +45,7 @@ class runner:
             #'video': st.session_state['preview_video'],
             'W': W,
             'H': H,
-            'seed': seed,  # @param
+            'seed': st.session_state['seed'],  # @param
             'sampler': st.session_state['sampler'],
             # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
             'steps': st.session_state['steps'],  # @param
