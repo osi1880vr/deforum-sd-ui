@@ -283,18 +283,55 @@ def upscale_func(self):
 upscale_block.add_compute(upscale_func)
 
 #Dream Block - test
+#If an input is not connected, its value is none.
 dream_block = Block(name='Dream')
-dream_block.add_option(name='Prompt', type='input')
 
-dream_block.add_output(name='Prompt')
+dream_block.add_input(name='Seed')
+dream_block.add_input(name='Prompt')
+dream_block.add_input(name='CFG Scale')
+
+dream_block.add_option(name='Prompt', type='input')
+dream_block.add_option(name='Sampler', type='select', items=["ddim", "plms","klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral"], value='klms')
+
+dream_block.add_output(name='PromptOut')
 dream_block.add_output(name='Image')
 
 def dream_func(self):
-    prompt = self.get_option(name='Prompt')
+    if self.get_interface(name='Prompt') != None:
+        prompt = self.get_interface(name='Prompt')
+    else:
+        prompt = self.get_option(name='Prompt')
+    print(prompt)
     st.session_state["prompt"] = prompt
     def_runner.run_txt2img()
+    self.set_interface(name='PromptOut', value=prompt)
 
 dream_block.add_compute(dream_func)
+
+#Debug Block
+debug_block = Block(name='Debug')
+debug_block.add_input(name='Input')
+debug_block.add_output(name='Output')
+
+def debug_func(self):
+    data = self.get_interface(name='Input')
+    print(f'Input Type: {type(data)}')
+    print(f'Input Content: {data}')
+debug_block.add_compute(debug_func)
+
+
+#Duplicator_Block
+dup_block = Block(name='Duplicate')
+
+dup_block.add_input(name='Input')
+dup_block.add_output(name='Output-1')
+dup_block.add_output(name='Output-2')
+def dup_func(self):
+    data = self.get_interface(name='Input')
+    self.set_interface(name='Output-1', value=data)
+    self.set_interface(name='Output-2', value=data)
+dup_block.add_compute(dup_func)
+
 
 
 
@@ -310,7 +347,7 @@ def layoutFunc():
 
         compute_engine = st.checkbox('Activate barfi compute engine', value=False)
 
-        barfi_result = st_barfi(base_blocks=[dream_block, upscale_block, label_encoder_block, slider_block, number_block, integer_block, select_block, select_file_block, file_block, textblock, feed, result, mixer, splitter],
+        barfi_result = st_barfi(base_blocks=[debug_block, dup_block, dream_block, upscale_block, label_encoder_block, slider_block, number_block, integer_block, select_block, select_file_block, file_block, textblock, feed, result, mixer, splitter],
                                 compute_engine=compute_engine, load_schema=load_schema)
 
         if barfi_result:
