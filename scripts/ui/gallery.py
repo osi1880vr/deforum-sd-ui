@@ -55,7 +55,7 @@ def getLatestGeneratedImagesFromPath():
 
     # reverse the list so the latest images are first and truncate to
     # a reasonable number of images, 10 pages worth
-    return [Image.open(f) for f in latest]
+    return [Image.open(f) for f in latest[:100]]
 
 def layoutFunc():
     #st.markdown(f"<h1 style='text-align: center; color: white;'>Navigate 300+ Textual-Inversion community trained concepts</h1>", unsafe_allow_html=True)
