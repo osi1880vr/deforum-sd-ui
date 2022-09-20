@@ -1,7 +1,9 @@
 from barfi import Block
 from scripts.tools.deforum_runner import runner
 import streamlit as st
-import PIL
+import random
+
+from PIL import Image
 def_runner = runner()
 
 #SD Custom Blocks:
@@ -78,6 +80,83 @@ img_preview.add_compute(img_prev_func)
 #PIL Blocks
 #PIL.Image.effect_mandelbrot(size, extent, quality)
 #
+
+#Mandelbrot block
+mandel_block = Block(name='Mandelbrot')
+mandel_block.add_output(name='mandel')
+def mandel_func(self):
+    # Mandelbrot fractal
+    # FB - 201003151
+    # Modified Andrew Lewis 2010/04/06
+    # drawing area (xa < xb and ya < yb)
+    xa = -2.0
+    xb = 1.0
+    ya = -1.5
+    yb = 1.5
+    maxIt = 256 # iterations
+    # image size
+    imgx = 512
+    imgy = 512
+
+    #create mtx for optimized access
+    image = Image.new("RGB", (imgx, imgy))
+    mtx = image.load()
+
+    #optimizations
+    lutx = [j * (xb-xa) / (imgx - 1) + xa for j in xrange(imgx)]
+
+    for y in xrange(imgy):
+        cy = y * (yb - ya) / (imgy - 1)  + ya
+        for x in xrange(imgx):
+            c = complex(lutx[x], cy)
+            z = 0
+            for i in xrange(maxIt):
+                if abs(z) > 2.0: break
+                z = z * z + c
+            r = i % 4 * 64
+            g = i % 8 * 32
+            b = i % 16 * 16
+            mtx[x, y] =  r,g,b    #path = '/content/test.png'
+
+    #image.save(path, "PNG")
+    self.set_interface(name='mandel', value=image)
+mandel_block.add_compute(mandel_func)
+
+
+#Random Julia fractal block
+julia_block = Block(name='Julia Fractal')
+julia_block.add_output(name='julia')
+def julia_func(self):
+    # Julia fractal
+    # FB - 201003151
+    from PIL import Image
+    # drawing area (xa < xb and ya < yb)
+    xa = -2.0
+    xb = 1.0
+    ya = -1.5
+    yb = 1.5
+    maxIt = 256 # iterations
+    # image size
+    imgx = 512
+    imgy = 512
+    image = Image.new("RGB", (imgx, imgy))
+    # Julia set to draw
+    c = complex(random.random() * 2.0 - 1.0, random.random() - 0.5)
+
+    for y in range(imgy):
+        zy = y * (yb - ya) / (imgy - 1)  + ya
+        for x in range(imgx):
+            zx = x * (xb - xa) / (imgx - 1) + xa
+            z = complex(zx, zy)
+            for i in range(maxIt):
+                if abs(z) > 2.0: break
+                z = z * z + c
+            r = i % 4 * 64
+            g = i % 8 * 32
+            b = i % 16 * 16
+            image.putpixel((x, y), b * 65536 + g * 256 + r)
+    self.set_interface(name='julia', value=image)
+julia_block.add_compute(julia_func)
 
 #Debug Block
 debug_block = Block(name='Debug')
@@ -323,7 +402,7 @@ def integer_block_func(self):
 # Add the compute function to the block
 integer_block.add_compute(integer_block_func)
 
-#from sklearn import preprocessing
+from sklearn import preprocessing
 
 label_encoder_block = Block(name='Label Encoder')
 label_encoder_block.add_option(name='display-option', type='display', value='Label Encode of the input data.')
@@ -338,7 +417,7 @@ def label_encoder_block_func(self):
     self.set_interface(name='Labeled Data', value=le.transform(data))
 label_encoder_block.add_compute(label_encoder_block_func)
 
-default_blocks_category = {'generators': [dream_block], 'image functions':[img_preview, upscale_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block], 'test functions':[debug_block]}
 
 
 
