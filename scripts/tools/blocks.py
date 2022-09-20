@@ -1,18 +1,16 @@
 from barfi import Block
 from scripts.tools.deforum_runner import runner
 import streamlit as st
+import PIL
 def_runner = runner()
 
 #SD Custom Blocks:
 #Upscaler Block - test
 upscale_block = Block(name='Upscale')
-
 upscale_block.add_option(name='Upscale Strength', type='slider', min=1, max=8, value=1)
 upscale_block.add_option(name='Input Image', type='input')
-
 upscale_block.add_output(name='Path')
 upscale_block.add_output(name='Function')
-
 def upscale_func(self):
     data = 'doUpscale'
     self.set_interface(name='Function', value=data)
@@ -20,34 +18,32 @@ def upscale_func(self):
     self.set_interface(name='Path', value=data)
 upscale_block.add_compute(upscale_func)
 
+
 #Dream Block - test
 #If an input is not connected, its value is none.
 dream_block = Block(name='Dream')
 
-dream_block.add_input(name='Prompt')
-dream_block.add_input(name='Seed')
-dream_block.add_input(name='CFG Scale')
+dream_block.add_input(name='PromptIn')
+dream_block.add_input(name='SeedIn')
+dream_block.add_input(name='CFG ScaleIn')
 
 dream_block.add_option(name='seedInfo', type='display', value='SEED:')
 dream_block.add_option(name='Seed', type='input', value='')
-
-
 dream_block.add_option(name='promptInfo', type='display', value='PROMPT:')
 dream_block.add_option(name='Prompt', type='input', value='')
 dream_block.add_option(name='Sampler', type='select', items=["ddim", "plms", "klms", "dpm2", "dpm2_ancestral", "heun", "euler", "euler_ancestral"], value='klms')
-
 dream_block.add_output(name='PromptOut')
 dream_block.add_output(name='ImageOut')
 dream_block.add_output(name='SeedOut')
 
 def dream_func(self):
-    if self.get_interface(name='Prompt') != None:
-        prompt = self.get_interface(name='Prompt')
+    if self.get_interface(name='PromptIn') != None:
+        prompt = self.get_interface(name='PromptIn')
     else:
         prompt = self.get_option(name='Prompt')
-    if self.get_interface(name='Seed') != None:
-        seed = self.get_interface(name='Seed')
-        self.set_option(name='Seed', value='Works')
+
+    if self.get_interface(name='SeedIn') != None:
+        seed = self.get_interface(name='SeedIn')
     else:
         seed = self.get_option(name='Seed')
 
@@ -70,6 +66,18 @@ def num_func(self):
 num_block.add_compute(num_func)
 
 
+#Image Preview Block
+img_preview = Block(name='Image Preview')
+img_preview.add_input(name='image')
+def img_prev_func(self):
+    st.session_state["node_preview_image"] = st.image(self.get_interface(name='image'))
+    #return st.session_state["node_preview_image"]
+img_preview.add_compute(img_prev_func)
+
+
+#PIL Blocks
+#PIL.Image.effect_mandelbrot(size, extent, quality)
+#
 
 #Debug Block
 debug_block = Block(name='Debug')
@@ -330,4 +338,13 @@ def label_encoder_block_func(self):
     self.set_interface(name='Labeled Data', value=le.transform(data))
 label_encoder_block.add_compute(label_encoder_block_func)
 
-default_blocks_category = {'generators': [dream_block], 'image functions':[upscale_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block], 'image functions':[img_preview, upscale_block], 'test functions':[debug_block]}
+
+
+
+
+
+
+
+
+

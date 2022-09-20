@@ -4,6 +4,7 @@ import streamlit.components.v1 as components
 #from ui.sd_utils import *
 from barfi import st_barfi, barfi_schemas, Block
 from scripts.tools.blocks import *
+import PIL
 
 
 from scripts.tools.deforum_runner import runner
@@ -46,8 +47,12 @@ def layoutFunc():
         compute_engine = st.checkbox('Activate barfi compute engine', value=True)
         if compute_engine:
             barfi_result = st_barfi(base_blocks=default_blocks_category,
-                                    compute_engine=compute_engine, load_schema=load_schema)
+                                    compute_engine=compute_engine,
+                                    load_schema=load_schema)
     with col2:
+        if compute_engine:
+            st.session_state["node_preview_image"] = st.empty()
+
         placeholder = st.empty()
 
         #populate the 3 images per column
