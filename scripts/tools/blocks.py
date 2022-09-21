@@ -2,8 +2,9 @@ from barfi import Block
 from scripts.tools.deforum_runner import runner
 import streamlit as st
 import random
+from tools.sd_utils import *
 
-from PIL import Image
+import PIL
 def_runner = runner()
 
 #SD Custom Blocks:
@@ -19,6 +20,31 @@ def upscale_func(self):
     data = self.get_option(name='Input Image')
     self.set_interface(name='Path', value=data)
 upscale_block.add_compute(upscale_func)
+
+
+#img2img Block
+img2img_block = Block(name='img2img Node')
+img2img_block.add_input(name='ImageIn')
+img2img_block.add_option(name='Prompt', type='input')
+img2img_block.add_output(name='Image')
+def img2img_func(self):
+    init_info = self.get_interface(name='ImageIn')
+    prompt = self.get_interface(name='Prompt')
+    output_images, seed, info, stats = img2img(prompt=prompt, init_info=init_info, init_info_mask=None, mask_mode=mask_mode,
+                                               mask_restore=img2img_mask_restore, ddim_steps=st.session_state["sampling_steps"],
+                                               sampler_name=st.session_state["sampler_name"], n_iter=batch_count,
+                                               cfg_scale=cfg_scale, denoising_strength=st.session_state["denoising_strength"], variant_seed=variant_seed,
+                                               seed=seed, noise_mode=noise_mode, find_noise_steps=find_noise_steps, width=width,
+                                               height=height, fp=st.session_state['defaults'].general.fp, variant_amount=variant_amount,
+                                               ddim_eta=0.0, write_info_files=write_info_files, RealESRGAN_model=st.session_state["RealESRGAN_model"],
+                                               separate_prompts=separate_prompts, normalize_prompt_weights=normalize_prompt_weights,
+                                               save_individual_images=save_individual_images, save_grid=save_grid,
+                                               group_by_prompt=group_by_prompt, save_as_jpg=save_as_jpg, use_GFPGAN=st.session_state["use_GFPGAN"],
+                                               use_RealESRGAN=st.session_state["use_RealESRGAN"] if not loopback else False, loopback=loopback
+                                               )
+    self.set_interface(name='Image', value=output_images)
+img2img_block.add_compute(img2img_func)
+
 
 
 #Dream Block - test
@@ -70,9 +96,12 @@ num_block.add_compute(num_func)
 
 #Image Preview Block
 img_preview = Block(name='Image Preview')
-img_preview.add_input(name='image')
+img_preview.add_input(name='iimage')
 def img_prev_func(self):
-    st.session_state["node_preview_image"] = st.image(self.get_interface(name='image'))
+    st.session_state["node_preview_img_object"] = None
+    if self.get_interface(name='iimage') != None:
+        iimg = self.get_interface(name='iimage')
+        st.session_state["node_preview_img_object"] = iimg
     #return st.session_state["node_preview_image"]
 img_preview.add_compute(img_prev_func)
 
@@ -83,43 +112,39 @@ img_preview.add_compute(img_prev_func)
 
 #Mandelbrot block
 mandel_block = Block(name='Mandelbrot')
+mandel_block.add_option(name='xa', type='slider', min=-2.5, max=2.5, value=-2)
+mandel_block.add_option(name='xb', type='slider', min=-2.5, max=2.5, value=1.0)
+mandel_block.add_option(name='ya', type='slider', min=-2.5, max=2.5, value=-1.5)
+mandel_block.add_option(name='yb', type='slider', min=-2.5, max=2.5, value=1.5)
 mandel_block.add_output(name='mandel')
 def mandel_func(self):
     # Mandelbrot fractal
     # FB - 201003151
-    # Modified Andrew Lewis 2010/04/06
     # drawing area (xa < xb and ya < yb)
-    xa = -2.0
-    xb = 1.0
-    ya = -1.5
-    yb = 1.5
+    xa = self.get_option(name='xa')
+    xb = self.get_option(name='xb')
+    ya = self.get_option(name='ya')
+    yb = self.get_option(name='yb')
     maxIt = 256 # iterations
     # image size
     imgx = 512
     imgy = 512
+    mimage = Image.new("RGB", (imgx, imgy))
 
-    #create mtx for optimized access
-    image = Image.new("RGB", (imgx, imgy))
-    mtx = image.load()
-
-    #optimizations
-    lutx = [j * (xb-xa) / (imgx - 1) + xa for j in xrange(imgx)]
-
-    for y in xrange(imgy):
+    for y in range(imgy):
         cy = y * (yb - ya) / (imgy - 1)  + ya
-        for x in xrange(imgx):
-            c = complex(lutx[x], cy)
+        for x in range(imgx):
+            cx = x * (xb - xa) / (imgx - 1) + xa
+            c = complex(cx, cy)
             z = 0
-            for i in xrange(maxIt):
+            for i in range(maxIt):
                 if abs(z) > 2.0: break
                 z = z * z + c
             r = i % 4 * 64
             g = i % 8 * 32
             b = i % 16 * 16
-            mtx[x, y] =  r,g,b    #path = '/content/test.png'
-
-    #image.save(path, "PNG")
-    self.set_interface(name='mandel', value=image)
+            mimage.putpixel((x, y), b * 65536 + g * 256 + r)
+    self.set_interface(name='mandel', value=mimage)
 mandel_block.add_compute(mandel_func)
 
 
@@ -157,6 +182,28 @@ def julia_func(self):
             image.putpixel((x, y), b * 65536 + g * 256 + r)
     self.set_interface(name='julia', value=image)
 julia_block.add_compute(julia_func)
+
+#Blend Block
+def blend_img(im1, im2):
+    print(f'Printing type: {type(bimg)}')
+
+    bimg = PIL.Image.blend(im1, im2, 0.5)
+    return bimg
+blend_block = Block(name='Blend')
+blend_block.add_input(name='bImage_1')
+blend_block.add_input(name='bImage_2')
+blend_block.add_option(name='alpha', type='slider', min=-0, max=1, value=0.5)
+blend_block.add_output(name='blend_ImageOut')
+def blend_func(self):
+    im1 = self.get_interface(name='bImage_1')
+
+    im2 = self.get_interface(name='bImage_2')
+    alpha = self.get_interface(name='alpha')
+    bimg = blend_img(im1, im2)
+
+    self.set_interface(name='blend_ImageOut', value=bimg)
+blend_block.add_compute(blend_func)
+
 
 #Debug Block
 debug_block = Block(name='Debug')
@@ -417,7 +464,7 @@ def label_encoder_block_func(self):
     self.set_interface(name='Labeled Data', value=le.transform(data))
 label_encoder_block.add_compute(label_encoder_block_func)
 
-default_blocks_category = {'generators': [dream_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, blend_block, upscale_block], 'test functions':[debug_block]}
 
 
 

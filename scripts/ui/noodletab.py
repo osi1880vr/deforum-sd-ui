@@ -35,28 +35,33 @@ with open('./scripts/tools/processChart/html/flowchart.html', 'r', encoding="utf
     components.html3 = f.read()
 
 def layoutFunc():
+    if 'v' not in st.session_state:
+        c = 3
+        st.session_state['v'] = 2
+
     #with st.form("Nodes"):
-    col1, col2 = st.columns([3,1], gap="medium")
+    col1, col2 = st.columns([3,2], gap="small")
     #    refresh_btn = col1.form_submit_button("Run node sequence")
 
-    st.session_state["node_preview_image"] = st.empty
     with col1:
+
 
         load_schema = st.selectbox('Select a saved schema:', barfi_schemas())
 
-        compute_engine = st.checkbox('Activate barfi compute engine', value=True)
+        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
         if compute_engine:
             barfi_result = st_barfi(base_blocks=default_blocks_category,
                                     compute_engine=compute_engine,
                                     load_schema=load_schema)
     with col2:
-        if compute_engine:
-            st.session_state["node_preview_image"] = st.empty()
 
         placeholder = st.empty()
 
         #populate the 3 images per column
+
+        #print(type(st.session_state["node_preview_img_object"]))
         with placeholder.container():
+
             col_cont = st.container()
 
 
@@ -64,6 +69,9 @@ def layoutFunc():
             images = list(reversed(st.session_state['currentImages']))
 
             with col_cont:
+                st.session_state["node_preview_image"] = st.empty()
+                if "node_preview_img_object" in st.session_state:
+                    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
 
                 [st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
 
