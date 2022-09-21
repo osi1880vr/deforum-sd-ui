@@ -184,10 +184,12 @@ def julia_func(self):
 julia_block.add_compute(julia_func)
 
 #Blend Block
-def blend_img(im1, im2):
-    print(f'Printing type: {type(bimg)}')
+def blend_img(im1, im2, alpha):
+    print(f'Printing type input 1: {type(im2)}')
 
-    bimg = PIL.Image.blend(im1, im2, 0.5)
+    bimg = PIL.Image.blend(im1, im2, alpha)
+    print(f'Printing type output 1: {type(bimg)}')
+
     return bimg
 blend_block = Block(name='Blend')
 blend_block.add_input(name='bImage_1')
@@ -198,8 +200,8 @@ def blend_func(self):
     im1 = self.get_interface(name='bImage_1')
 
     im2 = self.get_interface(name='bImage_2')
-    alpha = self.get_interface(name='alpha')
-    bimg = blend_img(im1, im2)
+    alpha = self.get_option(name='alpha')
+    bimg = blend_img(im1, im2, alpha)
 
     self.set_interface(name='blend_ImageOut', value=bimg)
 blend_block.add_compute(blend_func)
