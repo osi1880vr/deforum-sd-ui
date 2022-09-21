@@ -2,7 +2,9 @@ from barfi import Block
 from scripts.tools.deforum_runner import runner
 import streamlit as st
 import random
-from tools.sd_utils import *
+from scripts.tools.sd_utils import img2img
+
+#from scripts.tools.sd_utils import *
 
 import PIL
 def_runner = runner()
@@ -24,25 +26,29 @@ upscale_block.add_compute(upscale_func)
 
 #img2img Block
 img2img_block = Block(name='img2img Node')
-img2img_block.add_input(name='ImageIn')
-img2img_block.add_option(name='Prompt', type='input')
-img2img_block.add_output(name='Image')
+img2img_block.add_input(name='2ImageIn')
+img2img_block.add_option(name='2Prompt', type='input')
+img2img_block.add_output(name='2Image')
 def img2img_func(self):
-    init_info = self.get_interface(name='ImageIn')
-    prompt = self.get_interface(name='Prompt')
-    output_images, seed, info, stats = img2img(prompt=prompt, init_info=init_info, init_info_mask=None, mask_mode=mask_mode,
-                                               mask_restore=img2img_mask_restore, ddim_steps=st.session_state["sampling_steps"],
-                                               sampler_name=st.session_state["sampler_name"], n_iter=batch_count,
-                                               cfg_scale=cfg_scale, denoising_strength=st.session_state["denoising_strength"], variant_seed=variant_seed,
-                                               seed=seed, noise_mode=noise_mode, find_noise_steps=find_noise_steps, width=width,
-                                               height=height, fp=st.session_state['defaults'].general.fp, variant_amount=variant_amount,
-                                               ddim_eta=0.0, write_info_files=write_info_files, RealESRGAN_model=st.session_state["RealESRGAN_model"],
-                                               separate_prompts=separate_prompts, normalize_prompt_weights=normalize_prompt_weights,
-                                               save_individual_images=save_individual_images, save_grid=save_grid,
-                                               group_by_prompt=group_by_prompt, save_as_jpg=save_as_jpg, use_GFPGAN=st.session_state["use_GFPGAN"],
-                                               use_RealESRGAN=st.session_state["use_RealESRGAN"] if not loopback else False, loopback=loopback
-                                               )
-    self.set_interface(name='Image', value=output_images)
+    print('step1 ok')
+
+    init_img = self.get_interface(name='2ImageIn')
+    init_img = init_img.convert('RGBA')
+    prompt2 = "test"
+    print('step2 ok')
+
+    output_images, seed, info, stats = img2img(prompt=prompt2, init_info=init_img, init_info_mask=None, mask_mode="Mask",
+                                               mask_restore=False, ddim_steps=st.session_state["sampling_steps"],
+                                               sampler_name=st.session_state['sampler_name'], n_iter=1,
+                                               cfg_scale=7, denoising_strength=0.5, variant_seed="654776",
+                                               seed=444444, noise_mode="Seed", find_noise_steps=150, width=512,
+                                               height=512, fp=st.session_state['defaults'].general.fp, variant_amount=0.5,
+                                               ddim_eta=0.0, write_info_files=False, RealESRGAN_model=None,
+                                               separate_prompts=False, normalize_prompt_weights=False,
+                                               save_individual_images=True, save_grid=False,
+                                               group_by_prompt=False, save_as_jpg=True, use_GFPGAN=False,
+                                               use_RealESRGAN=False, loopback=False)
+    self.set_interface(name='2Image', value=output_images)
 img2img_block.add_compute(img2img_func)
 
 
