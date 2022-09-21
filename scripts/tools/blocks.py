@@ -185,11 +185,7 @@ julia_block.add_compute(julia_func)
 
 #Blend Block
 def blend_img(im1, im2, alpha):
-    print(f'Printing type input 1: {type(im2)}')
-
     bimg = PIL.Image.blend(im1, im2, alpha)
-    print(f'Printing type output 1: {type(bimg)}')
-
     return bimg
 blend_block = Block(name='Blend')
 blend_block.add_input(name='bImage_1')
@@ -205,6 +201,21 @@ def blend_func(self):
 
     self.set_interface(name='blend_ImageOut', value=bimg)
 blend_block.add_compute(blend_func)
+
+#Invert Block
+def blend_img(im1, im2, alpha):
+    bimg = PIL.Image.blend(im1, im2, alpha)
+    return bimg
+invert_block = Block(name='Invert Image')
+invert_block.add_input(name='iImage_1')
+invert_block.add_output(name='invert_ImageOut')
+def invert_func(self):
+    im1 = self.get_interface(name='iImage_1')
+
+    iimg = PIL.ImageOps.invert(im1)
+
+    self.set_interface(name='invert_ImageOut', value=iimg)
+invert_block.add_compute(invert_func)
 
 
 #Debug Block
@@ -466,7 +477,7 @@ def label_encoder_block_func(self):
     self.set_interface(name='Labeled Data', value=le.transform(data))
 label_encoder_block.add_compute(label_encoder_block_func)
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, blend_block, upscale_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, blend_block, invert_block], 'test functions':[debug_block]}
 
 
 
