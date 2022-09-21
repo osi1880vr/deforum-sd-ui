@@ -142,7 +142,7 @@ def torch_gc():
 	torch.cuda.empty_cache()
 	torch.cuda.ipc_collect()
 
-
+"""
 def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None, mask_mode: int = 0,
 			mask_blur_strength: int = 3,
 			mask_restore: bool = False, ddim_steps: int = 50, sampler_name: str = 'DDIM',
@@ -156,48 +156,37 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 			save_as_jpg: bool = True, use_GFPGAN: bool = True, use_RealESRGAN: bool = True, loopback: bool = False,
 			random_seed_loopback: bool = False
 			):
+"""
+def img2img():
 	load_models()
 
 	outpath = st.session_state['defaults'].general.outdir_img2img or st.session_state[
 		'defaults'].general.outdir or "outputs/img2img-samples"
-	# err = False
-	# loopback = False
-	# skip_save = False
-	seed = seed_to_int(seed)
+
+	seed = seed_to_int(st.session_state["img2img"]["seed"])
 
 	batch_size = 1
+	n_iter = st.session_state["img2img"]["batch_count"]
 
-	# prompt_matrix = 0
-	# normalize_prompt_weights = 1 in toggles
-	# loopback = 2 in toggles
-	# random_seed_loopback = 3 in toggles
-	# skip_save = 4 not in toggles
-	# save_grid = 5 in toggles
-	# sort_samples = 6 in toggles
-	# write_info_files = 7 in toggles
-	# write_sample_info_to_log_file = 8 in toggles
-	# jpg_sample = 9 in toggles
-	# use_GFPGAN = 10 in toggles
-	# use_RealESRGAN = 11 in toggles
 
-	if sampler_name == 'PLMS':
+	if st.session_state["img2img"]["sampler_name"] == 'PLMS':
 		sampler = PLMSSampler(st.session_state["model"])
-	elif sampler_name == 'DDIM':
+	elif st.session_state["img2img"]["sampler_name"] == 'DDIM':
 		sampler = DDIMSampler(st.session_state["model"])
-	elif sampler_name == 'k_dpm_2_a':
+	elif st.session_state["img2img"]["sampler_name"] == 'k_dpm_2_a':
 		sampler = KDiffusionSampler(st.session_state["model"], 'dpm_2_ancestral')
-	elif sampler_name == 'k_dpm_2':
+	elif st.session_state["img2img"]["sampler_name"] == 'k_dpm_2':
 		sampler = KDiffusionSampler(st.session_state["model"], 'dpm_2')
-	elif sampler_name == 'k_euler_a':
+	elif st.session_state["img2img"]["sampler_name"] == 'k_euler_a':
 		sampler = KDiffusionSampler(st.session_state["model"], 'euler_ancestral')
-	elif sampler_name == 'k_euler':
+	elif st.session_state["img2img"]["sampler_name"] == 'k_euler':
 		sampler = KDiffusionSampler(st.session_state["model"], 'euler')
-	elif sampler_name == 'k_heun':
+	elif st.session_state["img2img"]["sampler_name"] == 'k_heun':
 		sampler = KDiffusionSampler(st.session_state["model"], 'heun')
-	elif sampler_name == 'k_lms':
+	elif st.session_state["img2img"]["sampler_name"] == 'k_lms':
 		sampler = KDiffusionSampler(st.session_state["model"], 'lms')
 	else:
-		raise Exception("Unknown sampler: " + sampler_name)
+		raise Exception("Unknown sampler: " + st.session_state["img2img"]["sampler_name"])
 
 	def process_init_mask(init_mask: Image):
 		if init_mask.mode == "RGBA":
@@ -207,26 +196,32 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 			init_mask = init_mask.convert('RGB')
 		return init_mask
 
-	init_img = init_info
+	init_img = st.session_state["img2img"]["init_info"]
 	init_mask = None
-	if mask_mode == 0:
-		if init_info_mask:
-			init_mask = process_init_mask(init_info_mask)
-	elif mask_mode == 1:
-		if init_info_mask:
-			init_mask = process_init_mask(init_info_mask)
+	if st.session_state["img2img"]["mask_mode"] == 0:
+		if st.session_state["img2img"]["init_info_mask"]:
+			init_mask = process_init_mask(st.session_state["img2img"]["init_info_mask"])
+	elif st.session_state["img2img"]["mask_mode"] == 1:
+		if st.session_state["img2img"]["init_info_mask"]:
+			init_mask = process_init_mask(st.session_state["img2img"]["init_info_mask"])
 			init_mask = ImageOps.invert(init_mask)
-	elif mask_mode == 2:
+	elif st.session_state["img2img"]["mask_mode"] == 2:
 		init_img_transparency = init_img.split()[-1].convert('L')  # .point(lambda x: 255 if x > 0 else 0, mode='1')
 		init_mask = init_img_transparency
 		init_mask = init_mask.convert("RGB")
-		init_mask = resize_image(resize_mode, init_mask, width, height)
+		init_mask = resize_image(st.session_state["img2img"]["resize_mode"],
+								 init_mask,
+								 st.session_state["img2img"]["width"],
+								 st.session_state["img2img"]["height"])
 		init_mask = init_mask.convert("RGB")
 
-	assert 0. <= denoising_strength <= 1., 'can only work with strength in [0.0, 1.0]'
-	t_enc = int(denoising_strength * ddim_steps)
+	assert 0. <= st.session_state["img2img"]["denoising_strength"] <= 1., 'can only work with strength in [0.0, 1.0]'
 
-	if init_mask is not None and (noise_mode == 2 or noise_mode == 3) and init_img is not None:
+	ddim_steps=st.session_state["img2img"]["steps"]
+
+	t_enc = int(st.session_state["img2img"]["denoising_strength"] * ddim_steps)
+
+	if init_mask is not None and (st.session_state["img2img"]["noise_mode"] == 2 or st.session_state["img2img"]["noise_mode"] == 3) and init_img is not None:
 		noise_q = 0.99
 		color_variation = 0.0
 		mask_blend_factor = 1.0
@@ -253,7 +248,7 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 		np_mask_grey = np.sum(np_mask_rgb, axis=2) / 3.
 		ref_mask = np_mask_grey < 1e-3
 
-		all_mask = np.ones((height, width), dtype=bool)
+		all_mask = np.ones((st.session_state["img2img"]["height"], st.session_state["img2img"]["width"]), dtype=bool)
 		noised[all_mask, :] = skimage.exposure.match_histograms(noised[all_mask, :] ** 1., noised[ref_mask, :],
 																channel_axis=1)
 
@@ -268,7 +263,10 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 
 		mask_channel = None
 		if init_mask:
-			alpha = resize_image(resize_mode, init_mask, width // 8, height // 8)
+			alpha = resize_image(st.session_state["img2img"]["resize_mode"],
+								 init_mask,
+								 st.session_state["img2img"]["width"] // 8,
+								 st.session_state["img2img"]["height"] // 8)
 			mask_channel = alpha.split()[-1]
 
 		mask = None
@@ -287,7 +285,7 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 		init_latent = (st.session_state["model"] if not st.session_state[
 			'defaults'].general.optimized else st.session_state.modelFS).get_first_stage_encoding((st.session_state[
 																									   "model"] if not
-		st.session_state['defaults'].general.optimized else modelFS).encode_first_stage(
+		st.session_state['defaults'].general.optimized else st.session_state["img2img"]["modelFS"]).encode_first_stage(
 			init_image))  # move to latent space
 
 		if st.session_state['defaults'].general.optimized:
@@ -323,7 +321,7 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 			samples_ddim = K.sampling.__dict__[f'sample_{sampler.get_sampler_name()}'](model_wrap_cfg, xi, sigma_sched,
 																					   extra_args={'cond': conditioning,
 																								   'uncond': unconditional_conditioning,
-																								   'cond_scale': cfg_scale,
+																								   'cond_scale': st.session_state["img2img"]["cfg_scale"],
 																								   'mask': z_mask,
 																								   'x0': x0, 'xi': xi},
 																					   disable=False,
@@ -343,12 +341,12 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 
 			# decode it
 			samples_ddim = sampler.decode(z_enc, conditioning, t_enc_steps,
-										  unconditional_guidance_scale=cfg_scale,
+										  unconditional_guidance_scale=st.session_state["img2img"]["cfg_scale"],
 										  unconditional_conditioning=unconditional_conditioning,
 										  z_mask=z_mask, x0=x0)
 		return samples_ddim
 
-	if loopback:
+	if st.session_state["img2img"]["loopback"]:
 		output_images, info = None, None
 		history = []
 		initial_seed = None
@@ -360,43 +358,19 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 		except:
 			print("Install scikit-image to perform color correction on loopback")
 
-		for i in range(n_iter):
-			if do_color_correction and i == 0:
-				correction_target = cv2.cvtColor(np.asarray(init_img.copy()), cv2.COLOR_RGB2LAB)
+		for i in range(st.session_state["img2img"]["batch_count"]):
+			#if do_color_correction and i == 0:
+			#	correction_target = cv2.cvtColor(np.asarray(init_img.copy()), cv2.COLOR_RGB2LAB)
 
 			output_images, seed, info, stats = process_images(
 				outpath=outpath,
 				func_init=init,
 				func_sample=sample,
-				prompt=prompt,
 				seed=seed,
-				sampler_name=sampler_name,
-				save_grid=save_grid,
 				batch_size=1,
 				n_iter=1,
-				steps=ddim_steps,
-				cfg_scale=cfg_scale,
-				width=width,
-				height=height,
-				prompt_matrix=separate_prompts,
-				use_GFPGAN=use_GFPGAN,
-				use_RealESRGAN=use_RealESRGAN,  # Forcefully disable upscaling when using loopback
-				realesrgan_model_name=RealESRGAN_model,
-				normalize_prompt_weights=normalize_prompt_weights,
-				save_individual_images=save_individual_images,
-				init_img=init_img,
 				init_mask=init_mask,
-				mask_blur_strength=mask_blur_strength,
-				mask_restore=mask_restore,
-				denoising_strength=denoising_strength,
-				noise_mode=noise_mode,
-				find_noise_steps=find_noise_steps,
-				resize_mode=resize_mode,
-				uses_loopback=loopback,
-				uses_random_seed_loopback=random_seed_loopback,
-				sort_samples=group_by_prompt,
-				write_info_files=write_info_files,
-				jpg_sample=save_as_jpg
+				init_img=init_img
 			)
 
 			if initial_seed is None:
@@ -405,29 +379,29 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 			input_image = init_img
 			init_img = output_images[0]
 
-			if do_color_correction and correction_target is not None:
+			if do_color_correction and st.session_state["img2img"]["correction_target"] is not None:
 				init_img = Image.fromarray(cv2.cvtColor(exposure.match_histograms(
 					cv2.cvtColor(
 						np.asarray(init_img),
 						cv2.COLOR_RGB2LAB
 					),
-					correction_target,
+					st.session_state["img2img"]["correction_target"],
 					channel_axis=2
 				), cv2.COLOR_LAB2RGB).astype("uint8"))
-				if mask_restore is True and init_mask is not None:
-					color_mask = init_mask.filter(ImageFilter.GaussianBlur(mask_blur_strength))
+				if st.session_state["img2img"]["mask_restore"] is True and init_mask is not None:
+					color_mask = init_mask.filter(ImageFilter.GaussianBlur(st.session_state['img2img']['mask_blur_strength']))
 					color_mask = color_mask.convert('L')
 					source_image = input_image.convert('RGB')
 					target_image = init_img.convert('RGB')
 
 					init_img = Image.composite(source_image, target_image, color_mask)
 
-			if not random_seed_loopback:
+			if not st.session_state["img2img"]["random_seed_loopback"]:
 				seed = seed + 1
 			else:
 				seed = seed_to_int(None)
 
-			denoising_strength = max(denoising_strength * 0.95, 0.1)
+			denoising_strength = max(st.session_state["img2img"]["denoising_strength"] * 0.95, 0.1)
 			history.append(init_img)
 
 		output_images = history
@@ -438,34 +412,11 @@ def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None,
 			outpath=outpath,
 			func_init=init,
 			func_sample=sample,
-			prompt=prompt,
 			seed=seed,
-			sampler_name=sampler_name,
-			save_grid=save_grid,
 			batch_size=batch_size,
-			n_iter=n_iter,
-			steps=ddim_steps,
-			cfg_scale=cfg_scale,
-			width=width,
-			height=height,
-			prompt_matrix=separate_prompts,
-			use_GFPGAN=use_GFPGAN,
-			use_RealESRGAN=use_RealESRGAN,
-			realesrgan_model_name=RealESRGAN_model,
-			normalize_prompt_weights=normalize_prompt_weights,
-			save_individual_images=save_individual_images,
 			init_img=init_img,
-			init_mask=init_mask,
-			mask_blur_strength=mask_blur_strength,
-			denoising_strength=denoising_strength,
-			noise_mode=noise_mode,
-			find_noise_steps=find_noise_steps,
-			mask_restore=mask_restore,
-			resize_mode=resize_mode,
-			uses_loopback=loopback,
-			sort_samples=group_by_prompt,
-			write_info_files=write_info_files,
-			jpg_sample=save_as_jpg
+			init_mask=init_mask
+
 		)
 
 	del sampler
@@ -1143,33 +1094,35 @@ def generation_callback(img, i=0):
 		pil_image = transforms.ToPILImage()(x_samples_ddim.squeeze_(0))
 
 		# update image on the UI so we can see the progress
-		st.session_state["preview_image"].image(pil_image)
+		st.session_state[st.session_state["generation_mode"]]["preview_image"].image(pil_image)
 
 	# Show a progress bar so we can keep track of the progress even when the image progress is not been shown,
 	# Dont worry, it doesnt affect the performance.
+
+
 	if st.session_state["generation_mode"] == "txt2img":
 		percent = int(
 			100 * float(i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps) / float(
 				st.session_state.sampling_steps))
-		st.session_state["progress_bar_text"].text(
+		st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 			f"Running step: {i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps} {percent if percent < 100 else 100}%")
 	else:
 		if st.session_state["generation_mode"] == "img2img":
 			round_sampling_steps = round(st.session_state.sampling_steps * st.session_state["denoising_strength"])
 			percent = int(100 * float(i + 1 if i + 1 < round_sampling_steps else round_sampling_steps) / float(
 				round_sampling_steps))
-			st.session_state["progress_bar_text"].text(
+			st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 				f"""Running step: {i + 1 if i + 1 < round_sampling_steps else round_sampling_steps}/{round_sampling_steps} {percent if percent < 100 else 100}%""")
 		else:
 			if st.session_state["generation_mode"] == "txt2vid":
 				percent = int(100 * float(
 					i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps) / float(
 					st.session_state.sampling_steps))
-				st.session_state["progress_bar_text"].text(
+				st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 					f"Running step: {i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps}"
 					f"{percent if percent < 100 else 100}%")
 
-	st.session_state["progress_bar"].progress(percent if percent < 100 else 100)
+	st.session_state[st.session_state["generation_mode"]]["progress_bar"].progress(percent if percent < 100 else 100)
 
 
 prompt_parser = re.compile("""
@@ -1411,51 +1364,62 @@ def check_prompt_length(prompt, comments):
 	comments.append(
 		f"Warning: too many input tokens; some ({len(overflowing_words)}) have been truncated:\n{overflowing_text}\n")
 
-
+"""
 def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, width, height, steps, cfg_scale,
 				normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback,
 				uses_random_seed_loopback,
 				save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode,
-				save_individual_images):
-	filename_i = os.path.join(sample_path_i, filename)
+				save_individual_images):"""
+def save_sample(image, i):
 
-	if st.session_state['defaults'].general.save_metadata or write_info_files:
+	filename_i = os.path.join(st.session_state[st.session_state['generation_mode']]['sample_path_i'], st.session_state[st.session_state['generation_mode']]['filename'])
+
+	if st.session_state['defaults'].general.save_metadata or st.session_state[st.session_state['generation_mode']]['write_info_files']:
 		# toggles differ for txt2img vs. img2img:
-		offset = 0 if init_img is None else 2
+		st.session_state[st.session_state['generation_mode']]['offset'] = 0 if st.session_state[st.session_state['generation_mode']]['init_img'] is None else 2
 		toggles = []
-		if prompt_matrix:
+		if st.session_state[st.session_state['generation_mode']]['prompt_matrix']:
 			toggles.append(0)
-		if normalize_prompt_weights:
+		if st.session_state[st.session_state['generation_mode']]['normalize_prompt_weights']:
 			toggles.append(1)
-		if init_img is not None:
-			if uses_loopback:
+		if st.session_state[st.session_state['generation_mode']]['init_img'] is not None:
+			if st.session_state[st.session_state['generation_mode']]['uses_loopback']:
 				toggles.append(2)
-			if uses_random_seed_loopback:
+			if st.session_state[st.session_state['generation_mode']]['uses_random_seed_loopback']:
 				toggles.append(3)
-		if save_individual_images:
-			toggles.append(2 + offset)
-		if save_grid:
-			toggles.append(3 + offset)
-		if sort_samples:
-			toggles.append(4 + offset)
-		if write_info_files:
-			toggles.append(5 + offset)
-		if use_GFPGAN:
-			toggles.append(6 + offset)
+		if st.session_state[st.session_state['generation_mode']]['save_individual_images']:
+			toggles.append(2 + st.session_state[st.session_state['generation_mode']]['offset'])
+		if st.session_state[st.session_state['generation_mode']]['save_grid']:
+			toggles.append(3 + st.session_state[st.session_state['generation_mode']]['offset'])
+		if st.session_state[st.session_state['generation_mode']]['sort_samples']:
+			toggles.append(4 + st.session_state[st.session_state['generation_mode']]['offset'])
+		if st.session_state[st.session_state['generation_mode']]['write_info_files']:
+			toggles.append(5 + st.session_state[st.session_state['generation_mode']]['offset'])
+		if st.session_state[st.session_state['generation_mode']]['use_GFPGAN']:
+			toggles.append(6 + st.session_state[st.session_state['generation_mode']]['offset'])
 		metadata = \
 			dict(
-				target="txt2img" if init_img is None else "img2img",
-				prompt=prompts[i], ddim_steps=steps, toggles=toggles, sampler_name=sampler_name,
-				ddim_eta=ddim_eta, n_iter=n_iter, batch_size=batch_size, cfg_scale=cfg_scale,
-				seed=seeds[i], width=width, height=height, normalize_prompt_weights=normalize_prompt_weights)
+				target="txt2img" if st.session_state[st.session_state['generation_mode']]['init_img'] is None else "img2img",
+				prompt=st.session_state[st.session_state['generation_mode']]['prompts'][i],
+				ddim_steps=st.session_state[st.session_state['generation_mode']]['steps'],
+				toggles=toggles,
+				sampler_name=st.session_state[st.session_state['generation_mode']]['sampler_name'],
+				ddim_eta=st.session_state[st.session_state['generation_mode']]['ddim_eta'],
+				n_iter=st.session_state[st.session_state['generation_mode']]['n_iter'],
+				batch_size=st.session_state[st.session_state['generation_mode']]['batch_size'],
+				cfg_scale=st.session_state[st.session_state['generation_mode']]['cfg_scale'],
+				seed=st.session_state[st.session_state['generation_mode']]['seeds'][i],
+				width=st.session_state[st.session_state['generation_mode']]['width'],
+				height=st.session_state[st.session_state['generation_mode']]['height'],
+				normalize_prompt_weights=st.session_state[st.session_state['generation_mode']]['normalize_prompt_weights'])
 		# Not yet any use for these, but they bloat up the files:
 		# info_dict["init_img"] = init_img
 		# info_dict["init_mask"] = init_mask
-		if init_img is not None:
-			metadata["denoising_strength"] = str(denoising_strength)
-			metadata["resize_mode"] = resize_mode
+		if st.session_state[st.session_state['generation_mode']]['init_img'] is not None:
+			metadata["denoising_strength"] = str(st.session_state[st.session_state['generation_mode']]['denoising_strength'])
+			metadata["resize_mode"] = st.session_state[st.session_state['generation_mode']]['resize_mode']
 
-	if write_info_files:
+	if st.session_state[st.session_state['generation_mode']]['write_info_files']:
 		with open(f"{filename_i}.yaml", "w", encoding="utf8") as f:
 			yaml.dump(metadata, f, allow_unicode=True, width=10000)
 
@@ -1595,6 +1559,7 @@ def oxlamon_matrix(prompt, seed, n_iter, batch_size):
 
 
 # used OK 20.09.22
+"""
 def process_images(
 		outpath, func_init, func_sample, prompt, seed, sampler_name, save_grid, batch_size,
 		n_iter, steps, cfg_scale, width, height, prompt_matrix, use_GFPGAN, use_RealESRGAN, realesrgan_model_name,
@@ -1603,8 +1568,21 @@ def process_images(
 		resize_mode=None, uses_loopback=False,
 		uses_random_seed_loopback=False, sort_samples=True, write_info_files=True, jpg_sample=False,
 		variant_amount=0.0, variant_seed=None, save_individual_images: bool = True):
+"""
+
+
+def process_images(
+		outpath,
+		func_init,
+		func_sample,
+		seed,
+		batch_size,
+		init_img,
+		init_mask,
+		n_iter
+):
 	"""this is the main loop that both txt2img and img2img use; it calls func_init once inside all the scopes and func_sample once per batch"""
-	assert prompt is not None
+	assert st.session_state[st.session_state["generation_mode"]]['prompt'] is not None
 	torch_gc()
 	# start time after garbage collection (or before?)
 	start_time = time.time()
@@ -1616,27 +1594,32 @@ def process_images(
 	mem_mon.start()
 
 	if hasattr(st.session_state["model"], "embedding_manager"):
-		load_embeddings(fp)
+		load_embeddings(st.session_state[st.session_state["generation_mode"]]['fp'])
 
 	os.makedirs(outpath, exist_ok=True)
 
 	sample_path = os.path.join(outpath, "samples")
 	os.makedirs(sample_path, exist_ok=True)
 
-	if not ("|" in prompt) and prompt.startswith("@"):
-		prompt = prompt[1:]
+	prompt = st.session_state[st.session_state["generation_mode"]]['prompt']
+	if not ("|" in st.session_state[st.session_state["generation_mode"]]['prompt']) and st.session_state[st.session_state["generation_mode"]]['prompt'].startswith("@"):
+		prompt = st.session_state[st.session_state["generation_mode"]]['prompt'][1:]
 
 	comments = []
 
 	prompt_matrix_parts = []
 	simple_templating = False
-	add_original_image = not (use_RealESRGAN or use_GFPGAN)
+	add_original_image = not (st.session_state[st.session_state["generation_mode"]]['use_RealESRGAN']
+							  or st.session_state[st.session_state["generation_mode"]]['use_GFPGAN'])
 
-	if prompt_matrix:
+	if st.session_state[st.session_state["generation_mode"]]['prompt_matrix']:
 		if prompt.startswith("@"):
 			simple_templating = True
-			add_original_image = not (use_RealESRGAN or use_GFPGAN)
-			all_seeds, n_iter, prompt_matrix_parts, all_prompts, frows = oxlamon_matrix(prompt, seed, n_iter,
+			add_original_image = not (st.session_state[st.session_state["generation_mode"]]['use_RealESRGAN']
+									  or st.session_state[st.session_state["generation_mode"]]['use_GFPGAN'])
+			all_seeds, n_iter, prompt_matrix_parts, all_prompts, frows = oxlamon_matrix(prompt,
+																						seed,
+																						n_iter,
 																						batch_size)
 		else:
 			all_prompts = []
@@ -1673,25 +1656,28 @@ def process_images(
 	grid_captions = []
 	stats = []
 	with torch.no_grad(), precision_scope("cuda"), (
-	st.session_state["model"].ema_scope() if not st.session_state['defaults'].general.optimized else nullcontext()):
+			st.session_state["model"].ema_scope() if not st.session_state['defaults'].general.optimized else nullcontext()):
 		init_data = func_init()
 		tic = time.time()
 
 		# if variant_amount > 0.0 create noise from base seed
 		base_x = None
-		if variant_amount > 0.0:
+		if st.session_state[st.session_state["generation_mode"]]['variant_amount'] > 0.0:
 			target_seed_randomizer = seed_to_int('')  # random seed
 			torch.manual_seed(seed)  # this has to be the single starting seed (not per-iteration)
-			base_x = create_random_tensors([opt_C, height // opt_f, width // opt_f], seeds=[seed])
+			base_x = create_random_tensors([opt_C,
+											st.session_state[st.session_state["generation_mode"]]['height'] // opt_f,
+											st.session_state[st.session_state["generation_mode"]]['width'] // opt_f],
+										   seeds=[seed])
 			# we don't want all_seeds to be sequential from starting seed with variants,
 			# since that makes the same variants each time,
 			# so we add target_seed_randomizer as a random offset
 			for si in range(len(all_seeds)):
 				all_seeds[si] += target_seed_randomizer
 
-		for n in range(n_iter):
-			print(f"Iteration: {n + 1}/{n_iter}")
-			prompts = all_prompts[n * batch_size:(n + 1) * batch_size]
+		for n in range(st.session_state[st.session_state["generation_mode"]]['n_iter']):
+			print(f"Iteration: {n + 1}/{st.session_state[st.session_state['generation_mode']]['n_iter']}")
+			prompts = all_prompts[n * st.session_state[st.session_state['generation_mode']]['batch_size']:(n + 1) * batch_size]
 			captions = prompt_matrix_parts[n * batch_size:(n + 1) * batch_size]
 			seeds = all_seeds[n * batch_size:(n + 1) * batch_size]
 
@@ -1709,7 +1695,7 @@ def process_images(
 
 			# split the prompt if it has : for weighting
 			# TODO for speed it might help to have this occur when all_prompts filled??
-			weighted_subprompts = split_weighted_subprompts(prompts[0], normalize_prompt_weights)
+			weighted_subprompts = split_weighted_subprompts(prompts[0], st.session_state[st.session_state['generation_mode']]['normalize_prompt_weights'])
 
 			# sub-prompt weighting used if more than 1
 			if len(weighted_subprompts) > 1:
@@ -1723,7 +1709,9 @@ def process_images(
 				c = (st.session_state["model"] if not st.session_state[
 					'defaults'].general.optimized else st.session_state.modelCS).get_learned_conditioning(prompts)
 
-			shape = [opt_C, height // opt_f, width // opt_f]
+			shape = [opt_C,
+					 st.session_state[st.session_state['generation_mode']]['height'] // opt_f,
+					 st.session_state[st.session_state['generation_mode']]['width'] // opt_f]
 
 			if st.session_state['defaults'].general.optimized:
 				mem = torch.cuda.memory_allocated() / 1e6
@@ -1731,30 +1719,33 @@ def process_images(
 				while (torch.cuda.memory_allocated() / 1e6 >= mem):
 					time.sleep(1)
 
-			if noise_mode == 1 or noise_mode == 3:
+			if st.session_state[st.session_state['generation_mode']]['noise_mode'] == 1 or st.session_state[st.session_state['generation_mode']]['noise_mode'] == 3:
 				# TODO params for find_noise_to_image
 				x = torch.cat(batch_size * [find_noise_for_image.find_noise_for_image(
 					st.session_state["model"], st.session_state["device"],
-					init_img.convert('RGB'), '', find_noise_steps, 0.0, normalize=True,
+					init_img.convert('RGB'), '', st.session_state[st.session_state['generation_mode']]['find_noise_steps'], 0.0, normalize=True,
 					generation_callback=generation_callback,
 				)], dim=0)
 			else:
 				# we manually generate all input noises because each one should have a specific seed
 				x = create_random_tensors(shape, seeds=seeds)
 
-			if variant_amount > 0.0:  # we are making variants
+			if st.session_state[st.session_state['generation_mode']]['variant_amount'] > 0.0:  # we are making variants
 				# using variant_seed as sneaky toggle,
 				# when not None or '' use the variant_seed
 				# otherwise use seeds
-				if variant_seed != None and variant_seed != '':
-					specified_variant_seed = seed_to_int(variant_seed)
+				if st.session_state[st.session_state['generation_mode']]['variant_seed'] != None and st.session_state[st.session_state['generation_mode']]['variant_seed'] != '':
+					specified_variant_seed = seed_to_int(st.session_state[st.session_state['generation_mode']]['variant_seed'])
 					torch.manual_seed(specified_variant_seed)
 					seeds = [specified_variant_seed]
 				# finally, slerp base_x noise to target_x noise for creating a variant
-				x = slerp(st.session_state['defaults'].general.gpu, max(0.0, min(1.0, variant_amount)), base_x, x)
+				x = slerp(st.session_state['defaults'].general.gpu, max(0.0, min(1.0, st.session_state[st.session_state['generation_mode']]['variant_amount'])), base_x, x)
 
-			samples_ddim = func_sample(init_data=init_data, x=x, conditioning=c, unconditional_conditioning=uc,
-									   sampler_name=sampler_name)
+			samples_ddim = func_sample(init_data=init_data,
+									   x=x,
+									   conditioning=c,
+									   unconditional_conditioning=uc,
+									   sampler_name=st.session_state[st.session_state['generation_mode']]['sampler_name'])
 
 			if st.session_state['defaults'].general.optimized:
 				st.session_state.modelFS.to(st.session_state['defaults'].general.gpu)
@@ -1766,7 +1757,7 @@ def process_images(
 			for i, x_sample in enumerate(x_samples_ddim):
 				sanitized_prompt = slugify(prompts[i])
 
-				if sort_samples:
+				if st.session_state[st.session_state['generation_mode']]['sort_samples']:
 					full_path = os.path.join(os.getcwd(), sample_path, sanitized_prompt)
 
 					sanitized_prompt = sanitized_prompt[:220 - len(full_path)]
@@ -1777,12 +1768,12 @@ def process_images(
 
 					os.makedirs(sample_path_i, exist_ok=True)
 					base_count = get_next_sequence_number(sample_path_i)
-					filename = f"{base_count:05}-{steps}_{sampler_name}_{seeds[i]}"
+					filename = f"{base_count:05}-{st.session_state[st.session_state['generation_mode']]['steps']}_{st.session_state[st.session_state['generation_mode']]['sampler_name']}_{seeds[i]}"
 				else:
 					full_path = os.path.join(os.getcwd(), sample_path)
 					sample_path_i = sample_path
 					base_count = get_next_sequence_number(sample_path_i)
-					filename = f"{base_count:05}-{steps}_{sampler_name}_{seeds[i]}_{sanitized_prompt}"[
+					filename = f"{base_count:05}-{st.session_state[st.session_state['generation_mode']]['steps']}_{st.session_state[st.session_state['generation_mode']]['sampler_name']}_{seeds[i]}_{sanitized_prompt}"[
 							   :220 - len(full_path)]  # same as before
 
 				x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
@@ -1791,7 +1782,9 @@ def process_images(
 				original_sample = x_sample
 				original_filename = filename
 
-				if use_GFPGAN and st.session_state["GFPGAN"] is not None and not use_RealESRGAN:
+				if st.session_state[st.session_state['generation_mode']]['use_GFPGAN'] \
+						and st.session_state["GFPGAN"] is not None \
+						and not st.session_state[st.session_state['generation_mode']]['use_RealESRGAN']:
 					# skip_save = True # #287 >_>
 					torch_gc()
 					cropped_faces, restored_faces, restored_img = st.session_state["GFPGAN"].enhance(
@@ -1800,27 +1793,25 @@ def process_images(
 					gfpgan_image = Image.fromarray(gfpgan_sample)
 					gfpgan_filename = original_filename + '-gfpgan'
 
-					save_sample(gfpgan_image, sample_path_i, gfpgan_filename, jpg_sample, prompts, seeds, width, height,
-								steps, cfg_scale,
-								normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img,
-								uses_loopback,
-								uses_random_seed_loopback, save_grid, sort_samples, sampler_name, ddim_eta,
-								n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)
+					save_sample(gfpgan_image, i)
 
 					output_images.append(gfpgan_image)  # 287
 					if simple_templating:
 						grid_captions.append(captions[i] + "\ngfpgan")
 
-				if use_RealESRGAN and st.session_state["RealESRGAN"] is not None and not use_GFPGAN:
+				if st.session_state[st.session_state['generation_mode']]['use_RealESRGAN'] \
+						and st.session_state['RealESRGAN'] is not None \
+						and not st.session_state[st.session_state['generation_mode']]['use_GFPGAN']:
 					# skip_save = True # #287 >_>
 					torch_gc()
 
-					if st.session_state["RealESRGAN"].model.name != realesrgan_model_name:
+					if st.session_state["RealESRGAN"].model.name != st.session_state[st.session_state['generation_mode']]['realesrgan_model_name']:
 						# try_loading_RealESRGAN(realesrgan_model_name)
-						load_models(use_GFPGAN=use_GFPGAN, use_RealESRGAN=use_RealESRGAN,
-									RealESRGAN_model=realesrgan_model_name)
+						load_models(use_GFPGAN=st.session_state[st.session_state['generation_mode']]['use_GFPGAN'],
+									use_RealESRGAN=st.session_state[st.session_state['generation_mode']]['use_RealESRGAN'],
+									RealESRGAN_model=st.session_state[st.session_state['generation_mode']]['realesrgan_model_name'])
 
-					output, img_mode = st.session_state["RealESRGAN"].enhance(x_sample[:, :, ::-1])
+					output, img_mode = st.session_state['RealESRGAN'].enhance(x_sample[:, :, ::-1])
 					esrgan_filename = original_filename + '-esrgan4x'
 					esrgan_sample = output[:, :, ::-1]
 					esrgan_image = Image.fromarray(esrgan_sample)
@@ -1829,18 +1820,14 @@ def process_images(
 					# normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img, uses_loopback, uses_random_seed_loopback, skip_save,
 					# save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i, denoising_strength, resize_mode)
 
-					save_sample(esrgan_image, sample_path_i, esrgan_filename, jpg_sample, prompts, seeds, width, height,
-								steps, cfg_scale,
-								normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img,
-								uses_loopback, uses_random_seed_loopback,
-								save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i,
-								denoising_strength, resize_mode, save_individual_images=False)
+					save_sample(esrgan_image, i)
 
 					output_images.append(esrgan_image)  # 287
 					if simple_templating:
 						grid_captions.append(captions[i] + "\nesrgan")
 
-				if use_RealESRGAN and st.session_state["RealESRGAN"] is not None and use_GFPGAN and st.session_state[
+				if st.session_state[st.session_state['generation_mode']]['use_RealESRGAN'] \
+						and st.session_state["RealESRGAN"] is not None and st.session_state[st.session_state['generation_mode']]['use_GFPGAN'] and st.session_state[
 					"GFPGAN"] is not None:
 					# skip_save = True # #287 >_>
 					torch_gc()
@@ -1858,30 +1845,24 @@ def process_images(
 					gfpgan_esrgan_sample = output[:, :, ::-1]
 					gfpgan_esrgan_image = Image.fromarray(gfpgan_esrgan_sample)
 
-					save_sample(gfpgan_esrgan_image, sample_path_i, gfpgan_esrgan_filename, jpg_sample, prompts, seeds,
-								width, height, steps, cfg_scale,
-								normalize_prompt_weights, False, write_info_files, prompt_matrix, init_img,
-								uses_loopback, uses_random_seed_loopback,
-								save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i,
-								denoising_strength, resize_mode, save_individual_images=False)
+					save_sample(gfpgan_esrgan_image, i)
 
 					output_images.append(gfpgan_esrgan_image)  # 287
 
 					if simple_templating:
 						grid_captions.append(captions[i] + "\ngfpgan_esrgan")
 
-				if mask_restore and init_mask:
+				if st.session_state[st.session_state['generation_mode']]['mask_restore'] and init_mask:
 					# init_mask = init_mask if keep_mask else ImageOps.invert(init_mask)
-					init_mask = init_mask.filter(ImageFilter.GaussianBlur(mask_blur_strength))
+					init_mask = init_mask.filter(ImageFilter.GaussianBlur(st.session_state[st.session_state['generation_mode']]['mask_blur_strength']))
 					init_mask = init_mask.convert('L')
 					init_img = init_img.convert('RGB')
 					image = image.convert('RGB')
 
-					if use_RealESRGAN and st.session_state["RealESRGAN"] is not None:
-						if st.session_state["RealESRGAN"].model.name != realesrgan_model_name:
+					if st.session_state[st.session_state['generation_mode']]['use_RealESRGAN'] and st.session_state["RealESRGAN"] is not None:
+						if st.session_state["RealESRGAN"].model.name != st.session_state['realesrgan_model_name']:
 							# try_loading_RealESRGAN(realesrgan_model_name)
-							load_models(use_GFPGAN=use_GFPGAN, use_RealESRGAN=use_RealESRGAN,
-										RealESRGAN_model=realesrgan_model_name)
+							load_models()
 
 						output, img_mode = st.session_state["RealESRGAN"].enhance(np.array(init_img, dtype=np.uint8))
 						init_img = Image.fromarray(output)
@@ -1893,21 +1874,17 @@ def process_images(
 
 					image = Image.composite(init_img, image, init_mask)
 
-				if save_individual_images:
-					save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, width, height, steps,
-								cfg_scale,
-								normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img,
-								uses_loopback, uses_random_seed_loopback,
-								save_grid, sort_samples, sampler_name, ddim_eta, n_iter, batch_size, i,
-								denoising_strength, resize_mode, save_individual_images)
+				if st.session_state[st.session_state['generation_mode']]['save_individual_images']:
+					save_sample(image,  i)
 
-					if not use_GFPGAN or not use_RealESRGAN:
+					if not st.session_state[st.session_state['generation_mode']]['use_GFPGAN'] \
+							or not st.session_state[st.session_state['generation_mode']]['use_RealESRGAN']:
 						output_images.append(image)
 
-					# if add_original_image or not simple_templating:
-					# output_images.append(image)
-					# if simple_templating:
-					# grid_captions.append( captions[i] )
+				# if add_original_image or not simple_templating:
+				# output_images.append(image)
+				# if simple_templating:
+				# grid_captions.append( captions[i] )
 
 				if st.session_state['defaults'].general.optimized:
 					mem = torch.cuda.memory_allocated() / 1e6
@@ -1915,14 +1892,17 @@ def process_images(
 					while (torch.cuda.memory_allocated() / 1e6 >= mem):
 						time.sleep(1)
 
-		if prompt_matrix or save_grid:
-			if prompt_matrix:
+		if st.session_state[st.session_state['generation_mode']]['prompt_matrix'] \
+				or st.session_state[st.session_state['generation_mode']]['save_grid']:
+			if st.session_state[st.session_state['generation_mode']]['prompt_matrix']:
 				if simple_templating:
-					grid = image_grid(output_images, n_iter, force_n_rows=frows, captions=grid_captions)
+					grid = image_grid(output_images, st.session_state[st.session_state['generation_mode']]['n_iter'], force_n_rows=frows, captions=grid_captions)
 				else:
-					grid = image_grid(output_images, n_iter, force_n_rows=1 << ((len(prompt_matrix_parts) - 1) // 2))
+					grid = image_grid(output_images, st.session_state[st.session_state['generation_mode']]['n_iter'], force_n_rows=1 << ((len(prompt_matrix_parts) - 1) // 2))
 					try:
-						grid = draw_prompt_matrix(grid, width, height, prompt_matrix_parts)
+						grid = draw_prompt_matrix(grid, st.session_state[st.session_state['generation_mode']]['width'],
+												  st.session_state[st.session_state['generation_mode']]['height'],
+												  prompt_matrix_parts)
 					except:
 						import traceback
 						print("Error creating prompt_matrix text:", file=sys.stderr)
@@ -1930,12 +1910,13 @@ def process_images(
 			else:
 				grid = image_grid(output_images, batch_size)
 
-			if grid and (batch_size > 1 or n_iter > 1):
+			if grid and (batch_size > 1
+						 or n_iter > 1):
 				output_images.insert(0, grid)
 
-			grid_count = get_next_sequence_number(outpath, 'grid-')
+			grid_count = get_next_sequence_number(st.session_state[st.session_state['generation_mode']]['outpath'], 'grid-')
 			grid_file = f"grid-{grid_count:05}-{seed}_{slugify(prompts[i].replace(' ', '_')[:220 - len(full_path)])}.{grid_ext}"
-			grid.save(os.path.join(outpath, grid_file), grid_format, quality=grid_quality, lossless=grid_lossless,
+			grid.save(os.path.join(st.session_state[st.session_state['generation_mode']]['outpath'], grid_file), grid_format, quality=grid_quality, lossless=grid_lossless,
 					  optimize=True)
 
 		toc = time.time()
@@ -1945,7 +1926,7 @@ def process_images(
 
 	info = f"""
             {prompt}
-            Steps: {steps}, Sampler: {sampler_name}, CFG scale: {cfg_scale}, Seed: {seed}{', Denoising strength: ' + str(denoising_strength) if init_img is not None else ''}{', GFPGAN' if use_GFPGAN and st.session_state["GFPGAN"] is not None else ''}{', ' + realesrgan_model_name if use_RealESRGAN and st.session_state["RealESRGAN"] is not None else ''}{', Prompt Matrix Mode.' if prompt_matrix else ''}""".strip()
+            Steps: {st.session_state[st.session_state['generation_mode']]['steps']}, Sampler: {st.session_state[st.session_state['generation_mode']]['sampler_name']}, CFG scale: {st.session_state[st.session_state['generation_mode']]['cfg_scale']}, Seed: {seed}{', Denoising strength: ' + str(st.session_state[st.session_state['generation_mode']]['denoising_strength']) if init_img is not None else ''}{', GFPGAN' if st.session_state[st.session_state['generation_mode']]['use_GFPGAN'] and st.session_state["GFPGAN"] is not None else ''}{', ' + st.session_state[st.session_state['generation_mode']]['realesrgan_model_name'] if st.session_state[st.session_state['generation_mode']]['use_RealESRGAN'] and st.session_state["RealESRGAN"] is not None else ''}{', Prompt Matrix Mode.' if st.session_state[st.session_state['generation_mode']]['prompt_matrix'] else ''}""".strip()
 	stats = f'''
             Took {round(time_diff, 2)}s total ({round(time_diff / (len(all_prompts)), 2)}s per image)
             Peak memory usage: {-(mem_max_used // -1_048_576)} MiB / {-(mem_total // -1_048_576)} MiB / {round(mem_max_used / mem_total * 100, 3)}%'''
