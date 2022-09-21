@@ -3,416 +3,389 @@
 # You may add overrides in a file named "userconfig_streamlit.yaml" in this folder, which can contain any subset
 # of the properties below.
 general:
-    gpu: 0
-    outdir: outputs
-    ckpt: "content/models/sd-v1-4.ckpt"
-    default_model: "Stable Diffusion v1.4"
-    default_model_config: "configs/stable-diffusion/v1-inference.yaml"
-    default_model_path: "models/ldm/stable-diffusion-v1/model.ckpt"
-    default_path_mode: "subfolders"
-    default_path_mode_index: 1
-    fp:
-        name: ''
-    GFPGAN_dir: "./src/gfpgan"
-    RealESRGAN_dir: "./src/realesrgan"
-    RealESRGAN_model: "RealESRGAN_x4plus"
-    LDSR_dir: "./src/latent-diffusion"
-    outdir_txt2img: outputs/txt2img-samples
-    outdir_img2img: outputs/img2img-samples
-    gfpgan_cpu: False
-    esrgan_cpu: False
-    extra_models_cpu: False
-    extra_models_gpu: False
-    save_metadata: True
-    save_format: "png"
-    skip_grid: False
-    skip_save: False
-    grid_format: "jpg:95"
-    n_rows: -1
-    no_verify_input: False
-    no_half: False
-    use_float16: False
-    precision: "autocast"
-    optimized: False
-    optimized_turbo: False
-    optimized_config: "optimizedSD/v1-inference.yaml"
-    update_preview: True
-    update_preview_frequency: 5
+  gpu: 0
+  outdir: outputs
+  ckpt: "content/models/sd-v1-4.ckpt"
+  default_model: "Stable Diffusion v1.4"
+  default_model_config: "configs/stable-diffusion/v1-inference.yaml"
+  default_model_path: "content/models/sd-v1-4.ckpt"
+  default_path_mode: "subfolders"
+  default_path_mode_index: 1
+  fp:
+  name: ''
+  GFPGAN_dir: "./src/gfpgan"
+  RealESRGAN_dir: "./src/realesrgan"
+  RealESRGAN_model: "RealESRGAN_x4plus"
+  LDSR_dir: "./src/latent-diffusion"
+  outdir_txt2img: outputs/txt2img-samples
+  outdir_img2img: outputs/img2img-samples
+  gfpgan_cpu: False
+  esrgan_cpu: False
+  extra_models_cpu: False
+  extra_models_gpu: False
+  save_metadata: True
+  save_format: "png"
+  skip_grid: False
+  skip_save: False
+  grid_format: "jpg:95"
+  n_rows: -1
+  no_verify_input: False
+  no_half: False
+  use_float16: False
+  precision: "autocast"
+  optimized: False
+  optimized_turbo: False
+  optimized_config: "optimizedSD/v1-inference.yaml"
+  update_preview: True
+  update_preview_frequency: 5
 
 txt2img:
-    prompt:
-    W: 512  # @param
-    H: 512  # @param
-    scale: 7.5
-    seed: ""
-    iterations: 1
-    batch_size: 1
-    steps: 30
-    sampler: "k_euler"
-    separate_prompts: False
-    update_preview: True
-    update_preview_frequency: 5
-    normalize_prompt_weights: True
-    save_individual_images: True
-    save_grid: True
-    group_by_prompt: True
-    save_as_jpg: False
-    use_GFPGAN: False
-    use_RealESRGAN: False
-    RealESRGAN_model: "RealESRGAN_x4plus"
-    variant_amount: 0.0
-    variant_seed: ""
-    write_info_files: True
-    ddim_eta: 0.0  # @param
-    dynamic_threshold: None
-    static_threshold: None
-    beta_start: 0.00085
-    beta_end: 0.012
-    # @markdown **Save & Display Settings**
-    save_samples: True  # @param {type:"boolean"}
-    save_settings: True  # @param {type:"boolean"}
-    display_samples: True  # @param {type:"boolean"}
+  prompt:
+  W: 512  # @param
+  H: 512  # @param
+  scale: 7.5
+  seed: ""
+  iterations: 1
+  batch_size: 1
+  steps: 30
+  sampler: "k_euler"
+  separate_prompts: False
+  update_preview: True
+  update_preview_frequency: 5
+  normalize_prompt_weights: True
+  save_individual_images: True
+  save_grid: True
+  group_by_prompt: True
+  save_as_jpg: False
+  use_GFPGAN: False
+  use_RealESRGAN: False
+  RealESRGAN_model: "RealESRGAN_x4plus"
+  variant_amount: 0.0
+  variant_seed: ""
+  write_info_files: True
+  ddim_eta: 0.0  # @param
+  dynamic_threshold: None
+  static_threshold: None
+  beta_start: 0.00085
+  beta_end: 0.012
+  # @markdown **Save & Display Settings**
+  save_samples: True  # @param {type:"boolean"}
+  save_settings: True  # @param {type:"boolean"}
+  display_samples: True  # @param {type:"boolean"}
 
-    # @markdown **Batch Settings**
-    n_batch: 1  # @param
-    batch_name: 'time'  # @param {type:"string"}
-    filename_format: "{timestring}_{index}_{prompt}.png"  # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
-    seed_behavior: "iter"  # @param ["iter","fixed","random"]
-    make_grid: False  # @param {type:"boolean"}
-    grid_rows: 2  # @param
-    outdir: ''
+  # @markdown **Batch Settings**
+  n_batch: 1  # @param
+  batch_name: 'time'  # @param {type:"string"}
+  filename_format: "{timestring}_{index}_{prompt}.png"  # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
+  seed_behavior: "iter"  # @param ["iter","fixed","random"]
+  make_grid: False  # @param {type:"boolean"}
+  grid_rows: 2  # @param
+  outdir: ''
 
-    # @markdown **Init Settings**
-    use_init: False  # @param {type:"boolean"}
-    strength: 0.0  # @param {type:"number"}
-    strength_0_no_init: True  # Set the strength to 0 automatically when no init image is used
-    init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
-    # Whiter areas of the mask are areas that change more
-    use_mask: False  # @param {type:"boolean"}
-    use_alpha_as_mask: False  # use the alpha channel of the init image as the mask
-    mask_file: "./scripts/deforum/init_files/mask.jpg"  # @param {type:"string"}
-    invert_mask: False  # @param {type:"boolean"}
-    # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
-    mask_brightness_adjust: 1.0  # @param {type:"number"}
-    mask_contrast_adjust: 1.0  # @param {type:"number"}
+  # @markdown **Init Settings**
+  use_init: False  # @param {type:"boolean"}
+  strength: 0.0  # @param {type:"number"}
+  strength_0_no_init: True  # Set the strength to 0 automatically when no init image is used
+  init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
+  # Whiter areas of the mask are areas that change more
+  use_mask: False  # @param {type:"boolean"}
+  use_alpha_as_mask: False  # use the alpha channel of the init image as the mask
+  mask_file: "./scripts/deforum/init_files/mask.jpg"  # @param {type:"string"}
+  invert_mask: False  # @param {type:"boolean"}
+  # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
+  mask_brightness_adjust: 1.0  # @param {type:"number"}
+  mask_contrast_adjust: 1.0  # @param {type:"number"}
 
 
 
 txt2vid:
-    default_model: "CompVis/stable-diffusion-v1-4"
-    custom_models_list: ["CompVis/stable-diffusion-v1-4", "naclbit/trinart_stable_diffusion_v2", "hakurei/waifu-diffusion", "osanseviero/BigGAN-deep-128"]
-    prompt:
-    height: 512
-    width: 512
-    cfg_scale: 7.5
-    seed: ""
-    batch_count: 1
-    batch_size: 1
-    sampling_steps: 30
-    num_inference_steps: 200
-    default_sampler: "k_euler"
-    scheduler_name: "klms"
-    separate_prompts: False
-    update_preview: True
-    update_preview_frequency: 5
-    dynamic_preview_frequency: True
-    normalize_prompt_weights: True
-    save_individual_images: True
-    save_video: True
-    group_by_prompt: True
-    write_info_files: True
-    do_loop: False
-    save_as_jpg: False
-    use_GFPGAN: False
-    use_RealESRGAN: False
-    RealESRGAN_model: "RealESRGAN_x4plus"
-    variant_amount: 0.0
-    variant_seed: ""
-    beta_start: 0.00085
-    beta_end: 0.012
-    beta_scheduler_type: "linear"
-    max_frames: 3
-    # @markdown ####**Animation:**
-    animation_mode: '3D'
-    border: 'wrap'
-    # @markdown ####**Motion Parameters:**
-    angle: '0:(0)'
-    zoom: "0:(1.04)"  # @param {type:"string"}
-    translation_x: "0:(0)"  # @param {type:"string"}
-    translation_y: "0:(0)"  # @param {type:"string"}
-    translation_z: "0:(10)"  # @param {type:"string"}
-    flip_2d_perspective: False  # @param {type:"boolean"}
-    perspective_flip_theta: "0:(0)"  # @param {type:"string"}
-    perspective_flip_phi: "0:(3)"  # @param {type:"string"}
-    perspective_flip_gamma: "0:(0)"  # @param {type:"string"}
-    perspective_flip_fv: "0:(53)"  # @param {type:"string"}
-    rotation_3d_x: "0:(0)"  # @param {type:"string"}
-    rotation_3d_y: "0:(1)"  # @param {type:"string"}
-    rotation_3d_z: "0:(1)"  # @param {type:"string"}
-    noise_schedule: "0: (0.02)"  # @param {type:"string"}
-    strength_schedule: "0: (0.45)"  # @param {type:"string"}
-    contrast_schedule: "0: (1.0)"  # @param {type:"string"}
-    color_coherence: 'Match Frame 0 LAB'  # @param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB'] {type:'string'}
-    diffusion_cadence: '1'  # @param ['1','2','3','4','5','6','7','8'] {type:'string'}
+  default_model: "CompVis/stable-diffusion-v1-4"
+  custom_models_list: [ "CompVis/stable-diffusion-v1-4", "naclbit/trinart_stable_diffusion_v2", "hakurei/waifu-diffusion", "osanseviero/BigGAN-deep-128" ]
+  prompt:
+  height: 512
+  width: 512
+  cfg_scale: 7.5
+  seed: ""
+  batch_count: 1
+  batch_size: 1
+  sampling_steps: 30
+  num_inference_steps: 200
+  default_sampler: "k_euler"
+  scheduler_name: "klms"
+  separate_prompts: False
+  update_preview: True
+  update_preview_frequency: 5
+  dynamic_preview_frequency: True
+  normalize_prompt_weights: True
+  save_individual_images: True
+  save_video: True
+  group_by_prompt: True
+  write_info_files: True
+  do_loop: False
+  save_as_jpg: False
+  use_GFPGAN: False
+  use_RealESRGAN: False
+  RealESRGAN_model: "RealESRGAN_x4plus"
+  variant_amount: 0.0
+  variant_seed: ""
+  beta_start: 0.00085
+  beta_end: 0.012
+  beta_scheduler_type: "linear"
+  max_frames: 3
+  # @markdown ####**Animation:**
+  animation_mode: '3D'
+  border: 'wrap'
+  # @markdown ####**Motion Parameters:**
+  angle: '0:(0)'
+  zoom: "0:(1.04)"  # @param {type:"string"}
+  translation_x: "0:(0)"  # @param {type:"string"}
+  translation_y: "0:(0)"  # @param {type:"string"}
+  translation_z: "0:(10)"  # @param {type:"string"}
+  flip_2d_perspective: False  # @param {type:"boolean"}
+  perspective_flip_theta: "0:(0)"  # @param {type:"string"}
+  perspective_flip_phi: "0:(3)"  # @param {type:"string"}
+  perspective_flip_gamma: "0:(0)"  # @param {type:"string"}
+  perspective_flip_fv: "0:(53)"  # @param {type:"string"}
+  rotation_3d_x: "0:(0)"  # @param {type:"string"}
+  rotation_3d_y: "0:(1)"  # @param {type:"string"}
+  rotation_3d_z: "0:(1)"  # @param {type:"string"}
+  noise_schedule: "0: (0.02)"  # @param {type:"string"}
+  strength_schedule: "0: (0.45)"  # @param {type:"string"}
+  contrast_schedule: "0: (1.0)"  # @param {type:"string"}
+  color_coherence: 'Match Frame 0 LAB'  # @param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB'] {type:'string'}
+  diffusion_cadence: '1'  # @param ['1','2','3','4','5','6','7','8'] {type:'string'}
 
-    # @markdown ####**3D Depth Warping:**
-    use_depth_warping: True  # @param {type:"boolean"}
-    midas_weight: 0.3  # @param {type:"number"}
-    near_plane: 200
-    far_plane: 10000
-    fov: 40  # @param {type:"number"}
-    padding_mode: 'border'  # @param ['border', 'reflection', 'zeros'] {type:'string'}
-    sampling_mode: 'bicubic'  # @param ['bicubic', 'bilinear', 'nearest'] {type:'string'}
-    save_depth_maps: False  # @param {type:"boolean"}
+  # @markdown ####**3D Depth Warping:**
+  use_depth_warping: True  # @param {type:"boolean"}
+  midas_weight: 0.3  # @param {type:"number"}
+  near_plane: 200
+  far_plane: 10000
+  fov: 40  # @param {type:"number"}
+  padding_mode: 'border'  # @param ['border', 'reflection', 'zeros'] {type:'string'}
+  sampling_mode: 'bicubic'  # @param ['bicubic', 'bilinear', 'nearest'] {type:'string'}
+  save_depth_maps: False  # @param {type:"boolean"}
 
-    # @markdown ####**Video Input:**
-    video_init_path: '/content/video_in.mp4'  # @param {type:"string"}
-    extract_nth_frame: 1  # @param {type:"number"}
+  # @markdown ####**Video Input:**
+  video_init_path: '/content/video_in.mp4'  # @param {type:"string"}
+  extract_nth_frame: 1  # @param {type:"number"}
 
-    # @markdown ####**Interpolation:**
-    interpolate_key_frames: False  # @param {type:"boolean"}
-    interpolate_x_frames: 4  # @param {type:"number"}
+  # @markdown ####**Interpolation:**
+  interpolate_key_frames: False  # @param {type:"boolean"}
+  interpolate_x_frames: 4  # @param {type:"number"}
 
-    # @markdown ####**Resume Animation:**
-    resume_from_timestring: False  # @param {type:"boolean"}
-    resume_timestring: "20220829210106"  # @param {type:"string"}
+  # @markdown ####**Resume Animation:**
+  resume_from_timestring: False  # @param {type:"boolean"}
+  resume_timestring: "20220829210106"  # @param {type:"string"}
 
-    # @markdown **Image Settings**
-    W: 512  # @param
-    H: 512  # @param
-    # W, H: map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
+  # @markdown **Image Settings**
+  W: 512  # @param
+  H: 512  # @param
+  # W, H: map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
 
-    # @markdown **Sampling Settings**
-    #  seed: -1  # @param
-    sampler: 'plms'  # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
-    steps: 10  # @param
-    scale: 7.0  # @param
-    ddim_eta: 0.0  # @param
-    dynamic_threshold: None
-    static_threshold: None
+  # @markdown **Sampling Settings**
+  #  seed: -1  # @param
+  sampler: 'plms'  # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
+  steps: 10  # @param
+  scale: 7.0  # @param
+  ddim_eta: 0.0  # @param
+  dynamic_threshold: None
+  static_threshold: None
 
-    # @markdown **Save & Display Settings**
-    save_samples: True  # @param {type:"boolean"}
-    save_settings: True  # @param {type:"boolean"}
-    display_samples: True  # @param {type:"boolean"}
+  # @markdown **Save & Display Settings**
+  save_samples: True  # @param {type:"boolean"}
+  save_settings: True  # @param {type:"boolean"}
+  display_samples: True  # @param {type:"boolean"}
 
-    # @markdown **Batch Settings**
-    n_batch: 1  # @param
-    batch_name: 'time'  # @param {type:"string"}
-    filename_format: "{timestring}_{index}_{prompt}.png"  # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
-    seed_behavior: "iter"  # @param ["iter","fixed","random"]
-    make_grid: False  # @param {type:"boolean"}
-    grid_rows: 2  # @param
-    outdir: ''
+  # @markdown **Batch Settings**
+  n_batch: 1  # @param
+  batch_name: 'time'  # @param {type:"string"}
+  filename_format: "{timestring}_{index}_{prompt}.png"  # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
+  seed_behavior: "iter"  # @param ["iter","fixed","random"]
+  make_grid: False  # @param {type:"boolean"}
+  grid_rows: 2  # @param
+  outdir: ''
 
-    # @markdown **Init Settings**
-    use_init: False  # @param {type:"boolean"}
-    strength: 0.0  # @param {type:"number"}
-    strength_0_no_init: True  # Set the strength to 0 automatically when no init image is used
-    init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
-    # Whiter areas of the mask are areas that change more
-    use_mask: False  # @param {type:"boolean"}
-    use_alpha_as_mask: False  # use the alpha channel of the init image as the mask
-    mask_file: "./scripts/deforum/init_files/mask.jpg"  # @param {type:"string"}
-    invert_mask: False  # @param {type:"boolean"}
-    # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
-    mask_brightness_adjust: 1.0  # @param {type:"number"}
-    mask_contrast_adjust: 1.0  # @param {type:"number"}
+  # @markdown **Init Settings**
+  use_init: False  # @param {type:"boolean"}
+  strength: 0.0  # @param {type:"number"}
+  strength_0_no_init: True  # Set the strength to 0 automatically when no init image is used
+  init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
+  # Whiter areas of the mask are areas that change more
+  use_mask: False  # @param {type:"boolean"}
+  use_alpha_as_mask: False  # use the alpha channel of the init image as the mask
+  mask_file: "./scripts/deforum/init_files/mask.jpg"  # @param {type:"string"}
+  invert_mask: False  # @param {type:"boolean"}
+  # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
+  mask_brightness_adjust: 1.0  # @param {type:"number"}
+  mask_contrast_adjust: 1.0  # @param {type:"number"}
 
-    n_samples: 1  # doesnt do anything
-    precision: 'autocast'
-    C: 4
-    f: 8
+  n_samples: 1  # doesnt do anything
+  precision: 'autocast'
+  C: 4
+  f: 8
 
-    # prompt: ""
-    timestring: ""
-    init_latent: None
-    init_sample: None
-    init_c: None
+  # prompt: ""
+  timestring: ""
+  init_latent: None
+  init_sample: None
+  init_c: None
 
 vid2vid:
-    default_model: "CompVis/stable-diffusion-v1-4"
-    custom_models_list: ["CompVis/stable-diffusion-v1-4", "naclbit/trinart_stable_diffusion_v2", "hakurei/waifu-diffusion", "osanseviero/BigGAN-deep-128"]
-    prompt:
-    height: 512
-    width: 512
-    cfg_scale: 7.5
-    seed: ""
-    batch_count: 1
-    batch_size: 1
-    sampling_steps: 30
-    num_inference_steps: 200
-    default_sampler: "k_euler"
-    scheduler_name: "klms"
-    separate_prompts: False
-    update_preview: True
-    update_preview_frequency: 5
-    dynamic_preview_frequency: True
-    normalize_prompt_weights: True
-    save_individual_images: True
-    save_video: True
-    group_by_prompt: True
-    write_info_files: True
-    do_loop: False
-    save_as_jpg: False
-    use_GFPGAN: False
-    use_RealESRGAN: False
-    RealESRGAN_model: "RealESRGAN_x4plus"
-    variant_amount: 0.0
-    variant_seed: ""
-    beta_start: 0.00085
-    beta_end: 0.012
-    beta_scheduler_type: "linear"
-    max_frames: 3
-    # @markdown ####**Animation:**
-    animation_mode: '3D'
-    border: 'wrap'
-    # @markdown ####**Motion Parameters:**
-    angle: '0:(0)'
-    zoom: "0:(1.04)"  # @param {type:"string"}
-    translation_x: "0:(0)"  # @param {type:"string"}
-    translation_y: "0:(0)"  # @param {type:"string"}
-    translation_z: "0:(10)"  # @param {type:"string"}
-    flip_2d_perspective: False  # @param {type:"boolean"}
-    perspective_flip_theta: "0:(0)"  # @param {type:"string"}
-    perspective_flip_phi: "0:(3)"  # @param {type:"string"}
-    perspective_flip_gamma: "0:(0)"  # @param {type:"string"}
-    perspective_flip_fv: "0:(53)"  # @param {type:"string"}
-    rotation_3d_x: "0:(0)"  # @param {type:"string"}
-    rotation_3d_y: "0:(1)"  # @param {type:"string"}
-    rotation_3d_z: "0:(1)"  # @param {type:"string"}
-    noise_schedule: "0: (0.02)"  # @param {type:"string"}
-    strength_schedule: "0: (0.45)"  # @param {type:"string"}
-    contrast_schedule: "0: (1.0)"  # @param {type:"string"}
-    color_coherence: 'Match Frame 0 LAB'  # @param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB'] {type:'string'}
-    diffusion_cadence: '1'  # @param ['1','2','3','4','5','6','7','8'] {type:'string'}
 
-    # @markdown ####**3D Depth Warping:**
-    use_depth_warping: True  # @param {type:"boolean"}
-    midas_weight: 0.3  # @param {type:"number"}
-    near_plane: 200
-    far_plane: 10000
-    fov: 40  # @param {type:"number"}
-    padding_mode: 'border'  # @param ['border', 'reflection', 'zeros'] {type:'string'}
-    sampling_mode: 'bicubic'  # @param ['bicubic', 'bilinear', 'nearest'] {type:'string'}
-    save_depth_maps: False  # @param {type:"boolean"}
 
-    # @markdown ####**Video Input:**
-    video_init_path: '/content/video_in.mp4'  # @param {type:"string"}
-    extract_nth_frame: 1  # @param {type:"number"}
+  seed: ""
+  RealESRGAN_model: "RealESRGAN_x4plus"
+  beta_scheduler_type: "linear"
+  max_frames: 3
+  # @markdown ####**Animation:**
+  animation_mode: '3D'
+  border: 'wrap'
+  # @markdown ####**Motion Parameters:**
+  angle: '0:(0)'
+  zoom: "0:(1.04)"  # @param {type:"string"}
+  translation_x: "0:(0)"  # @param {type:"string"}
+  translation_y: "0:(0)"  # @param {type:"string"}
+  translation_z: "0:(10)"  # @param {type:"string"}
+  flip_2d_perspective: False  # @param {type:"boolean"}
+  perspective_flip_theta: "0:(0)"  # @param {type:"string"}
+  perspective_flip_phi: "0:(3)"  # @param {type:"string"}
+  perspective_flip_gamma: "0:(0)"  # @param {type:"string"}
+  perspective_flip_fv: "0:(53)"  # @param {type:"string"}
+  rotation_3d_x: "0:(0)"  # @param {type:"string"}
+  rotation_3d_y: "0:(1)"  # @param {type:"string"}
+  rotation_3d_z: "0:(1)"  # @param {type:"string"}
+  noise_schedule: "0: (0.02)"  # @param {type:"string"}
+  strength_schedule: "0: (0.45)"  # @param {type:"string"}
+  contrast_schedule: "0: (1.0)"  # @param {type:"string"}
+  color_coherence: 'Match Frame 0 LAB'  # @param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB'] {type:'string'}
+  diffusion_cadence: '1'  # @param ['1','2','3','4','5','6','7','8'] {type:'string'}
 
-    # @markdown ####**Interpolation:**
-    interpolate_key_frames: False  # @param {type:"boolean"}
-    interpolate_x_frames: 4  # @param {type:"number"}
+  # @markdown ####**3D Depth Warping:**
+  use_depth_warping: True  # @param {type:"boolean"}
+  midas_weight: 0.3  # @param {type:"number"}
+  near_plane: 200
+  far_plane: 10000
+  fov: 40  # @param {type:"number"}
+  padding_mode: 'border'  # @param ['border', 'reflection', 'zeros'] {type:'string'}
+  sampling_mode: 'bicubic'  # @param ['bicubic', 'bilinear', 'nearest'] {type:'string'}
+  save_depth_maps: False  # @param {type:"boolean"}
 
-    # @markdown ####**Resume Animation:**
-    resume_from_timestring: False  # @param {type:"boolean"}
-    resume_timestring: "20220829210106"  # @param {type:"string"}
+  # @markdown ####**Video Input:**
+  video_init_path: '/content/video_in.mp4'  # @param {type:"string"}
+  extract_nth_frame: 1  # @param {type:"number"}
 
-    # @markdown **Image Settings**
-    W: 512  # @param
-    H: 512  # @param
-    # W, H: map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
+  # @markdown ####**Interpolation:**
+  interpolate_key_frames: False  # @param {type:"boolean"}
+  interpolate_x_frames: 4  # @param {type:"number"}
 
-    # @markdown **Sampling Settings**
-    #  seed: -1  # @param
-    sampler: 'plms'  # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
-    steps: 10  # @param
-    scale: 7.0  # @param
-    ddim_eta: 0.0  # @param
-    dynamic_threshold: None
-    static_threshold: None
+  # @markdown ####**Resume Animation:**
+  resume_from_timestring: False  # @param {type:"boolean"}
+  resume_timestring: "20220829210106"  # @param {type:"string"}
 
-    # @markdown **Save & Display Settings**
-    save_samples: True  # @param {type:"boolean"}
-    save_settings: True  # @param {type:"boolean"}
-    display_samples: True  # @param {type:"boolean"}
+  # @markdown **Image Settings**
+  W: 512  # @param
+  H: 512  # @param
+  # W, H: map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
 
-    # @markdown **Batch Settings**
-    n_batch: 1  # @param
-    batch_name: 'time'  # @param {type:"string"}
-    filename_format: "{timestring}_{index}_{prompt}.png"  # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
-    seed_behavior: "iter"  # @param ["iter","fixed","random"]
-    make_grid: False  # @param {type:"boolean"}
-    grid_rows: 2  # @param
-    outdir: ''
+  # @markdown **Sampling Settings**
+  #  seed: -1  # @param
+  sampler: 'plms'  # @param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
+  steps: 10  # @param
+  scale: 7.0  # @param
+  ddim_eta: 0.0  # @param
+  dynamic_threshold: None
+  static_threshold: None
 
-    # @markdown **Init Settings**
-    use_init: False  # @param {type:"boolean"}
-    strength: 0.0  # @param {type:"number"}
-    strength_0_no_init: True  # Set the strength to 0 automatically when no init image is used
-    init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
-    # Whiter areas of the mask are areas that change more
-    use_mask: False  # @param {type:"boolean"}
-    use_alpha_as_mask: False  # use the alpha channel of the init image as the mask
-    mask_file: "./scripts/deforum/init_files/mask.jpg"  # @param {type:"string"}
-    invert_mask: False  # @param {type:"boolean"}
-    # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
-    mask_brightness_adjust: 1.0  # @param {type:"number"}
-    mask_contrast_adjust: 1.0  # @param {type:"number"}
+  # @markdown **Save & Display Settings**
+  save_samples: True  # @param {type:"boolean"}
+  save_settings: True  # @param {type:"boolean"}
+  display_samples: True  # @param {type:"boolean"}
 
-    n_samples: 1  # doesnt do anything
-    precision: 'autocast'
-    C: 4
-    f: 8
+  # @markdown **Batch Settings**
+  n_batch: 1  # @param
+  batch_name: 'time'  # @param {type:"string"}
+  filename_format: "{timestring}_{index}_{prompt}.png"  # @param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
+  seed_behavior: "iter"  # @param ["iter","fixed","random"]
+  make_grid: False  # @param {type:"boolean"}
+  grid_rows: 2  # @param
+  outdir: ''
 
-    # prompt: ""
-    timestring: ""
-    init_latent: None
-    init_sample: None
-    init_c: None
+  # @markdown **Init Settings**
+  use_init: False  # @param {type:"boolean"}
+  strength: 0.4  # @param {type:"number"}
+  strength_0_no_init: False  # Set the strength to 0 automatically when no init image is used
+  init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
+  # Whiter areas of the mask are areas that change more
+  use_mask: False  # @param {type:"boolean"}
+  use_alpha_as_mask: False  # use the alpha channel of the init image as the mask
+  mask_file: "./scripts/deforum/init_files/mask.jpg"  # @param {type:"string"}
+  invert_mask: False  # @param {type:"boolean"}
+  # Adjust mask image, 1.0 is no adjustment. Should be positive numbers.
+  mask_brightness_adjust: 1.0  # @param {type:"number"}
+  mask_contrast_adjust: 1.0  # @param {type:"number"}
+
+  n_samples: 1  # doesnt do anything
+  precision: 'autocast'
+  C: 4
+  f: 8
+
+  # prompt: ""
+  timestring: ""
+  init_latent: None
+  init_sample: None
+  init_c: None
 
 img2img:
-    prompt:
-    sampling_steps: 30
-    # Adding an int to toggles enables the corresponding feature.
-    # 0: Create prompt matrix (separate multiple prompts using |, and get all combinations of them)
-    # 1: Normalize Prompt Weights (ensure sum of weights add up to 1.0)
-    # 2: Loopback (use images from previous batch when creating next batch)
-    # 3: Random loopback seed
-    # 4: Save individual images
-    # 5: Save grid
-    # 6: Sort samples by prompt
-    # 7: Write sample info files
-    # 8: jpg samples
-    # 9: Fix faces using GFPGAN
-    # 10: Upscale images using Real-ESRGAN
-    sampler_name: "k_euler"
-    denoising_strength: 0.45
-    # 0: Keep masked area
-    # 1: Regenerate only masked area
-    mask_mode: 0
-    mask_restore: False
-    # 0: Just resize
-    # 1: Crop and resize
-    # 2: Resize and fill
-    resize_mode: 0
-    # Leave blank for random seed:
-    seed: ""
-    ddim_eta: 0.0
-    cfg_scale: 7.5
-    batch_count: 1
-    batch_size: 1
-    height: 512
-    width: 512
-    # Textual inversion embeddings file path:
-    fp: ""
-    loopback: True
-    random_seed_loopback: True
-    separate_prompts: False
-    update_preview: True
-    update_preview_frequency: 5
-    normalize_prompt_weights: True
-    save_individual_images: True
-    save_grid: True
-    group_by_prompt: True
-    save_as_jpg: False
-    use_GFPGAN: False
-    use_RealESRGAN: False
-    RealESRGAN_model: "RealESRGAN_x4plus"
-    variant_amount: 0.0
-    variant_seed: ""
-    write_info_files: True
+  prompt:
+  sampling_steps: 30
+  # Adding an int to toggles enables the corresponding feature.
+  # 0: Create prompt matrix (separate multiple prompts using |, and get all combinations of them)
+  # 1: Normalize Prompt Weights (ensure sum of weights add up to 1.0)
+  # 2: Loopback (use images from previous batch when creating next batch)
+  # 3: Random loopback seed
+  # 4: Save individual images
+  # 5: Save grid
+  # 6: Sort samples by prompt
+  # 7: Write sample info files
+  # 8: jpg samples
+  # 9: Fix faces using GFPGAN
+  # 10: Upscale images using Real-ESRGAN
+  sampler_name: "k_euler"
+  denoising_strength: 0.45
+  # 0: Keep masked area
+  # 1: Regenerate only masked area
+  mask_mode: 0
+  mask_restore: False
+  # 0: Just resize
+  # 1: Crop and resize
+  # 2: Resize and fill
+  resize_mode: 0
+  # Leave blank for random seed:
+  seed: ""
+  ddim_eta: 0.0
+  cfg_scale: 7.5
+  batch_count: 1
+  batch_size: 1
+  height: 512
+  width: 512
+  # Textual inversion embeddings file path:
+  fp: ""
+  loopback: True
+  random_seed_loopback: True
+  separate_prompts: False
+  update_preview: True
+  update_preview_frequency: 5
+  normalize_prompt_weights: True
+  save_individual_images: True
+  save_grid: True
+  group_by_prompt: True
+  save_as_jpg: False
+  use_GFPGAN: False
+  use_RealESRGAN: False
+  RealESRGAN_model: "RealESRGAN_x4plus"
+  variant_amount: 0.0
+  variant_seed: ""
+  write_info_files: True
 
 gfpgan:
-    strength: 100
+  strength: 100
