@@ -354,12 +354,16 @@ img2img:
   denoising_strength: 0.45
   # 0: Keep masked area
   # 1: Regenerate only masked area
-  mask_mode: 0
+  mask_mode_list: 0
   mask_restore: False
   # 0: Just resize
   # 1: Crop and resize
   # 2: Resize and fill
   resize_mode: 0
+
+  noise_mode_list: 0
+
+
   # Leave blank for random seed:
   seed: ""
   ddim_eta: 0.0
