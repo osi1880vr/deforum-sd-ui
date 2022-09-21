@@ -2,9 +2,8 @@ from barfi import Block
 from scripts.tools.deforum_runner import runner
 import streamlit as st
 import random
-from scripts.tools.sd_utils import img2img
 
-#from scripts.tools.sd_utils import *
+from scripts.tools.sd_utils import img2img
 
 import PIL
 def_runner = runner()
@@ -23,11 +22,30 @@ def upscale_func(self):
     self.set_interface(name='Path', value=data)
 upscale_block.add_compute(upscale_func)
 
+def img2img_runner():
+    print("trying...")
+    print(st.session_state["img2img"]["new_img"])
+    print(st.session_state["img2img"]["steps"])
+    print(st.session_state["img2img"]["seed"])
+    print(st.session_state["img2img"]["cfg_scale"])
+    print(st.session_state["img2img"]["prompt"])
+    print(st.session_state["img2img"]["variant_amount"])
+    print(st.session_state["img2img"]["denoising_strength"])
+    output_images, seed, info, stats = img2img()
+    return output_images
+
 
 #img2img Block
 img2img_block = Block(name='img2img Node')
 img2img_block.add_input(name='2ImageIn')
-img2img_block.add_option(name='2Prompt', type='input')
+img2img_block.add_option(name='seedInfo', type='display', value='Prompt:')
+img2img_block.add_option(name='2Prompt', type='input', value='')
+img2img_block.add_option(name='Variant', type='display', value='Variant Amount:')
+img2img_block.add_option(name='Var Amount', type='number', value = 0.5)
+img2img_block.add_option(name='CFG_Info', type='display', value='CFG Scale:')
+img2img_block.add_option(name='CFG Scale', type='number', value = 7.5)
+img2img_block.add_option(name='Steps_Info', type='display', value='Steps:')
+img2img_block.add_option(name='steps', type='integer')
 img2img_block.add_output(name='2Image')
 def img2img_func(self):
     print('step1 ok')
@@ -37,17 +55,31 @@ def img2img_func(self):
     prompt2 = self.get_option(name='2Prompt')
     print('step2 ok')
 
-    output_images, seed, info, stats = img2img(prompt=prompt2, init_info=init_img, init_info_mask=None, mask_mode="Mask",
-                                               mask_restore=False, ddim_steps=st.session_state["sampling_steps"],
-                                               sampler_name=st.session_state['sampler_name'], n_iter=1,
-                                               cfg_scale=7, denoising_strength=0.5, variant_seed="654776",
-                                               seed=444444, noise_mode="Seed", find_noise_steps=150, width=512,
-                                               height=512, fp=st.session_state['defaults'].general.fp, variant_amount=0.5,
-                                               ddim_eta=0.0, write_info_files=False, RealESRGAN_model=None,
-                                               separate_prompts=False, normalize_prompt_weights=False,
-                                               save_individual_images=True, save_grid=False,
-                                               group_by_prompt=False, save_as_jpg=True, use_GFPGAN=False,
-                                               use_RealESRGAN=False, loopback=False)
+    output_images, seed, info, stats = img2img(prompt = '',
+                                               init_info = init_img,
+                                               init_info_mask = None,
+                                               mask_mode = 0,
+                                               mask_blur_strength = 3,
+                                               mask_restore = False,
+                                               ddim_steps = 50,
+                                               sampler_name = 'DDIM',
+                                               n_iter = 1,
+                                               cfg_scale = 7.5,
+                                               denoising_strength = 0.8,
+                                               seed = -1,
+                                               noise_mode = 0,
+                                               find_noise_steps = "",
+                                               height = 512,
+                                               width = 512,
+                                               resize_mode = 0,
+                                               fp=None,
+                                               variant_amount = None, variant_seed = None, ddim_eta = 0.0,
+                                               write_info_files = True, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
+                                               separate_prompts = False, normalize_prompt_weights = False,
+                                               save_individual_images = True, save_grid = True, group_by_prompt = True,
+                                               save_as_jpg = True, use_GFPGAN = True, use_RealESRGAN = True, loopback = False,
+                                               random_seed_loopback = False
+                                               )
     self.set_interface(name='2Image', value=output_images)
 img2img_block.add_compute(img2img_func)
 
@@ -71,6 +103,7 @@ dream_block.add_output(name='ImageOut')
 dream_block.add_output(name='SeedOut')
 
 def dream_func(self):
+    st.session_state["generation_mode"] = "txt2img"
     if self.get_interface(name='PromptIn') != None:
         prompt = self.get_interface(name='PromptIn')
     else:
@@ -81,9 +114,11 @@ def dream_func(self):
     else:
         seed = self.get_option(name='Seed')
 
-    st.session_state["seed"] = seed
-    st.session_state["prompt"] = prompt
-    st.session_state['sampler'] = self.get_option(name='Sampler')
+    st.session_state["txt2img"]["seed"] = seed
+    st.session_state["txt2img"]["prompt"] = prompt
+    st.session_state["txt2img"]['sampler'] = self.get_option(name='Sampler')
+    st.session_state["txt2img"]["keyframes"] = None
+
     def_runner.run_txt2img()
     self.set_interface(name='ImageOut', value=st.session_state["node_pipe"])
     self.set_interface(name='PromptOut', value=prompt)
@@ -468,22 +503,8 @@ def integer_block_func(self):
 # Add the compute function to the block
 integer_block.add_compute(integer_block_func)
 
-from sklearn import preprocessing
 
-label_encoder_block = Block(name='Label Encoder')
-label_encoder_block.add_option(name='display-option', type='display', value='Label Encode of the input data.')
-label_encoder_block.add_input(name='Data')
-label_encoder_block.add_output(name='Labels')
-label_encoder_block.add_output(name='Labeled Data')
-def label_encoder_block_func(self):
-    data = self.get_interface(name='Data')
-    le = preprocessing.LabelEncoder()
-    le.fit(data)
-    self.set_interface(name='Labels', value=le.classes_)
-    self.set_interface(name='Labeled Data', value=le.transform(data))
-label_encoder_block.add_compute(label_encoder_block_func)
-
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, blend_block, invert_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block], 'image functions':[img_preview, blend_block, invert_block], 'test functions':[debug_block]}
 
 
 
