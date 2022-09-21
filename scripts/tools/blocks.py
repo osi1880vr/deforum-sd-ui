@@ -113,15 +113,15 @@ def img2img_func(self):
                                                n_iter = 1,
                                                cfg_scale = cfg_scale,
                                                denoising_strength = 0.8,
-                                               seed = -1,
+                                               seed = seed,
                                                noise_mode = 0,
-                                               find_noise_steps = "",
+                                               find_noise_steps = 100,
                                                height = 512,
                                                width = 512,
                                                resize_mode = 0,
-                                               fp="/img2img_node",
-                                               variant_amount = var_amount, variant_seed = None, ddim_eta = 0.0,
-                                               write_info_files = True, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
+                                               fp="./outputs",
+                                               variant_amount = var_amount, variant_seed = seed - 1, ddim_eta = 0.0,
+                                               write_info_files = False, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
                                                separate_prompts = False, normalize_prompt_weights = False,
                                                save_individual_images = True, save_grid = False, group_by_prompt = True,
                                                save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = False,
@@ -326,6 +326,39 @@ def gaussian_func(self):
     img = img.filter(PIL.ImageFilter.GaussianBlur(radius=radius))
     self.set_interface(name='Output', value = img)
 gaussian_block.add_compute(gaussian_func)
+
+#Convert Block
+imgfilter_block = Block(name='Basic Filters')
+imgfilter_block.add_input(name='Input')
+imgfilter_block.add_option(name='Mode', type='select', items=["BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE"], value="BLUR")
+
+imgfilter_block.add_output(name='Output')
+
+def imgfilter_func(self):
+    img = self.get_interface(name='Input')
+    if self.get_option(name='Mode') == 'BLUR':
+        img = img.filter(PIL.ImageFilter.BLUR)
+    elif self.get_option(name='Mode') == 'CONTOUR':
+        img = img.filter(PIL.ImageFilter.CONTOUR)
+    elif self.get_option(name='Mode') == 'DETAIL':
+        img = img.filter(PIL.ImageFilter.DETAIL)
+    elif self.get_option(name='Mode') == 'EDGE_ENHANCE':
+        img = img.filter(PIL.ImageFilter.EDGE_ENHANCE)
+    elif self.get_option(name='Mode') == 'EDGE_ENHANCE_MORE':
+        img = img.filter(PIL.ImageFilter.EDGE_ENHANCE_MORE)
+    elif self.get_option(name='Mode') == 'EMBOSS':
+        img = img.filter(PIL.ImageFilter.EMBOSS)
+    elif self.get_option(name='Mode') == 'FIND_EDGES':
+        img = img.filter(PIL.ImageFilter.FIND_EDGES)
+    elif self.get_option(name='Mode') == 'SHARPEN':
+        img = img.filter(PIL.ImageFilter.SHARPEN)
+    elif self.get_option(name='Mode') == 'SMOOTH':
+        img = img.filter(PIL.ImageFilter.SMOOTH)
+    elif self.get_option(name='Mode') == 'SMOOTH_MORE':
+        img = img.filter(PIL.ImageFilter.SMOOTH_MORE)
+    self.set_interface(name='Output', value = img)
+imgfilter_block.add_compute(imgfilter_func)
+
 
 
 #Convert Block
@@ -591,7 +624,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, convert_block, blend_block, invert_block, gaussian_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'test functions':[debug_block]}
 
 
 
