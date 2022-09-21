@@ -1161,27 +1161,27 @@ def generation_callback(img, i=0):
 	# Dont worry, it doesnt affect the performance.
 	if st.session_state["generation_mode"] == "txt2img":
 		percent = int(
-			100 * float(i + 1 if i + 1 < st.session_state["txt2img"]["steps"] else st.session_state["txt2img"]["steps"]) / float(
-				st.session_state["txt2img"]["steps"]))
-		st.session_state["progress_bar_text"].text(
+			100 * float(i + 1 if i + 1 < st.session_state[st.session_state["generation_mode"]]["steps"] else st.session_state[st.session_state["generation_mode"]]["steps"]) / float(
+				st.session_state[st.session_state["generation_mode"]]["steps"]))
+		st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 			f"Running step: {i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps} {percent if percent < 100 else 100}%")
 	else:
 		if st.session_state["generation_mode"] == "img2img":
-			round_sampling_steps = round(st.session_state["img2img"]["steps"] * st.session_state["img2img"]["denoising_strength"])
+			round_sampling_steps = round(st.session_state[st.session_state["generation_mode"]]["steps"] * st.session_state[st.session_state["generation_mode"]]["denoising_strength"])
 			percent = int(100 * float(i + 1 if i + 1 < round_sampling_steps else round_sampling_steps) / float(
 				round_sampling_steps))
-			st.session_state["progress_bar_text"].text(
+			st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 				f"""Running step: {i + 1 if i + 1 < round_sampling_steps else round_sampling_steps}/{round_sampling_steps} {percent if percent < 100 else 100}%""")
 		else:
 			if st.session_state["generation_mode"] == "txt2vid":
 				percent = int(100 * float(
-					i + 1 if i + 1 < st.session_state["txt2vid"]["steps"] else st.session_state["txt2vid"]["steps"]) / float(
-					st.session_state["txt2vid"]["steps"]))
-				st.session_state["progress_bar_text"].text(
+					i + 1 if i + 1 < st.session_state[st.session_state["generation_mode"]]["steps"] else st.session_state["txt2vid"]["steps"]) / float(
+					st.session_state[st.session_state["generation_mode"]]["steps"]))
+				st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 					f"Running step: {i + 1 if i + 1 < st.session_state['txt2vid']['steps'] else st.session_state['txt2vid']['steps']}/{st.session_state['txt2vid']['steps']}"
 					f"{percent if percent < 100 else 100}%")
 
-	st.session_state["progress_bar"].progress(percent if percent < 100 else 100)
+	st.session_state[st.session_state["generation_mode"]]["progress_bar"].progress(percent if percent < 100 else 100)
 
 
 prompt_parser = re.compile("""
