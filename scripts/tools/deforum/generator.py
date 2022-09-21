@@ -64,7 +64,7 @@ def sanitize(prompt):
 
 def render_image_batch(args):
 	load_models()
-	if st.session_state["pathmode"] == 'root':
+	if st.session_state[st.session_state["generation_mode"]]["pathmode"] == 'root':
 		args.outdir = f'{args.outdir}/_batch_images'
 	# = args.prompts
 
@@ -76,12 +76,12 @@ def render_image_batch(args):
 	if args.save_settings or args.save_samples:
 		print(f"Saving to {os.path.join(args.outdir, args.timestring)}_*")
 
-	image_pipe = st.session_state["preview_image"]
-	video_pipe = st.session_state["preview_video"]
+	image_pipe = st.session_state[st.session_state["generation_mode"]]["preview_image"]
+	video_pipe = st.session_state[st.session_state["generation_mode"]]["preview_video"]
 
 	# save settings for the batch
 	if args.save_settings:
-		if st.session_state["pathmode"] == "subfolders":
+		if st.session_state[st.session_state["generation_mode"]]["pathmode"] == "subfolders":
 			settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
 		else:
 			os.makedirs(os.path.join(args.outdir, f"_configs/_batch_configs"), exist_ok=True)
@@ -138,7 +138,7 @@ def render_image_batch(args):
 							filename = f"{args.timestring}_{index:05}_{args.seed}.png"
 						fpath = os.path.join(args.outdir, filename)
 						image.save(fpath)
-					st.session_state['node_pipe'] = image
+					st.session_state[st.session_state["generation_mode"]]['node_pipe'] = image
 					image_pipe.image(image)
 					st.session_state['currentImages'].append(fpath)
 					index += 1
@@ -345,13 +345,13 @@ def render_animation(args, anim_args, animation_prompts, model_path, half_precis
 	# os.makedirs(args.outdir, exist_ok=True)
 	# print(f"Saving animation frames to {args.outdir}")
 
-	image_pipe = st.session_state["preview_image"]
-	video_pipe = st.session_state["preview_video"]
+	image_pipe = st.session_state[st.session_state["generation_mode"]]["preview_image"]
+	video_pipe = st.session_state[st.session_state["generation_mode"]]["preview_video"]
 	video_pipe.empty()
 
 	# save settings for the batch
 	if args.save_settings:
-		if st.session_state["pathmode"] == "subfolders":
+		if st.session_state[st.session_state["generation_mode"]]["pathmode"] == "subfolders":
 			settings_filename = os.path.join(args.outdir, f"{args.timestring}_settings.txt")
 		else:
 			settings_filename = os.path.join(args.outdir, f"_configs/{args.timestring}_settings.txt")
@@ -362,7 +362,7 @@ def render_animation(args, anim_args, animation_prompts, model_path, half_precis
 	# resume from timestring
 	if anim_args.resume_from_timestring:
 		args.timestring = anim_args.resume_timestring
-	if st.session_state["pathmode"] == "root":
+	if st.session_state[st.session_state["generation_mode"]]["pathmode"] == "root":
 		args.firstseed = args.seed
 		args.rootoutdir = args.outdir
 		args.outdir = f'{args.outdir}/_anim_stills/{args.batch_name}_{args.firstseed}'
@@ -406,7 +406,7 @@ def render_animation(args, anim_args, animation_prompts, model_path, half_precis
 			pass
 		vf = r'select=not(mod(n\,' + str(1) + '))'
 		process = subprocess.Popen([
-			ffmpeg, '-i', f'{st.session_state["init_path"]}',
+			ffmpeg, '-i', f'{st.session_state[st.session_state["generation_mode"]]["init_path"]}',
 			'-vf', f'{vf}', '-vsync', 'vfr', '-q:v', '2',
 			'-loglevel', 'error', '-stats',
 			os.path.join(video_in_frame_path, '%04d.jpg')
@@ -430,8 +430,8 @@ def render_animation(args, anim_args, animation_prompts, model_path, half_precis
 			print("Using depth model from cache")
 			depth_model = st.session_state["depth_model"]
 		else:
-			st.session_state["depth_model"] = DepthModel(device)
-			depth_model = st.session_state["depth_model"]
+			st.session_state[st.session_state["generation_mode"]]["depth_model"] = DepthModel(device)
+			depth_model = st.session_state[st.session_state["generation_mode"]]["depth_model"]
 			depth_model.load_midas(model_path)
 		if anim_args.midas_weight < 1.0:
 			depth_model.load_adabins()

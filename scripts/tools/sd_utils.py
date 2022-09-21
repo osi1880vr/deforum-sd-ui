@@ -143,12 +143,24 @@ def torch_gc():
 	torch.cuda.ipc_collect()
 
 
-def img2img(prompt: str = '', init_info: any = None, init_info_mask: any = None, mask_mode: int = 0,
+def img2img(prompt: str = '',
+			init_info: any = None,
+			init_info_mask: any = None,
+			mask_mode: int = 0,
 			mask_blur_strength: int = 3,
-			mask_restore: bool = False, ddim_steps: int = 50, sampler_name: str = 'DDIM',
-			n_iter: int = 1, cfg_scale: float = 7.5, denoising_strength: float = 0.8,
-			seed: int = -1, noise_mode: int = 0, find_noise_steps: str = "", height: int = 512, width: int = 512,
-			resize_mode: int = 0, fp=None,
+			mask_restore: bool = False,
+			ddim_steps: int = 50,
+			sampler_name: str = 'DDIM',
+			n_iter: int = 1,
+			cfg_scale: float = 7.5,
+			denoising_strength: float = 0.8,
+			seed: int = -1,
+			noise_mode: int = 0,
+			find_noise_steps: str = "",
+			height: int = 512,
+			width: int = 512,
+			resize_mode: int = 0,
+			fp=None,
 			variant_amount: float = None, variant_seed: int = None, ddim_eta: float = 0.0,
 			write_info_files: bool = True, RealESRGAN_model: str = "RealESRGAN_x4plus_anime_6B",
 			separate_prompts: bool = False, normalize_prompt_weights: bool = True,
@@ -1123,7 +1135,7 @@ def generation_callback(img, i=0):
 	except TypeError:
 		pass
 
-	if i % int(st.session_state.update_preview_frequency) == 0 and st.session_state.update_preview:
+	if i % int(st.session_state['defaults'].img2img.update_preview_frequency) == 0 and st.session_state['defaults'].img2img.update_preview:
 		# print (img)
 		# print (type(img))
 		# The following lines will convert the tensor we got on img to an actual image we can render on the UI.
@@ -1143,33 +1155,33 @@ def generation_callback(img, i=0):
 		pil_image = transforms.ToPILImage()(x_samples_ddim.squeeze_(0))
 
 		# update image on the UI so we can see the progress
-		st.session_state["preview_image"].image(pil_image)
+		st.session_state[st.session_state["generation_mode"]]["preview_image"].image(pil_image)
 
 	# Show a progress bar so we can keep track of the progress even when the image progress is not been shown,
 	# Dont worry, it doesnt affect the performance.
 	if st.session_state["generation_mode"] == "txt2img":
 		percent = int(
-			100 * float(i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps) / float(
-				st.session_state.sampling_steps))
-		st.session_state["progress_bar_text"].text(
+			100 * float(i + 1 if i + 1 < st.session_state[st.session_state["generation_mode"]]["steps"] else st.session_state[st.session_state["generation_mode"]]["steps"]) / float(
+				st.session_state[st.session_state["generation_mode"]]["steps"]))
+		st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 			f"Running step: {i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps} {percent if percent < 100 else 100}%")
 	else:
 		if st.session_state["generation_mode"] == "img2img":
-			round_sampling_steps = round(st.session_state.sampling_steps * st.session_state["denoising_strength"])
+			round_sampling_steps = round(st.session_state[st.session_state["generation_mode"]]["steps"] * st.session_state[st.session_state["generation_mode"]]["denoising_strength"])
 			percent = int(100 * float(i + 1 if i + 1 < round_sampling_steps else round_sampling_steps) / float(
 				round_sampling_steps))
-			st.session_state["progress_bar_text"].text(
+			st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
 				f"""Running step: {i + 1 if i + 1 < round_sampling_steps else round_sampling_steps}/{round_sampling_steps} {percent if percent < 100 else 100}%""")
 		else:
 			if st.session_state["generation_mode"] == "txt2vid":
 				percent = int(100 * float(
-					i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps) / float(
-					st.session_state.sampling_steps))
-				st.session_state["progress_bar_text"].text(
-					f"Running step: {i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps}"
+					i + 1 if i + 1 < st.session_state[st.session_state["generation_mode"]]["steps"] else st.session_state["txt2vid"]["steps"]) / float(
+					st.session_state[st.session_state["generation_mode"]]["steps"]))
+				st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
+					f"Running step: {i + 1 if i + 1 < st.session_state['txt2vid']['steps'] else st.session_state['txt2vid']['steps']}/{st.session_state['txt2vid']['steps']}"
 					f"{percent if percent < 100 else 100}%")
 
-	st.session_state["progress_bar"].progress(percent if percent < 100 else 100)
+	st.session_state[st.session_state["generation_mode"]]["progress_bar"].progress(percent if percent < 100 else 100)
 
 
 prompt_parser = re.compile("""
@@ -1495,7 +1507,7 @@ def save_sample(image, sample_path_i, filename, jpg_sample, prompts, seeds, widt
 			piexif.insert(piexif.dump(exif_dict), f"{filename_i}.{save_ext}")
 
 	# render the image on the frontend
-	st.session_state["preview_image"].image(image)
+	st.session_state[st.session_state["generation_mode"]]["preview_image"].image(image)
 
 
 def get_next_sequence_number(path, prefix=''):
