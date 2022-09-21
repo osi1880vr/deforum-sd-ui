@@ -38,33 +38,80 @@ def img2img_runner():
 #img2img Block
 img2img_block = Block(name='img2img Node')
 img2img_block.add_input(name='2ImageIn')
+img2img_block.add_input(name='Var Amount')
+img2img_block.add_input(name='CFG Scale')
+img2img_block.add_input(name='Steps')
+img2img_block.add_input(name='Sampler')
+img2img_block.add_input(name='Seed')
+img2img_block.add_input(name='Prompt')
 img2img_block.add_option(name='seedInfo', type='display', value='Prompt:')
 img2img_block.add_option(name='2Prompt', type='input', value='')
+img2img_block.add_option(name='Sampler', type='select', items=["k_lms", "k_euler", "k_euler_a", "k_dpm_2", "k_dpm_2_a", "k_heun", "PLMS", "DDIM"], value="k_dpm_2_a")
 img2img_block.add_option(name='Variant', type='display', value='Variant Amount:')
 img2img_block.add_option(name='Var Amount', type='number', value = 0.5)
 img2img_block.add_option(name='CFG_Info', type='display', value='CFG Scale:')
 img2img_block.add_option(name='CFG Scale', type='number', value = 7.5)
 img2img_block.add_option(name='Steps_Info', type='display', value='Steps:')
-img2img_block.add_option(name='steps', type='integer')
+img2img_block.add_option(name='steps', type='integer', value=20)
+img2img_block.add_option(name='Seed info', type='display', value='Seed:')
+img2img_block.add_option(name='seed', type='integer', value=-1)
+
+
 img2img_block.add_output(name='2Image')
 def img2img_func(self):
     print('step1 ok')
 
-    init_img = self.get_interface(name='2ImageIn')
-    init_img = init_img.convert('RGBA')
-    prompt2 = self.get_option(name='2Prompt')
+    if self.get_interface(name='Var Amount') != None:
+        var_amount = self.get_interface(name='Var Amount')
+    else:
+        var_amount = self.get_option(name='Var Amount')
     print('step2 ok')
 
-    output_images, seed, info, stats = img2img(prompt = '',
+    if self.get_interface(name='CFG Scale') != None:
+        cfg_scale = self.get_interface(name='CFG Scale')
+    else:
+        cfg_scale = self.get_option(name='CFG Scale')
+    print('step3 ok')
+
+    if self.get_interface(name='Steps') != None:
+        steps = self.get_interface(name='Steps')
+    else:
+        steps = self.get_option(name='steps')
+    print('step4 ok')
+
+    if self.get_interface(name='Sampler') != None:
+        samplern = self.get_interface(name='Sampler')
+    else:
+        samplern = self.get_option(name='Sampler')
+    print('step5 ok')
+
+    if self.get_interface(name='Prompt') != None:
+        prompt2 = self.get_interface(name='Prompt')
+    else:
+        prompt2 = self.get_option(name='2Prompt')
+    print('step6 ok')
+
+    if self.get_interface(name='Seed') != None:
+        seed = self.get_interface(name='Seed')
+    else:
+        seed = self.get_option(name='seed')
+
+    print('step7 ok')
+
+    init_img = self.get_interface(name='2ImageIn')
+    init_img = init_img.convert('RGBA')
+    print('step8 ok')
+
+    output_images, seed, info, stats = img2img(prompt = prompt2,
                                                init_info = init_img,
                                                init_info_mask = None,
                                                mask_mode = 0,
                                                mask_blur_strength = 3,
                                                mask_restore = False,
-                                               ddim_steps = 50,
-                                               sampler_name = 'DDIM',
+                                               ddim_steps = steps,
+                                               sampler_name = samplern,
                                                n_iter = 1,
-                                               cfg_scale = 7.5,
+                                               cfg_scale = cfg_scale,
                                                denoising_strength = 0.8,
                                                seed = -1,
                                                noise_mode = 0,
@@ -72,14 +119,16 @@ def img2img_func(self):
                                                height = 512,
                                                width = 512,
                                                resize_mode = 0,
-                                               fp=None,
-                                               variant_amount = None, variant_seed = None, ddim_eta = 0.0,
+                                               fp="/img2img_node",
+                                               variant_amount = var_amount, variant_seed = None, ddim_eta = 0.0,
                                                write_info_files = True, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
                                                separate_prompts = False, normalize_prompt_weights = False,
-                                               save_individual_images = True, save_grid = True, group_by_prompt = True,
-                                               save_as_jpg = True, use_GFPGAN = True, use_RealESRGAN = True, loopback = False,
+                                               save_individual_images = True, save_grid = False, group_by_prompt = True,
+                                               save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = False,
                                                random_seed_loopback = False
                                                )
+    print(type(output_images))
+
     self.set_interface(name='2Image', value=output_images)
 img2img_block.add_compute(img2img_func)
 
