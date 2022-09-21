@@ -31,8 +31,6 @@ class PluginInfo():
     displayPriority = 5
 
 
-with open('./scripts/tools/processChart/html/flowchart.html', 'r', encoding="utf-8") as f:
-    components.html3 = f.read()
 
 def layoutFunc():
     if 'v' not in st.session_state:

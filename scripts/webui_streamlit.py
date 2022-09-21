@@ -69,15 +69,15 @@ def layout():
 		load_css(True, 'scripts/tools/css/streamlit.main.css')
 	# check if the models exist on their respective folders
 	if os.path.exists(os.path.join(defaults.general.GFPGAN_dir, "experiments", "pretrained_models", "GFPGANv1.3.pth")):
-		GFPGAN_available = True
+		st.session_state["GFPGAN_available"] = True
 	else:
-		GFPGAN_available = False
+		st.session_state["GFPGAN_available"] = False
 
 	if os.path.exists(os.path.join(defaults.general.RealESRGAN_dir, "experiments", "pretrained_models",
 								   f"{defaults.general.RealESRGAN_model}.pth")):
-		RealESRGAN_available = True
+		st.session_state["RealESRGAN_available"] = True
 	else:
-		RealESRGAN_available = False
+		st.session_state["RealESRGAN_available"] = False
 
 	with st.sidebar:
 		# we should use an expander and group things together when more options are added so the sidebar is not too messy.

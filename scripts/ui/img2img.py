@@ -144,20 +144,20 @@ def layoutFunc():
 				st.session_state["img2img"]["save_as_jpg"] = st.checkbox("Save samples as jpg", value=st.session_state['defaults'].img2img.save_as_jpg,
 										  help="Saves the images as jpg instead of png.")
 
-				# if st.session_state["GFPGAN_available"]:
-				#	use_GFPGAN = st.checkbox("Use GFPGAN", value=st.session_state['defaults'].img2img.use_GFPGAN, help="Uses the GFPGAN model to improve faces after the generation.\
-				#			This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
-				# else:
-				#	use_GFPGAN = False
+				if st.session_state["GFPGAN_available"]:
+					use_GFPGAN = st.checkbox("Use GFPGAN", value=st.session_state['defaults'].img2img.use_GFPGAN, help="Uses the GFPGAN model to improve faces after the generation.\
+							This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
+				else:
+					use_GFPGAN = False
 
-				# if st.session_state["RealESRGAN_available"]:
-				#	st.session_state["use_RealESRGAN"] = st.checkbox("Use RealESRGAN", value=st.session_state['defaults'].img2img.use_RealESRGAN,
-				#						     help="Uses the RealESRGAN model to upscale the images after the generation.\
-				#			This greatly improve the quality and lets you have high resolution images but uses extra VRAM. Disable if you need the extra VRAM.")
-				#	st.session_state["RealESRGAN_model"] = st.selectbox("RealESRGAN model", ["RealESRGAN_x4plus", "RealESRGAN_x4plus_anime_6B"], index=0)  
-				# else:
-				#	st.session_state["use_RealESRGAN"] = False
-				#	st.session_state["RealESRGAN_model"] = "RealESRGAN_x4plus"
+				if st.session_state["RealESRGAN_available"]:
+					st.session_state["use_RealESRGAN"] = st.checkbox("Use RealESRGAN", value=st.session_state['defaults'].img2img.use_RealESRGAN,
+										     help="Uses the RealESRGAN model to upscale the images after the generation.\
+							This greatly improve the quality and lets you have high resolution images but uses extra VRAM. Disable if you need the extra VRAM.")
+					st.session_state["RealESRGAN_model"] = st.selectbox("RealESRGAN model", ["RealESRGAN_x4plus", "RealESRGAN_x4plus_anime_6B"], index=0)
+				else:
+					st.session_state["use_RealESRGAN"] = False
+					st.session_state["RealESRGAN_model"] = "RealESRGAN_x4plus"
 
 				st.session_state["img2img"]["variant_amount"] = st.slider("Variant Amount:", value=st.session_state['defaults'].img2img.variant_amount,
 										   min_value=0.0, max_value=1.0, step=0.01)
@@ -185,8 +185,7 @@ def layoutFunc():
 												 By default this is enabled and the frequency is set to 1 step.")
 
 				st.session_state["img2img"]["update_preview_frequency"] = st.text_input("Update Image Preview Frequency",
-																			 value=st.session_state[
-																				 'defaults'].img2img.update_preview_frequency,
+																			 value=st.session_state['defaults'].img2img.update_preview_frequency,
 																			 help="Frequency in steps at which the the preview image is updated. By default the frequency \
 													  is set to 1 step.")
 
@@ -229,7 +228,7 @@ def layoutFunc():
 				if st.session_state["img2img"]["mask_mode"] != 2:
 					final_img = new_img.copy()
 					alpha_layer = mask.convert('L')
-					strength = st.session_state["denoising_strength"]
+					strength = st.session_state["img2img"]["denoising_strength"]
 					if st.session_state["img2img"]["mask_mode"] == 0:
 						alpha_layer = ImageOps.invert(alpha_layer)
 						alpha_layer = alpha_layer.point(lambda a: a * strength)
@@ -283,34 +282,40 @@ def layoutFunc():
 
 
 				try:
-					output_images, seed, info, stats = img2img()
+					#output_images, seed, info, stats = img2img()
 
-					"""
-					output_images, seed, info, stats = img2img(prompt=prompt, init_info=new_img,
-															   init_info_mask=new_mask, mask_mode=mask_mode,
-															   mask_restore=img2img_mask_restore,
-															   ddim_steps=st.session_state["img2img"]["sampling_steps"],
+
+					output_images, seed, info, stats = img2img(prompt=st.session_state["img2img"]["prompt"],
+															   init_info=st.session_state["img2img"]["new_img"],
+															   init_info_mask=new_mask,
+															   mask_mode=st.session_state["img2img"]["mask_mode"],
+															   mask_restore=st.session_state["img2img"]["img2img_mask_restore"],
+															   ddim_steps=st.session_state["img2img"]["steps"],
 															   sampler_name=st.session_state["img2img"]["sampler_name"],
-															   n_iter=batch_count,
-															   cfg_scale=cfg_scale, denoising_strength=st.session_state[
-							"denoising_strength"], variant_seed=variant_seed,
-															   seed=seed, noise_mode=noise_mode,
-															   find_noise_steps=find_noise_steps, width=width,
-															   height=height,
-															   fp=st.session_state["img2img"]['defaults'].general.fp,
-															   variant_amount=variant_amount,
-															   ddim_eta=0.0, write_info_files=write_info_files,
-															   RealESRGAN_model=st.session_state["img2img"]["RealESRGAN_model"],
-															   separate_prompts=separate_prompts,
-															   normalize_prompt_weights=normalize_prompt_weights,
-															   save_individual_images=save_individual_images,
-															   save_grid=save_grid,
-															   group_by_prompt=group_by_prompt, save_as_jpg=save_as_jpg,
+															   n_iter=st.session_state["img2img"]["batch_count"],
+															   cfg_scale=st.session_state["img2img"]["cfg_scale"],
+															   denoising_strength=st.session_state["img2img"]["denoising_strength"],
+															   variant_seed=st.session_state["img2img"]["variant_seed"],
+															   seed=st.session_state["img2img"]["seed"],
+															   noise_mode=st.session_state["img2img"]["noise_mode"],
+															   find_noise_steps=st.session_state["img2img"]["find_noise_steps"],
+															   width=st.session_state["img2img"]["width"],
+															   height=st.session_state["img2img"]["height"],
+															   fp=st.session_state['defaults'].general.fp,
+															   variant_amount=st.session_state["img2img"]["variant_amount"],
+															   ddim_eta=0.0,
+															   write_info_files=st.session_state["img2img"]["write_info_files"],
+															   RealESRGAN_model=st.session_state["RealESRGAN_model"],
+															   separate_prompts=st.session_state["img2img"]["separate_prompts"],
+															   normalize_prompt_weights=st.session_state["img2img"]["normalize_prompt_weights"],
+															   save_individual_images=st.session_state["img2img"]["save_individual_images"],
+															   save_grid=st.session_state["img2img"]["save_grid"],
+															   group_by_prompt=st.session_state["img2img"]["group_by_prompt"],
+															   save_as_jpg=st.session_state["img2img"]["save_as_jpg"],
 															   use_GFPGAN=st.session_state["img2img"]["use_GFPGAN"],
-															   use_RealESRGAN=st.session_state["img2img"][
-																   "use_RealESRGAN"] if not loopback else False,
-															   loopback=loopback
-															   )"""
+															   use_RealESRGAN=st.session_state["img2img"]["use_RealESRGAN"] if not st.session_state["img2img"]["loopback"] else False,
+															   loopback=st.session_state["img2img"]["loopback"]
+															   )
 
 					# show a message when the generation is complete.
 					message.success('Render Complete: ' + info + '; Stats: ' + stats, icon="✅")
