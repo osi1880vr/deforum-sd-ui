@@ -260,8 +260,7 @@ vid2vid:
     RealESRGAN_model: "RealESRGAN_x4plus"
     variant_amount: 0.0
     variant_seed: ""
-    beta_start: 0.00085
-    beta_end: 0.012
+
     beta_scheduler_type: "linear"
     max_frames: 3
     # @markdown ####**Animation:**
@@ -339,8 +338,8 @@ vid2vid:
 
     # @markdown **Init Settings**
     use_init: False  # @param {type:"boolean"}
-    strength: 0.0  # @param {type:"number"}
-    strength_0_no_init: True  # Set the strength to 0 automatically when no init image is used
+    strength: 0.4  # @param {type:"number"}
+    strength_0_no_init: False  # Set the strength to 0 automatically when no init image is used
     init_image: "./scripts/deforum/init_files/init.jpg"  # @param {type:"string"}
     # Whiter areas of the mask are areas that change more
     use_mask: False  # @param {type:"boolean"}

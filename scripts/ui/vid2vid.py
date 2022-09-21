@@ -244,7 +244,7 @@ def layoutFunc():
             st.session_state["grid_rows"] = st.number_input('Hight', value=st.session_state['defaults'].vid2vid.grid_rows,step=1, key='grid_rows-vid2vid')
             st.session_state["use_init"] = st.checkbox('Use Init', value=False, key='use_init-vid2vid')
             st.session_state["strength"] = st.number_input('Strength', value=st.session_state['defaults'].vid2vid.strength,step=1e-1,format="%.1f", key='strength-vid2vid')
-            st.session_state["strength_0_no_init"] = st.checkbox('Strength 0', value=False, help="Set the strength to 0 automatically when no init image is used", key='strength_0_no_init-vid2vid')
+            st.session_state["strength_0_no_init"] = False
             st.session_state["init_image"] = st.text_input("Init Image:", value=st.session_state['defaults'].vid2vid.init_image, help="The image to be used as init", key='init_image-vid2vid')
             st.session_state["use_mask"] = st.checkbox('Use Mask', value=False, key='use_mask-vid2vid')
             st.session_state["use_alpha_as_mask"] = st.checkbox('Use Alpha as Mask', value=False, key='use_alpha_as_mask-vid2vid')
