@@ -34,7 +34,7 @@ def img2img_func(self):
 
     init_img = self.get_interface(name='2ImageIn')
     init_img = init_img.convert('RGBA')
-    prompt2 = "test"
+    prompt2 = self.get_option(name='2Prompt')
     print('step2 ok')
 
     output_images, seed, info, stats = img2img(prompt=prompt2, init_info=init_img, init_info_mask=None, mask_mode="Mask",
@@ -135,7 +135,7 @@ def mandel_func(self):
     # image size
     imgx = 512
     imgy = 512
-    mimage = Image.new("RGB", (imgx, imgy))
+    mimage = PIL.Image.new("RGB", (imgx, imgy))
 
     for y in range(imgy):
         cy = y * (yb - ya) / (imgy - 1)  + ya
@@ -170,7 +170,7 @@ def julia_func(self):
     # image size
     imgx = 512
     imgy = 512
-    image = Image.new("RGB", (imgx, imgy))
+    image = PIL.Image.new("RGB", (imgx, imgy))
     # Julia set to draw
     c = complex(random.random() * 2.0 - 1.0, random.random() - 0.5)
 
