@@ -3,6 +3,7 @@ import streamlit as st
 # from ui.sd_utils import *
 
 from scripts.tools.deforum_runner import runner
+from scripts.tools.nsp.nsp_pantry import parser
 
 # streamlit imports
 from streamlit import StopException
@@ -94,7 +95,12 @@ def layoutFunc():
 													   value=st.session_state['defaults'].txt2img.batch_size, step=1)
 
 		with col2:
-			preview_tab, gallery_tab , settings_tab = st.tabs(["Preview", "Gallery", "Settings"])
+			preview_tab,prompt_tab, init_image_tab, mask_tab, settings_tab, advanced_tab = st.tabs(["Preview",
+																									"Propmpt help",
+																									"Init Image",
+																									"Mask",
+																									"Settings",
+																									"Advanced"])
 
 			with preview_tab:
 				# st.write("Image")
@@ -115,8 +121,46 @@ def layoutFunc():
 				st.session_state["preview_video"] = st.empty()
 
 				message = st.empty()
+			with prompt_tab:
+				nsp = parser()
+				nsp_keys = nsp.get_nsp_keys()
+
+				inputprompt = st.multiselect('Topics', nsp_keys, key='txt2img_prompts_ms')
+				st.text_input(label = "Prompt Sample", value=nsp.parse(inputprompt), key='txt2img_prompt_helper')
+
+				st.session_state["prompt_tmp"] = st.text_area("Park your samples here", value='', key='txt2img_prompt_temp')
+
+			with init_image_tab:
+				st.session_state["use_init"] = st.checkbox('Use Init', value=False)
+				st.session_state["strength"] = st.number_input('Strength',
+															   value=st.session_state['defaults'].txt2img.strength,
+															   step=1e-1, format="%.1f")
+				st.session_state["strength_0_no_init"] = st.checkbox('Strength 0', value=True,
+																	 help="Set the strength to 0 automatically when no init image is used")
+				st.session_state["init_image"] = st.text_input("Init Image:", value=st.session_state[
+					'defaults'].txt2img.init_image, help="The image to be used as init")
+			with mask_tab:
+				st.session_state["use_mask"] = st.checkbox('Use Mask', value=False)
+				st.session_state["invert_mask"] = st.checkbox('Invert Mask', value=False)
+				st.session_state["use_alpha_as_mask"] = st.checkbox('Use Alpha as Mask', value=False)
+				st.session_state["mask_file"] = st.text_input("Init Image:",
+															  value=st.session_state['defaults'].txt2img.mask_file,
+															  help="The Mask to be used")
+				st.session_state["mask_brightness_adjust"] = st.number_input('Brightness Adjust',
+																			 value=st.session_state[
+																				 'defaults'].txt2img.mask_brightness_adjust,
+																			 step=1e-1, format="%.1f",
+																			 help="Adjust the brightness of the mask")
+				st.session_state["mask_contrast_adjust"] = st.number_input('Contrast Adjust',
+																		   value=st.session_state[
+																			   'defaults'].txt2img.mask_contrast_adjust,
+																		   step=1e-1, format="%.1f",
+																		   help="Adjust the contrast of the mask")
 
 			with settings_tab:
+				st.session_state["save_settings"] = st.checkbox('Save Settings', value=True)
+				st.session_state["save_samples"] = st.checkbox('Save Samples', value=True)
+				st.session_state["display_samples"] = st.checkbox('Display Samples', value=True)
 				st.session_state["pathmode"] = st.selectbox('Path Structure', ("subfolders", "root"),
 															index=st.session_state[
 																'defaults'].general.default_path_mode_index,
@@ -125,6 +169,57 @@ def layoutFunc():
 				st.session_state["outdir"] = st.text_input("Output Folder",
 													   value=st.session_state['defaults'].general.outdir,
 													   help=" Output folder", key='outdir-txt2img')
+
+				st.session_state["filename_format"] = st.selectbox(
+					'Filename Format',
+					("{timestring}_{index}_{seed}.png", "{timestring}_{index}_{prompt}.png"))
+
+
+			with advanced_tab:
+				st.session_state["separate_prompts"] = st.checkbox("Create Prompt Matrix.", value=st.session_state[
+					'defaults'].txt2img.separate_prompts,
+																   help="Separate multiple prompts using the `|` character, and get all combinations of them.")
+				st.session_state["normalize_prompt_weights"] = st.checkbox("Normalize Prompt Weights.",
+																		   value=st.session_state[
+																			   'defaults'].txt2img.normalize_prompt_weights,
+																		   help="Ensure the sum of all weights add up to 1.0")
+				st.session_state["save_individual_images"] = st.checkbox("Save individual images.",
+																		 value=st.session_state[
+																			 'defaults'].txt2img.save_individual_images,
+																		 help="Save each image generated before any filter or enhancement is applied.")
+				st.session_state["group_by_prompt"] = st.checkbox("Group results by prompt", value=st.session_state[
+					'defaults'].txt2img.group_by_prompt,
+																  help="Saves all the images with the same prompt into the same folder. When using a prompt matrix each prompt combination will have its own folder.")
+				st.session_state["write_info_files"] = st.checkbox("Write Info file", value=st.session_state[
+					'defaults'].txt2img.write_info_files,
+																   help="Save a file next to the image with informartion about the generation.")
+				st.session_state["save_as_jpg"] = st.checkbox("Save samples as jpg", value=st.session_state[
+					'defaults'].txt2img.save_as_jpg, help="Saves the images as jpg instead of png.")
+
+				if GFPGAN_available:
+					st.session_state["use_GFPGAN"] = st.checkbox("Use GFPGAN", value=st.session_state[
+						'defaults'].txt2img.use_GFPGAN,
+																 help="Uses the GFPGAN model to improve faces after the generation. This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
+				else:
+					st.session_state["use_GFPGAN"] = False
+
+				if RealESRGAN_available:
+					st.session_state["use_RealESRGAN"] = st.checkbox("Use RealESRGAN", value=st.session_state[
+						'defaults'].txt2img.use_RealESRGAN,
+																	 help="Uses the RealESRGAN model to upscale the images after the generation. This greatly improve the quality and lets you have high resolution images but uses extra VRAM. Disable if you need the extra VRAM.")
+					st.session_state["RealESRGAN_model"] = st.selectbox("RealESRGAN model", ["RealESRGAN_x4plus",
+																							 "RealESRGAN_x4plus_anime_6B"],
+																		index=0)
+				else:
+					st.session_state["use_RealESRGAN"] = False
+					st.session_state["RealESRGAN_model"] = "RealESRGAN_x4plus"
+
+				st.session_state["variant_amount"] = st.slider("Variant Amount:", value=st.session_state[
+					'defaults'].txt2img.variant_amount, min_value=0.0, max_value=1.0, step=0.01)
+				st.session_state["variant_seed"] = st.text_input("Variant Seed:",
+																 value=st.session_state['defaults'].txt2img.seed,
+																 help="The seed to use when generating a variant, if left blank a random seed will be generated.")
+
 
 			with col3:
 				# If we have custom models available on the "models/custom"
@@ -165,106 +260,13 @@ def layoutFunc():
 					st.session_state["ddim_eta"] = st.number_input('DDIM ETA',
 																   value=st.session_state['defaults'].txt2img.ddim_eta,
 																   step=1e-1, format="%.1f")
-					st.session_state["save_samples"] = st.checkbox('Save Samples', value=True)
-					st.session_state["save_settings"] = st.checkbox('Save Settings', value=True)
-					st.session_state["display_samples"] = st.checkbox('Display Samples', value=True)
-					st.session_state["filename_format"] = st.selectbox(
-						'Filename Format',
-						("{timestring}_{index}_{seed}.png", "{timestring}_{index}_{prompt}.png"))
+
 					st.session_state["seed_behavior"] = st.selectbox(
 						'Seed Behavior',
 						("iter", "fixed", "random"))
 					st.session_state["make_grid"] = st.checkbox('Make Grid', value=False)
 					st.session_state["grid_rows"] = st.number_input('Hight', value=st.session_state[
 						'defaults'].txt2img.grid_rows, step=1)
-					st.session_state["use_init"] = st.checkbox('Use Init', value=False)
-					st.session_state["strength"] = st.number_input('Strength',
-																   value=st.session_state['defaults'].txt2img.strength,
-																   step=1e-1, format="%.1f")
-					st.session_state["strength_0_no_init"] = st.checkbox('Strength 0', value=True,
-																		 help="Set the strength to 0 automatically when no init image is used")
-					st.session_state["init_image"] = st.text_input("Init Image:", value=st.session_state[
-						'defaults'].txt2img.init_image, help="The image to be used as init")
-					st.session_state["use_mask"] = st.checkbox('Use Mask', value=False)
-					st.session_state["use_alpha_as_mask"] = st.checkbox('Use Alpha as Mask', value=False)
-					st.session_state["mask_file"] = st.text_input("Init Image:",
-																  value=st.session_state['defaults'].txt2img.mask_file,
-																  help="The Mask to be used")
-					st.session_state["invert_mask"] = st.checkbox('Invert Mask', value=False)
-					st.session_state["mask_brightness_adjust"] = st.number_input('Brightness Adjust',
-																				 value=st.session_state[
-																					 'defaults'].txt2img.mask_brightness_adjust,
-																				 step=1e-1, format="%.1f",
-																				 help="Adjust the brightness of the mask")
-					st.session_state["mask_contrast_adjust"] = st.number_input('Contrast Adjust',
-																			   value=st.session_state[
-																				   'defaults'].txt2img.mask_contrast_adjust,
-																			   step=1e-1, format="%.1f",
-																			   help="Adjust the contrast of the mask")
-
-				# W, H: map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
-				# dynamic_threshold = None
-				# static_threshold = None
-				# n_batch = 1  # @param
-				# batch_name = 'time'  # @param {type:"string"}
-				# outdir = ''
-
-				# n_samples = 1  # doesnt do anything
-				# precision = 'autocast'
-				# C = 4
-				# f = 8
-				# prompt = ""
-				# timestring = ""
-				# init_latent = None
-				# init_sample = None
-				# init_c = None
-
-				with st.expander("Advanced"):
-					st.session_state["separate_prompts"] = st.checkbox("Create Prompt Matrix.", value=st.session_state[
-						'defaults'].txt2img.separate_prompts,
-																	   help="Separate multiple prompts using the `|` character, and get all combinations of them.")
-					st.session_state["normalize_prompt_weights"] = st.checkbox("Normalize Prompt Weights.",
-																			   value=st.session_state[
-																				   'defaults'].txt2img.normalize_prompt_weights,
-																			   help="Ensure the sum of all weights add up to 1.0")
-					st.session_state["save_individual_images"] = st.checkbox("Save individual images.",
-																			 value=st.session_state[
-																				 'defaults'].txt2img.save_individual_images,
-																			 help="Save each image generated before any filter or enhancement is applied.")
-					st.session_state["group_by_prompt"] = st.checkbox("Group results by prompt", value=st.session_state[
-						'defaults'].txt2img.group_by_prompt,
-																	  help="Saves all the images with the same prompt into the same folder. When using a prompt matrix each prompt combination will have its own folder.")
-					st.session_state["write_info_files"] = st.checkbox("Write Info file", value=st.session_state[
-						'defaults'].txt2img.write_info_files,
-																	   help="Save a file next to the image with informartion about the generation.")
-					st.session_state["save_as_jpg"] = st.checkbox("Save samples as jpg", value=st.session_state[
-						'defaults'].txt2img.save_as_jpg, help="Saves the images as jpg instead of png.")
-
-					if GFPGAN_available:
-						st.session_state["use_GFPGAN"] = st.checkbox("Use GFPGAN", value=st.session_state[
-							'defaults'].txt2img.use_GFPGAN,
-																	 help="Uses the GFPGAN model to improve faces after the generation. This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
-					else:
-						st.session_state["use_GFPGAN"] = False
-
-					if RealESRGAN_available:
-						st.session_state["use_RealESRGAN"] = st.checkbox("Use RealESRGAN", value=st.session_state[
-							'defaults'].txt2img.use_RealESRGAN,
-																		 help="Uses the RealESRGAN model to upscale the images after the generation. This greatly improve the quality and lets you have high resolution images but uses extra VRAM. Disable if you need the extra VRAM.")
-						st.session_state["RealESRGAN_model"] = st.selectbox("RealESRGAN model", ["RealESRGAN_x4plus",
-																								 "RealESRGAN_x4plus_anime_6B"],
-																			index=0)
-					else:
-						st.session_state["use_RealESRGAN"] = False
-						st.session_state["RealESRGAN_model"] = "RealESRGAN_x4plus"
-
-					st.session_state["variant_amount"] = st.slider("Variant Amount:", value=st.session_state[
-						'defaults'].txt2img.variant_amount, min_value=0.0, max_value=1.0, step=0.01)
-					st.session_state["variant_seed"] = st.text_input("Variant Seed:",
-																	 value=st.session_state['defaults'].txt2img.seed,
-																	 help="The seed to use when generating a variant, if left blank a random seed will be generated.")
-		#        if generate_button:
-		#            def_runner.run_batch()
 
 		if generate_button:
 			def_runner.run_txt2img()

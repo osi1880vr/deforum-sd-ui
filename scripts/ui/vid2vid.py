@@ -3,9 +3,8 @@ import streamlit as st
 # from ui.sd_utils import *
 
 from scripts.tools.deforum_runner import runner
-import tools.nsp.nsp_pantry
-from tools.nsp.nsp_pantry import nsp_parse
-from tools.nsp.nsp_pantry import get_nsp_keys
+from scripts.tools.nsp.nsp_pantry import parser
+
 
 # streamlit imports
 from streamlit import StopException
@@ -79,13 +78,6 @@ def layoutFunc():
 	# creating the page layout using columns
 	col1, col2, col3 = st.columns([1, 2, 1], gap="small")
 	with col1:
-		with st.expander("Noodle Soup", expanded=False):
-			nsp_keys = get_nsp_keys()
-			inputprompt = st.text_input('Raw Noodle', placeholder='_adj-beauty_', key='vid2vid')
-			outputprompt = st.empty()
-			noodle_btn = st.button(label='Cook!', key='Cook!-vid2vid')
-			if noodle_btn:
-				outputprompt = st.write(nsp_parse(inputprompt))
 
 		with st.expander("Basic Settings", expanded=True):
 			generate_button = st.button("Generate", key='Generate-vid2vid')
@@ -139,7 +131,7 @@ def layoutFunc():
 
 		# with st.expander(""):
 	with col2:
-		preview_tab, sequence_tab, flip_sequence_tab = st.tabs(["Preview", "3D Animation Sequence", "2D Flip Sequence"])
+		preview_tab, prompt_tab, sequence_tab, flip_sequence_tab = st.tabs(["Preview","Propmpt help", "3D Animation Sequence", "2D Flip Sequence"])
 
 		with preview_tab:
 			# st.write("Image")
@@ -163,6 +155,17 @@ def layoutFunc():
 				st.session_state["preview_video"] = st.video(st.session_state["mp4_path"])
 
 			message = st.empty()
+
+		with prompt_tab:
+			nsp = parser()
+			nsp_keys = nsp.get_nsp_keys()
+
+			inputprompt = st.multiselect('Topics', nsp_keys, key='vid2vid_prompts_ms')
+			st.text_input(label = "Prompt Sample", value=nsp.parse(inputprompt), key='vid2vid_prompt_helper')
+
+			st.session_state["prompt_tmp"] = st.text_area("Park your samples here", value='', key='vid2vid_prompt_temp')
+
+
 		with sequence_tab:
 			# col4, col5 = st.columns([1,1], gap="medium")
 			st.session_state["angle"] = st.text_input("Angle:", value=st.session_state['defaults'].vid2vid.angle,

@@ -55,9 +55,8 @@ import piexif
 import piexif.helper
 from tqdm import trange
 
-import tools.nsp.nsp_pantry
-from tools.nsp.nsp_pantry import nsp_parse
-from tools.nsp.nsp_pantry import get_nsp_keys
+
+#from scripts.tools.nsp.nsp_pantry import parser
 
 from tools.modelloader import load_models
 
