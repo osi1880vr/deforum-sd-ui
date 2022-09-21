@@ -4,8 +4,9 @@ import streamlit as st
 import random
 
 from scripts.tools.sd_utils import img2img
-
+from scripts.tools.sd_utils import *
 import PIL
+from PIL import Image
 def_runner = runner()
 
 #SD Custom Blocks:
@@ -23,7 +24,6 @@ def upscale_func(self):
 upscale_block.add_compute(upscale_func)
 
 def img2img_runner():
-    print("trying...")
     print(st.session_state["img2img"]["new_img"])
     print(st.session_state["img2img"]["steps"])
     print(st.session_state["img2img"]["seed"])
@@ -192,6 +192,9 @@ def img_prev_func(self):
     if self.get_interface(name='iimage') != None:
         iimg = self.get_interface(name='iimage')
         st.session_state["node_preview_img_object"] = iimg
+        if "currentImages" not in st.session_state:
+            st.session_state["currentImages"] = []
+        st.session_state["currentImages"].append(iimg)
     #return st.session_state["node_preview_image"]
 img_preview.add_compute(img_prev_func)
 
@@ -308,6 +311,40 @@ def invert_func(self):
 invert_block.add_compute(invert_func)
 
 
+#Image Filter
+gaussian_block = Block(name='Gaussian Blur')
+gaussian_block.add_input(name='Input')
+gaussian_block.add_option(name='Radius', type='integer', value=2)
+
+gaussian_block.add_output(name='Output')
+
+def gaussian_func(self):
+    img = self.get_interface(name='Input')
+    radius = self.get_option(name='Radius')
+    #mode = self.get_option(name='Mode')
+    #print(mode)
+    img = img.filter(PIL.ImageFilter.GaussianBlur(radius=radius))
+    self.set_interface(name='Output', value = img)
+gaussian_block.add_compute(gaussian_func)
+
+
+#Convert Block
+convert_block = Block(name='Greyscale')
+convert_block.add_input(name='Input')
+#convert_block.add_option(name='Mode', type='select', items=["L", "P", "RGB", "RGBA", "CMYK"], value='P')
+
+convert_block.add_output(name='Output')
+
+def convert_func(self):
+    img = self.get_interface(name='Input')
+    #mode = self.get_option(name='Mode')
+    #print(mode)
+    img = PIL.ImageOps.grayscale(img)
+    self.set_interface(name='Output', value = img)
+convert_block.add_compute(convert_func)
+
+
+
 #Debug Block
 debug_block = Block(name='Debug')
 debug_block.add_input(name='Input')
@@ -315,6 +352,7 @@ debug_block.add_output(name='Output')
 
 def debug_func(self):
     data = self.get_interface(name='Input')
+    self.set_interface(name='Output', value=data)
     print(f'Input Type: {type(data)}')
     print(f'Input Content: {data}')
 debug_block.add_compute(debug_func)
@@ -553,7 +591,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block], 'image functions':[img_preview, blend_block, invert_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, convert_block, blend_block, invert_block, gaussian_block], 'test functions':[debug_block]}
 
 
 
