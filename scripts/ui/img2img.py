@@ -190,61 +190,61 @@ def layoutFunc():
 													  is set to 1 step.")
 
 		with col2_img2img_layout:
-			editor_tab = st.tabs(["Editor"])
+			editor_tab, result_tab  = st.tabs(["Editor", "Result"])
 
-			editor_image = st.empty()
-			st.session_state["img2img"]["editor_image"] = editor_image
+			with editor_tab:
 
-			st.form_submit_button("Refresh")
+				st.session_state["img2img"]["editor_image"] = st.empty()
 
-			masked_image_holder = st.empty()
-			image_holder = st.empty()
+				st.form_submit_button("Refresh")
 
-			uploaded_images = st.file_uploader(
-				"Upload Image", accept_multiple_files=False, type=["png", "jpg", "jpeg"],
-				help="Upload an image which will be used for the image to image generation.",
-			)
-			if uploaded_images:
-				image = Image.open(uploaded_images).convert('RGBA')
-				new_img = image.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
-				image_holder.image(new_img)
+				masked_image_holder = st.empty()
+				image_holder = st.empty()
 
-			mask_holder = st.empty()
+				uploaded_images = st.file_uploader(
+					"Upload Image", accept_multiple_files=False, type=["png", "jpg", "jpeg"],
+					help="Upload an image which will be used for the image to image generation.",
+				)
+				if uploaded_images:
+					image = Image.open(uploaded_images).convert('RGBA')
+					new_img = image.resize((int(st.session_state["img2img"]["width"] / 2), int(st.session_state["img2img"]["height"] / 2)))
+					image_holder.image(new_img)
 
-			st.session_state["img2img"]["uploaded_masks"] = st.file_uploader(
-				"Upload Mask", accept_multiple_files=False, type=["png", "jpg", "jpeg"],
-				help="Upload an mask image which will be used for masking the image to image generation.",
-			)
-			if st.session_state["img2img"]["uploaded_masks"]:
-				mask = Image.open(st.session_state["img2img"]["uploaded_masks"])
-				if mask.mode == "RGBA":
-					mask = mask.convert('RGBA')
-					background = Image.new('RGBA', mask.size, (0, 0, 0))
-					mask = Image.alpha_composite(background, mask)
-				mask = mask.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
-				mask_holder.image(mask)
+				mask_holder = st.empty()
 
-			if uploaded_images and st.session_state["img2img"]["uploaded_masks"]:
-				if st.session_state["img2img"]["mask_mode"] != 2:
-					final_img = new_img.copy()
-					alpha_layer = mask.convert('L')
-					strength = st.session_state["img2img"]["denoising_strength"]
-					if st.session_state["img2img"]["mask_mode"] == 0:
-						alpha_layer = ImageOps.invert(alpha_layer)
-						alpha_layer = alpha_layer.point(lambda a: a * strength)
-						alpha_layer = ImageOps.invert(alpha_layer)
-					elif st.session_state["img2img"]["mask_mode"] == 1:
-						alpha_layer = alpha_layer.point(lambda a: a * strength)
-						alpha_layer = ImageOps.invert(alpha_layer)
+				st.session_state["img2img"]["uploaded_masks"] = st.file_uploader(
+					"Upload Mask", accept_multiple_files=False, type=["png", "jpg", "jpeg"],
+					help="Upload an mask image which will be used for masking the image to image generation.",
+				)
+				if st.session_state["img2img"]["uploaded_masks"]:
+					mask = Image.open(st.session_state["img2img"]["uploaded_masks"])
+					if mask.mode == "RGBA":
+						mask = mask.convert('RGBA')
+						background = Image.new('RGBA', mask.size, (0, 0, 0))
+						mask = Image.alpha_composite(background, mask)
+					mask = mask.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
+					mask_holder.image(mask)
 
-					final_img.putalpha(alpha_layer)
+				if uploaded_images and st.session_state["img2img"]["uploaded_masks"]:
+					if st.session_state["img2img"]["mask_mode"] != 2:
+						final_img = new_img.copy()
+						alpha_layer = mask.convert('L')
+						strength = st.session_state["img2img"]["denoising_strength"]
+						if st.session_state["img2img"]["mask_mode"] == 0:
+							alpha_layer = ImageOps.invert(alpha_layer)
+							alpha_layer = alpha_layer.point(lambda a: a * strength)
+							alpha_layer = ImageOps.invert(alpha_layer)
+						elif st.session_state["img2img"]["mask_mode"] == 1:
+							alpha_layer = alpha_layer.point(lambda a: a * strength)
+							alpha_layer = ImageOps.invert(alpha_layer)
 
-					with masked_image_holder.container():
-						st.text("Masked Image Preview")
-						st.image(final_img)
+						final_img.putalpha(alpha_layer)
 
-			with col3_img2img_layout:
-				result_tab = st.tabs(["Result"])
+						with masked_image_holder.container():
+							st.text("Masked Image Preview")
+							st.image(final_img)
+
+			with result_tab:
 
 				# create an empty container for the image, progress bar, etc so we can update it later and use session_state to hold them globally.
 				preview_image = st.empty()
@@ -256,6 +256,9 @@ def layoutFunc():
 				st.session_state["img2img"]["progress_bar"] = st.empty()
 
 				message = st.empty()
+			with col3_img2img_layout:
+				pass
+
 
 		# if uploaded_images:
 		# image = Image.open(uploaded_images).convert('RGB')
@@ -279,12 +282,7 @@ def layoutFunc():
 					mask = Image.open(st.session_state["img2img"]["uploaded_masks"]).convert('RGBA')
 					new_mask = mask.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
 
-
-
 				try:
-					#output_images, seed, info, stats = img2img()
-
-
 					output_images, seed, info, stats = img2img(prompt=st.session_state["img2img"]["prompt"],
 															   init_info=st.session_state["img2img"]["new_img"],
 															   init_info_mask=new_mask,
