@@ -1,0 +1,1 @@
+python -m streamlit run scripts\webui_streamlit.py --theme.base dark

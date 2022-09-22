@@ -62,7 +62,7 @@ def load_css(isLocal, nameOrURL):
 
 
 def layout():
-	st.set_page_config(page_title="Stable Diffusion Playground", layout="wide", initial_sidebar_state="collapsed")
+	st.set_page_config(page_title="AI Pixel Dreamer", layout="wide", initial_sidebar_state="collapsed")
 
 	with st.empty():
 		# load css as an external file, function has an option to local or remote url. Potential use when running from cloud infra that might not have access to local path.
