@@ -2,25 +2,51 @@ from barfi import Block
 from scripts.tools.deforum_runner import runner
 import streamlit as st
 import random
-
+import numpy as np
+import cv2
+from scripts.tools.modelloader import load_models
 from scripts.tools.sd_utils import img2img
 from scripts.tools.sd_utils import *
+from gfpgan import GFPGANer
+
 import PIL
-from PIL import Image
+import torch
 def_runner = runner()
 
+
+
 #SD Custom Blocks:
-#Upscaler Block - test
-upscale_block = Block(name='Upscale')
-upscale_block.add_option(name='Upscale Strength', type='slider', min=1, max=8, value=1)
-upscale_block.add_option(name='Input Image', type='input')
-upscale_block.add_output(name='Path')
-upscale_block.add_output(name='Function')
+#GFPGAN Block
+upscale_block = Block(name='GFPGAN')
+upscale_block.add_input(name='Input_Image')
+upscale_block.add_option(name='Upscale', type='integer', value=1)
+upscale_block.add_output(name='Restored_Img')
 def upscale_func(self):
-    data = 'doUpscale'
-    self.set_interface(name='Function', value=data)
-    data = self.get_option(name='Input Image')
-    self.set_interface(name='Path', value=data)
+    upscale = int(self.get_option(name='Upscale'))
+    data = self.get_interface(name='Input_Image')
+    arch = 'clean'
+    channel_multiplier = 2
+    model_name = 'GFPGANv1.3'
+    model_path = os.path.join(st.session_state['defaults'].general.GFPGAN_dir,
+                              model_name + '.pth')
+    restorer = GFPGANer(
+        model_path=model_path,
+        upscale=upscale,
+        arch=arch,
+        channel_multiplier=channel_multiplier,
+        bg_upsampler=None
+    )
+    #torch_gc()
+
+    if isinstance(data, list):
+        data = data[0]
+    image=np.array(data)
+    input_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    cropped_faces, restored_faces, restored_img = restorer.enhance(
+        input_img, has_aligned=False, only_center_face=False, paste_back=True)
+    image = cv2.cvtColor(restored_img, cv2.COLOR_BGR2RGB)
+    gfpgan_image = PIL.Image.fromarray(image)
+    self.set_interface(name='Restored_Img', value=gfpgan_image)
 upscale_block.add_compute(upscale_func)
 
 def img2img_runner():
@@ -55,53 +81,40 @@ img2img_block.add_option(name='Steps_Info', type='display', value='Steps:')
 img2img_block.add_option(name='steps', type='integer', value=20)
 img2img_block.add_option(name='Seed info', type='display', value='Seed:')
 img2img_block.add_option(name='seed', type='integer', value=-1)
-
-
+img2img_block.add_output(name='Var AmountOut')
+img2img_block.add_output(name='CFG ScaleOut')
+img2img_block.add_output(name='StepsOut')
+img2img_block.add_output(name='SamplerOut')
+img2img_block.add_output(name='SeedOut')
+img2img_block.add_output(name='PromptOut')
 img2img_block.add_output(name='2Image')
 def img2img_func(self):
-    print('step1 ok')
-
     if self.get_interface(name='Var Amount') != None:
         var_amount = self.get_interface(name='Var Amount')
     else:
         var_amount = self.get_option(name='Var Amount')
-    print('step2 ok')
-
     if self.get_interface(name='CFG Scale') != None:
         cfg_scale = self.get_interface(name='CFG Scale')
     else:
         cfg_scale = self.get_option(name='CFG Scale')
-    print('step3 ok')
-
     if self.get_interface(name='Steps') != None:
         steps = self.get_interface(name='Steps')
     else:
         steps = self.get_option(name='steps')
-    print('step4 ok')
-
     if self.get_interface(name='Sampler') != None:
         samplern = self.get_interface(name='Sampler')
     else:
         samplern = self.get_option(name='Sampler')
-    print('step5 ok')
-
     if self.get_interface(name='Prompt') != None:
         prompt2 = self.get_interface(name='Prompt')
     else:
         prompt2 = self.get_option(name='2Prompt')
-    print('step6 ok')
-
     if self.get_interface(name='Seed') != None:
         seed = self.get_interface(name='Seed')
     else:
         seed = self.get_option(name='seed')
-
-    print('step7 ok')
-
     init_img = self.get_interface(name='2ImageIn')
     init_img = init_img.convert('RGBA')
-    print('step8 ok')
-
     output_images, seed, info, stats = img2img(prompt = prompt2,
                                                init_info = init_img,
                                                init_info_mask = None,
@@ -127,9 +140,13 @@ def img2img_func(self):
                                                save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = False,
                                                random_seed_loopback = False
                                                )
-    print(type(output_images))
-
     self.set_interface(name='2Image', value=output_images)
+    self.get_interface(name='Var AmountOut', value=var_amount)
+    self.get_interface(name='CFG ScaleOut', value=cfg_scale)
+    self.get_interface(name='StepsOut', value=steps)
+    self.get_interface(name='SamplerOut', value=samplern)
+    self.get_interface(name='SeedOut', value=seed)
+    self.get_interface(name='PromptOut', value=prompt2)
 img2img_block.add_compute(img2img_func)
 
 
@@ -137,11 +154,9 @@ img2img_block.add_compute(img2img_func)
 #Dream Block - test
 #If an input is not connected, its value is none.
 dream_block = Block(name='Dream')
-
 dream_block.add_input(name='PromptIn')
 dream_block.add_input(name='SeedIn')
 dream_block.add_input(name='CFG ScaleIn')
-
 dream_block.add_option(name='seedInfo', type='display', value='SEED:')
 dream_block.add_option(name='Seed', type='input', value='')
 dream_block.add_option(name='promptInfo', type='display', value='PROMPT:')
@@ -176,12 +191,32 @@ def dream_func(self):
 dream_block.add_compute(dream_func)
 
 #Number Input
-num_block = Block(name='Number')
+num_block = Block(name='Int')
 num_block.add_output(name='number')
-num_block.add_option(name='number', type='number')
+num_block.add_option(name='number', type='integer')
 def num_func(self):
     self.set_interface(name='number', value=self.get_option(name='number'))
 num_block.add_compute(num_func)
+
+
+
+math_block = Block(name="Math")
+math_block.add_input(name='X')
+math_block.add_input(name='Y')
+math_block.add_option(name='Option', type='select', items=['+', '-', '*', '/'], value='+')
+math_block.add_output(name='Result')
+def math_func(self):
+    op = self.get_option(name='Option')
+    if op == '+':
+        a = x + y
+    elif op == '-':
+        a = x - y
+    elif op == '*':
+        a = x * y
+    elif op == '/':
+        a = x / y
+    self.set_interface(name='Result', value=a)
+math_block.add_compute(math_func)
 
 
 #Image Preview Block
@@ -191,7 +226,7 @@ def img_prev_func(self):
     st.session_state["node_preview_img_object"] = None
     if self.get_interface(name='iimage') != None:
         iimg = self.get_interface(name='iimage')
-        st.session_state["node_preview_img_object"] = iimg
+        #st.session_state["node_preview_img_object"] = iimg
         if "currentImages" not in st.session_state:
             st.session_state["currentImages"] = []
         st.session_state["currentImages"].append(iimg)
@@ -624,10 +659,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'test functions':[debug_block]}
-
-
-
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'test functions':[debug_block]}
 
 
 
