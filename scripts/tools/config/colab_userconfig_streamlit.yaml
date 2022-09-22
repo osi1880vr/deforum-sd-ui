@@ -11,3 +11,4 @@ general:
   default_model_path: "/gdrive/MyDrive/sd-v1-4.ckpt"
   default_path_mode: "root"
   default_path_mode_index: 1
+  GFPGAN_dir: /content/models

@@ -10,7 +10,7 @@ from ldm.util import instantiate_from_config
 
 def load_GFPGAN():
 	model_name = 'GFPGANv1.3'
-	model_path = os.path.join(st.session_state['defaults'].general.GFPGAN_dir, 'experiments/pretrained_models',
+	model_path = os.path.join(st.session_state['defaults'].general.GFPGAN_dir,
 							  model_name + '.pth')
 	if not os.path.isfile(model_path):
 		raise Exception("GFPGAN model not found at path " + model_path)
@@ -26,7 +26,7 @@ def load_GFPGAN():
 							device=torch.device(f'cuda:{defaults.general.gfpgan_gpu}'))
 	else:
 		instance = GFPGANer(model_path=model_path, upscale=1, arch='clean', channel_multiplier=2, bg_upsampler=None,
-							device=torch.device(f'cuda:{defaults.general.gpu}'))
+							device=torch.device(f'cuda:0'))
 	return instance
 
 
