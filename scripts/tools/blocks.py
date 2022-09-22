@@ -4,8 +4,9 @@ import streamlit as st
 import random
 
 from scripts.tools.sd_utils import img2img
-
+from scripts.tools.sd_utils import *
 import PIL
+from PIL import Image
 def_runner = runner()
 
 #SD Custom Blocks:
@@ -23,7 +24,6 @@ def upscale_func(self):
 upscale_block.add_compute(upscale_func)
 
 def img2img_runner():
-    print("trying...")
     print(st.session_state["img2img"]["new_img"])
     print(st.session_state["img2img"]["steps"])
     print(st.session_state["img2img"]["seed"])
@@ -38,48 +38,97 @@ def img2img_runner():
 #img2img Block
 img2img_block = Block(name='img2img Node')
 img2img_block.add_input(name='2ImageIn')
+img2img_block.add_input(name='Var Amount')
+img2img_block.add_input(name='CFG Scale')
+img2img_block.add_input(name='Steps')
+img2img_block.add_input(name='Sampler')
+img2img_block.add_input(name='Seed')
+img2img_block.add_input(name='Prompt')
 img2img_block.add_option(name='seedInfo', type='display', value='Prompt:')
 img2img_block.add_option(name='2Prompt', type='input', value='')
+img2img_block.add_option(name='Sampler', type='select', items=["k_lms", "k_euler", "k_euler_a", "k_dpm_2", "k_dpm_2_a", "k_heun", "PLMS", "DDIM"], value="k_dpm_2_a")
 img2img_block.add_option(name='Variant', type='display', value='Variant Amount:')
 img2img_block.add_option(name='Var Amount', type='number', value = 0.5)
 img2img_block.add_option(name='CFG_Info', type='display', value='CFG Scale:')
 img2img_block.add_option(name='CFG Scale', type='number', value = 7.5)
 img2img_block.add_option(name='Steps_Info', type='display', value='Steps:')
-img2img_block.add_option(name='steps', type='integer')
+img2img_block.add_option(name='steps', type='integer', value=20)
+img2img_block.add_option(name='Seed info', type='display', value='Seed:')
+img2img_block.add_option(name='seed', type='integer', value=-1)
+
+
 img2img_block.add_output(name='2Image')
 def img2img_func(self):
     print('step1 ok')
 
-    init_img = self.get_interface(name='2ImageIn')
-    init_img = init_img.convert('RGBA')
-    prompt2 = self.get_option(name='2Prompt')
+    if self.get_interface(name='Var Amount') != None:
+        var_amount = self.get_interface(name='Var Amount')
+    else:
+        var_amount = self.get_option(name='Var Amount')
     print('step2 ok')
 
-    output_images, seed, info, stats = img2img(prompt = '',
+    if self.get_interface(name='CFG Scale') != None:
+        cfg_scale = self.get_interface(name='CFG Scale')
+    else:
+        cfg_scale = self.get_option(name='CFG Scale')
+    print('step3 ok')
+
+    if self.get_interface(name='Steps') != None:
+        steps = self.get_interface(name='Steps')
+    else:
+        steps = self.get_option(name='steps')
+    print('step4 ok')
+
+    if self.get_interface(name='Sampler') != None:
+        samplern = self.get_interface(name='Sampler')
+    else:
+        samplern = self.get_option(name='Sampler')
+    print('step5 ok')
+
+    if self.get_interface(name='Prompt') != None:
+        prompt2 = self.get_interface(name='Prompt')
+    else:
+        prompt2 = self.get_option(name='2Prompt')
+    print('step6 ok')
+
+    if self.get_interface(name='Seed') != None:
+        seed = self.get_interface(name='Seed')
+    else:
+        seed = self.get_option(name='seed')
+
+    print('step7 ok')
+
+    init_img = self.get_interface(name='2ImageIn')
+    init_img = init_img.convert('RGBA')
+    print('step8 ok')
+
+    output_images, seed, info, stats = img2img(prompt = prompt2,
                                                init_info = init_img,
                                                init_info_mask = None,
                                                mask_mode = 0,
                                                mask_blur_strength = 3,
                                                mask_restore = False,
-                                               ddim_steps = 50,
-                                               sampler_name = 'DDIM',
+                                               ddim_steps = steps,
+                                               sampler_name = samplern,
                                                n_iter = 1,
-                                               cfg_scale = 7.5,
+                                               cfg_scale = cfg_scale,
                                                denoising_strength = 0.8,
-                                               seed = -1,
+                                               seed = seed,
                                                noise_mode = 0,
-                                               find_noise_steps = "",
+                                               find_noise_steps = 100,
                                                height = 512,
                                                width = 512,
                                                resize_mode = 0,
-                                               fp=None,
-                                               variant_amount = None, variant_seed = None, ddim_eta = 0.0,
-                                               write_info_files = True, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
+                                               fp="./outputs",
+                                               variant_amount = var_amount, variant_seed = seed - 1, ddim_eta = 0.0,
+                                               write_info_files = False, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
                                                separate_prompts = False, normalize_prompt_weights = False,
-                                               save_individual_images = True, save_grid = True, group_by_prompt = True,
-                                               save_as_jpg = True, use_GFPGAN = True, use_RealESRGAN = True, loopback = False,
+                                               save_individual_images = True, save_grid = False, group_by_prompt = True,
+                                               save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = False,
                                                random_seed_loopback = False
                                                )
+    print(type(output_images))
+
     self.set_interface(name='2Image', value=output_images)
 img2img_block.add_compute(img2img_func)
 
@@ -143,6 +192,9 @@ def img_prev_func(self):
     if self.get_interface(name='iimage') != None:
         iimg = self.get_interface(name='iimage')
         st.session_state["node_preview_img_object"] = iimg
+        if "currentImages" not in st.session_state:
+            st.session_state["currentImages"] = []
+        st.session_state["currentImages"].append(iimg)
     #return st.session_state["node_preview_image"]
 img_preview.add_compute(img_prev_func)
 
@@ -259,6 +311,73 @@ def invert_func(self):
 invert_block.add_compute(invert_func)
 
 
+#Image Filter
+gaussian_block = Block(name='Gaussian Blur')
+gaussian_block.add_input(name='Input')
+gaussian_block.add_option(name='Radius', type='integer', value=2)
+
+gaussian_block.add_output(name='Output')
+
+def gaussian_func(self):
+    img = self.get_interface(name='Input')
+    radius = self.get_option(name='Radius')
+    #mode = self.get_option(name='Mode')
+    #print(mode)
+    img = img.filter(PIL.ImageFilter.GaussianBlur(radius=radius))
+    self.set_interface(name='Output', value = img)
+gaussian_block.add_compute(gaussian_func)
+
+#Convert Block
+imgfilter_block = Block(name='Basic Filters')
+imgfilter_block.add_input(name='Input')
+imgfilter_block.add_option(name='Mode', type='select', items=["BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE"], value="BLUR")
+
+imgfilter_block.add_output(name='Output')
+
+def imgfilter_func(self):
+    img = self.get_interface(name='Input')
+    if self.get_option(name='Mode') == 'BLUR':
+        img = img.filter(PIL.ImageFilter.BLUR)
+    elif self.get_option(name='Mode') == 'CONTOUR':
+        img = img.filter(PIL.ImageFilter.CONTOUR)
+    elif self.get_option(name='Mode') == 'DETAIL':
+        img = img.filter(PIL.ImageFilter.DETAIL)
+    elif self.get_option(name='Mode') == 'EDGE_ENHANCE':
+        img = img.filter(PIL.ImageFilter.EDGE_ENHANCE)
+    elif self.get_option(name='Mode') == 'EDGE_ENHANCE_MORE':
+        img = img.filter(PIL.ImageFilter.EDGE_ENHANCE_MORE)
+    elif self.get_option(name='Mode') == 'EMBOSS':
+        img = img.filter(PIL.ImageFilter.EMBOSS)
+    elif self.get_option(name='Mode') == 'FIND_EDGES':
+        img = img.filter(PIL.ImageFilter.FIND_EDGES)
+    elif self.get_option(name='Mode') == 'SHARPEN':
+        img = img.filter(PIL.ImageFilter.SHARPEN)
+    elif self.get_option(name='Mode') == 'SMOOTH':
+        img = img.filter(PIL.ImageFilter.SMOOTH)
+    elif self.get_option(name='Mode') == 'SMOOTH_MORE':
+        img = img.filter(PIL.ImageFilter.SMOOTH_MORE)
+    self.set_interface(name='Output', value = img)
+imgfilter_block.add_compute(imgfilter_func)
+
+
+
+#Convert Block
+convert_block = Block(name='Greyscale')
+convert_block.add_input(name='Input')
+#convert_block.add_option(name='Mode', type='select', items=["L", "P", "RGB", "RGBA", "CMYK"], value='P')
+
+convert_block.add_output(name='Output')
+
+def convert_func(self):
+    img = self.get_interface(name='Input')
+    #mode = self.get_option(name='Mode')
+    #print(mode)
+    img = PIL.ImageOps.grayscale(img)
+    self.set_interface(name='Output', value = img)
+convert_block.add_compute(convert_func)
+
+
+
 #Debug Block
 debug_block = Block(name='Debug')
 debug_block.add_input(name='Input')
@@ -266,6 +385,7 @@ debug_block.add_output(name='Output')
 
 def debug_func(self):
     data = self.get_interface(name='Input')
+    self.set_interface(name='Output', value=data)
     print(f'Input Type: {type(data)}')
     print(f'Input Content: {data}')
 debug_block.add_compute(debug_func)
@@ -504,7 +624,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block], 'image functions':[img_preview, blend_block, invert_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'test functions':[debug_block]}
 
 
 

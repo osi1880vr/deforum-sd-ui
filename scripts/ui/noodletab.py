@@ -67,9 +67,9 @@ def layoutFunc():
             images = list(reversed(st.session_state['currentImages']))
 
             with col_cont:
-                st.session_state["node_preview_image"] = st.empty()
-                if "node_preview_img_object" in st.session_state:
-                    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
+                #st.session_state["node_preview_image"] = st.empty()
+                #if "node_preview_img_object" in st.session_state:
+                #    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
 
                 [st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
 
