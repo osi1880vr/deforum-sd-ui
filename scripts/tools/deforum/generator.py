@@ -29,7 +29,7 @@ import random
 import sys
 import pathlib
 
-from tools.modelloader import load_models
+from tools.modelloader import load_models, load_GFPGAN
 import platform
 import streamlit as st
 
@@ -914,15 +914,48 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
 					if return_sample:
 						results.append(x_samples.clone())
 
-					x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
 
-					if return_c:
-						results.append(c.clone())
 
-					for x_sample in x_samples:
-						x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-						image = Image.fromarray(x_sample.astype(np.uint8))
-						results.append(image)
+
+
+
+
+
+		x_samples = torch.clamp((x_samples + 1.0) / 2.0, min=0.0, max=1.0)
+
+		if return_c:
+			results.append(c.clone())
+
+		for x_sample in x_samples:
+			x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+			image = Image.fromarray(x_sample.astype(np.uint8))
+			results.append(image)
+
+			if st.session_state[st.session_state["generation_mode"]]["use_GFPGAN"] == True:
+				if "GFOGAN" not in st.session_state:
+					st.session_state["GFPGAN"] = load_GFPGAN()
+				# skip_save = True # #287 >_>
+				#torch_gc()
+				image=np.array(image)
+				input_img = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+				cropped_faces, restored_faces, restored_img = st.session_state["GFPGAN"].enhance(
+					input_img, has_aligned=False, only_center_face=False, paste_back=True)
+				#gfpgan_sample = restored_img[:, :, ::-1]
+				gfpgan_image = cv2.cvtColor(restored_img, cv2.COLOR_BGR2RGB)
+				gfpgan_image = Image.fromarray(gfpgan_image)
+
+				gfpgan_filename = '/testGFPGAN.png'
+				gfpgan_image.save(gfpgan_filename)
+
+				"""save_sample(gfpgan_image, sample_path_i, gfpgan_filename, jpg_sample, prompts, seeds, width, height,
+                            steps, cfg_scale,
+                            normalize_prompt_weights, use_GFPGAN, write_info_files, prompt_matrix, init_img,
+                            uses_loopback,
+                            uses_random_seed_loopback, save_grid, sort_samples, sampler_name, ddim_eta,
+                            n_iter, batch_size, i, denoising_strength, resize_mode, save_individual_images=False)"""
+
+				results.append(gfpgan_image)  # 287
+
 	return results
 
 
