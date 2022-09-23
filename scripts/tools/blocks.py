@@ -13,6 +13,29 @@ import PIL
 import torch
 def_runner = runner()
 
+#Open Image
+open_block = Block(name='Open Image')
+open_block.add_option(name='path', type='input')
+open_block.add_output(name='Image')
+def open_func(self):
+    image = PIL.Image.open(self.get_option(name='path'))
+    self.set_interface(name='Image', value=image)
+open_block.add_compute(open_func)
+
+
+save_block = Block(name='Save Image')
+save_block.add_input(name='Image Input')
+save_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
+save_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}.png')
+save_block.add_output(name='Image')
+def save_func(self):
+    image = self.get_interface(name='Image Input')
+    path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+    image.save(path)
+    self.set_interface(name='Image', value=image)
+save_block.add_compute(save_func)
+
+
 
 
 #SD Custom Blocks:
@@ -664,7 +687,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block], 'test functions':[debug_block]}
 
 
 
