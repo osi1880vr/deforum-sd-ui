@@ -38,7 +38,7 @@ save_block.add_compute(save_func)
 save_all_block = Block(name='Save All Images')
 save_all_block.add_option(name='empty_memory', type='checkbox')
 save_all_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
-save_all_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}.png')
+save_all_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}')
 def save_all_func(self):
     images = st.session_state["currentImages"]
     a = 0
