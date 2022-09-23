@@ -18,8 +18,8 @@ open_block = Block(name='Open Image')
 open_block.add_option(name='path', type='input')
 open_block.add_output(name='Image')
 def open_func(self):
-    image = PIL.Image.open(self.get_option(name='path'))
-    self.set_interface(name='Image', value=image)
+  image = PIL.Image.open(self.get_option(name='path'))
+  self.set_interface(name='Image', value=image)
 open_block.add_compute(open_func)
 
 
@@ -29,10 +29,10 @@ save_block.add_option(name='path', type='input', value=st.session_state['default
 save_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}.png')
 save_block.add_output(name='Image')
 def save_func(self):
-    image = self.get_interface(name='Image Input')
-    path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
-    image.save(path)
-    self.set_interface(name='Image', value=image)
+  image = self.get_interface(name='Image Input')
+  path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+  image.save(path)
+  self.set_interface(name='Image', value=image)
 save_block.add_compute(save_func)
 
 save_all_block = Block(name='Save All Images')
@@ -40,24 +40,24 @@ save_all_block.add_option(name='empty_memory', type='checkbox')
 save_all_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
 save_all_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}')
 def save_all_func(self):
-    images = st.session_state["currentImages"]
-    a = 0
-    path = self.get_option(name='path')
-    os.makedirs(path, exist_ok=True)
-    for i in images:
+  images = st.session_state["currentImages"]
+  a = 0
+  path = self.get_option(name='path')
+  os.makedirs(path, exist_ok=True)
+  for i in images:
 
-        a = a + 1
-        counter = f'00{a}'
-        counter = counter[:3]
-        name = self.get_option(name="name")
-        name = f'{name}_{counter}.png'
-        spath = os.path.join(path, name)
-        i.save(spath)
-    if self.get_option(name='empty_memory') == True:
-        st.session_state["currentImages"] = []
-    #path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
-    #image.save(path)
-    #self.set_interface(name='Image', value=image)
+    a = a + 1
+    counter = f'00{a}'
+    counter = counter[:3]
+    name = self.get_option(name="name")
+    name = f'{name}_{counter}.png'
+    spath = os.path.join(path, name)
+    i.save(spath)
+  if self.get_option(name='empty_memory') == True:
+    st.session_state["currentImages"] = []
+  #path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+  #image.save(path)
+  #self.set_interface(name='Image', value=image)
 save_all_block.add_compute(save_all_func)
 
 
