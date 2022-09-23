@@ -113,7 +113,12 @@ def img2img_func(self):
         seed = self.get_interface(name='Seed')
     else:
         seed = self.get_option(name='seed')
+
     init_img = self.get_interface(name='2ImageIn')
+    print(type(init_img))
+    if isinstance(init_img, list):
+        init_img = init_img[0]
+
     init_img = init_img.convert('RGBA')
     output_images, seed, info, stats = img2img(prompt = prompt2,
                                                init_info = init_img,
@@ -141,12 +146,12 @@ def img2img_func(self):
                                                random_seed_loopback = False
                                                )
     self.set_interface(name='2Image', value=output_images)
-    self.get_interface(name='Var AmountOut', value=var_amount)
-    self.get_interface(name='CFG ScaleOut', value=cfg_scale)
-    self.get_interface(name='StepsOut', value=steps)
-    self.get_interface(name='SamplerOut', value=samplern)
-    self.get_interface(name='SeedOut', value=seed)
-    self.get_interface(name='PromptOut', value=prompt2)
+    self.set_interface(name='Var AmountOut', value=var_amount)
+    self.set_interface(name='CFG ScaleOut', value=cfg_scale)
+    self.set_interface(name='StepsOut', value=steps)
+    self.set_interface(name='SamplerOut', value=samplern)
+    self.set_interface(name='SeedOut', value=seed)
+    self.set_interface(name='PromptOut', value=prompt2)
 img2img_block.add_compute(img2img_func)
 
 
