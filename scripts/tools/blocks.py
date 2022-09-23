@@ -148,6 +148,7 @@ def img2img_func(self):
         steps = self.get_interface(name='Steps')
     else:
         steps = self.get_option(name='steps')
+    st.session_state["sampling_steps"] = steps
     if self.get_interface(name='Sampler') != None:
         samplern = self.get_interface(name='Sampler')
     else:
