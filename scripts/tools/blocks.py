@@ -42,14 +42,17 @@ save_all_block.add_option(name='name', type='input', value=f'{str(random.randint
 def save_all_func(self):
     images = st.session_state["currentImages"]
     a = 0
-    os.makedirs(self.get_option('path', exist_ok=True))
+    path = self.get_option(name='path')
+    os.makedirs(path, exist_ok=True)
     for i in images:
+
         a = a + 1
         counter = f'00{a}'
         counter = counter[:3]
-        name = f'{self.get_option(name="name")}_{counter}.png'
-        path = os.path.join(self.get_option(name='path'), name)
-        i.save(path)
+        name = self.get_option(name="name")
+        name = f'{name}_{counter}.png'
+        spath = os.path.join(path, name)
+        i.save(spath)
     if self.get_option(name='empty_memory') == True:
         st.session_state["currentImages"] = []
     #path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
@@ -159,7 +162,7 @@ def img2img_func(self):
         seed = self.get_option(name='seed')
 
     init_img = self.get_interface(name='2ImageIn')
-    print(type(init_img))
+    print(init_img)
     if isinstance(init_img, list):
         init_img = init_img[0]
 
@@ -189,7 +192,7 @@ def img2img_func(self):
                                                save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = False,
                                                random_seed_loopback = False
                                                )
-    self.set_interface(name='2Image', value=output_images)
+    self.set_interface(name='2Image', value=output_images[0])
     self.set_interface(name='Var AmountOut', value=var_amount)
     self.set_interface(name='CFG ScaleOut', value=cfg_scale)
     self.set_interface(name='StepsOut', value=steps)
@@ -294,6 +297,7 @@ mandel_block.add_option(name='xb', type='slider', min=-2.5, max=2.5, value=1.0)
 mandel_block.add_option(name='ya', type='slider', min=-2.5, max=2.5, value=-1.5)
 mandel_block.add_option(name='yb', type='slider', min=-2.5, max=2.5, value=1.5)
 mandel_block.add_output(name='mandel')
+
 def mandel_func(self):
     # Mandelbrot fractal
     # FB - 201003151
@@ -322,6 +326,8 @@ def mandel_func(self):
             b = i % 16 * 16
             mimage.putpixel((x, y), b * 65536 + g * 256 + r)
     self.set_interface(name='mandel', value=mimage)
+
+
 mandel_block.add_compute(mandel_func)
 
 
@@ -370,19 +376,20 @@ blend_block.add_input(name='bImage_2')
 blend_block.add_option(name='alpha', type='slider', min=-0, max=1, value=0.5)
 blend_block.add_output(name='blend_ImageOut')
 def blend_func(self):
-    im1 = self.get_interface(name='bImage_1')
+    im1 = self.get_interface(name='bImage_1').convert('RGB')
 
-    im2 = self.get_interface(name='bImage_2')
+    im2 = self.get_interface(name='bImage_2').convert('RGB')
+    print(type(im1))
+    print(type(im2))
+
     alpha = self.get_option(name='alpha')
-    bimg = blend_img(im1, im2, alpha)
+    bimg = PIL.Image.blend(im1, im2, alpha)
 
     self.set_interface(name='blend_ImageOut', value=bimg)
 blend_block.add_compute(blend_func)
 
 #Invert Block
-def blend_img(im1, im2, alpha):
-    bimg = PIL.Image.blend(im1, im2, alpha)
-    return bimg
+
 invert_block = Block(name='Invert Image')
 invert_block.add_input(name='iImage_1')
 invert_block.add_output(name='invert_ImageOut')
@@ -457,6 +464,7 @@ def convert_func(self):
     #mode = self.get_option(name='Mode')
     #print(mode)
     img = PIL.ImageOps.grayscale(img)
+    img = img.convert('RGB')
     self.set_interface(name='Output', value = img)
 convert_block.add_compute(convert_func)
 
