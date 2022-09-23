@@ -300,12 +300,10 @@ class DDIMSampler(object):
             total_steps = timesteps.shape[0]
             print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-
             iterator = tqdm(time_range, desc='Decoding image', total=total_steps)
             x_dec = x_latent
             for i, step in enumerate(iterator):
                 index = total_steps - i - 1
-
 
                 ts = torch.full((x_latent.shape[0],), step, device=x_latent.device, dtype=torch.long)
                 x_dec, _ = self.p_sample_ddim(x_dec, cond, ts, index=index, use_original_steps=use_original_steps,
@@ -315,4 +313,3 @@ class DDIMSampler(object):
                 if img_callback: img_callback(x_dec, i)
 
             return x_dec
-
