@@ -7,7 +7,7 @@ from scripts.tools.nsp.nsp_pantry import parser
 
 # streamlit imports
 from streamlit import StopException
-from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
+#from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
 from streamlit.elements import image as STImage
 
 # other imports
@@ -49,6 +49,9 @@ else:
 import tkinter as tk
 from tkinter import filedialog
 
+
+st.session_state["generation_mode"] = "vid2vid"
+st.session_state["use_GFPGAN"] = False
 
 def save_uploaded(uploadedfile):
 	folder = st.session_state['vid2vid']["outdir"]

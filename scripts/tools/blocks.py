@@ -13,6 +13,53 @@ import PIL
 import torch
 def_runner = runner()
 
+#Open Image
+open_block = Block(name='Open Image')
+open_block.add_option(name='path', type='input')
+open_block.add_output(name='Image')
+def open_func(self):
+  image = PIL.Image.open(self.get_option(name='path'))
+  self.set_interface(name='Image', value=image)
+open_block.add_compute(open_func)
+
+
+save_block = Block(name='Save Image')
+save_block.add_input(name='Image Input')
+save_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
+save_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}.png')
+save_block.add_output(name='Image')
+def save_func(self):
+  image = self.get_interface(name='Image Input')
+  path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+  image.save(path)
+  self.set_interface(name='Image', value=image)
+save_block.add_compute(save_func)
+
+save_all_block = Block(name='Save All Images')
+save_all_block.add_option(name='empty_memory', type='checkbox')
+save_all_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
+save_all_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}')
+def save_all_func(self):
+  images = st.session_state["currentImages"]
+  a = 0
+  path = self.get_option(name='path')
+  os.makedirs(path, exist_ok=True)
+  for i in images:
+
+    a = a + 1
+    counter = f'00{a}'
+    counter = counter[:3]
+    name = self.get_option(name="name")
+    name = f'{name}_{counter}.png'
+    spath = os.path.join(path, name)
+    i.save(spath)
+  if self.get_option(name='empty_memory') == True:
+    st.session_state["currentImages"] = []
+  #path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+  #image.save(path)
+  #self.set_interface(name='Image', value=image)
+save_all_block.add_compute(save_all_func)
+
 
 
 #SD Custom Blocks:
@@ -101,6 +148,7 @@ def img2img_func(self):
         steps = self.get_interface(name='Steps')
     else:
         steps = self.get_option(name='steps')
+    st.session_state["sampling_steps"] = steps
     if self.get_interface(name='Sampler') != None:
         samplern = self.get_interface(name='Sampler')
     else:
@@ -115,7 +163,7 @@ def img2img_func(self):
         seed = self.get_option(name='seed')
 
     init_img = self.get_interface(name='2ImageIn')
-    print(type(init_img))
+    print(init_img)
     if isinstance(init_img, list):
         init_img = init_img[0]
 
@@ -145,7 +193,7 @@ def img2img_func(self):
                                                save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = False,
                                                random_seed_loopback = False
                                                )
-    self.set_interface(name='2Image', value=output_images)
+    self.set_interface(name='2Image', value=output_images[0])
     self.set_interface(name='Var AmountOut', value=var_amount)
     self.set_interface(name='CFG ScaleOut', value=cfg_scale)
     self.set_interface(name='StepsOut', value=steps)
@@ -250,6 +298,7 @@ mandel_block.add_option(name='xb', type='slider', min=-2.5, max=2.5, value=1.0)
 mandel_block.add_option(name='ya', type='slider', min=-2.5, max=2.5, value=-1.5)
 mandel_block.add_option(name='yb', type='slider', min=-2.5, max=2.5, value=1.5)
 mandel_block.add_output(name='mandel')
+
 def mandel_func(self):
     # Mandelbrot fractal
     # FB - 201003151
@@ -278,6 +327,8 @@ def mandel_func(self):
             b = i % 16 * 16
             mimage.putpixel((x, y), b * 65536 + g * 256 + r)
     self.set_interface(name='mandel', value=mimage)
+
+
 mandel_block.add_compute(mandel_func)
 
 
@@ -326,19 +377,20 @@ blend_block.add_input(name='bImage_2')
 blend_block.add_option(name='alpha', type='slider', min=-0, max=1, value=0.5)
 blend_block.add_output(name='blend_ImageOut')
 def blend_func(self):
-    im1 = self.get_interface(name='bImage_1')
+    im1 = self.get_interface(name='bImage_1').convert('RGB')
 
-    im2 = self.get_interface(name='bImage_2')
+    im2 = self.get_interface(name='bImage_2').convert('RGB')
+    print(type(im1))
+    print(type(im2))
+
     alpha = self.get_option(name='alpha')
-    bimg = blend_img(im1, im2, alpha)
+    bimg = PIL.Image.blend(im1, im2, alpha)
 
     self.set_interface(name='blend_ImageOut', value=bimg)
 blend_block.add_compute(blend_func)
 
 #Invert Block
-def blend_img(im1, im2, alpha):
-    bimg = PIL.Image.blend(im1, im2, alpha)
-    return bimg
+
 invert_block = Block(name='Invert Image')
 invert_block.add_input(name='iImage_1')
 invert_block.add_output(name='invert_ImageOut')
@@ -413,6 +465,7 @@ def convert_func(self):
     #mode = self.get_option(name='Mode')
     #print(mode)
     img = PIL.ImageOps.grayscale(img)
+    img = img.convert('RGB')
     self.set_interface(name='Output', value = img)
 convert_block.add_compute(convert_func)
 
@@ -664,7 +717,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block], 'test functions':[debug_block]}
 
 
 

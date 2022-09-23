@@ -16,7 +16,7 @@ from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.plms import PLMSSampler
 from scripts.tools.deforum_runner import runner
 
-from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
+#from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
 from streamlit.elements import image as STImage
 from scripts.tools.sd_utils import *
 # Temp imports
@@ -214,11 +214,11 @@ def layoutFunc():
 					'defaults'].txt2img.save_as_jpg, help="Saves the images as jpg instead of png.")
 
 				if GFPGAN_available:
-					st.session_state["txt2img"]["use_GFPGAN"] = st.checkbox("Use GFPGAN", value=st.session_state[
+					st.session_state["use_GFPGAN"] = st.checkbox("Use GFPGAN", value=st.session_state[
 						'defaults'].txt2img.use_GFPGAN,
 																			help="Uses the GFPGAN model to improve faces after the generation. This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
 				else:
-					st.session_state["txt2img"]["use_GFPGAN"] = False
+					st.session_state["use_GFPGAN"] = False
 
 				if RealESRGAN_available:
 					st.session_state["txt2img"]["use_RealESRGAN"] = st.checkbox("Use RealESRGAN",

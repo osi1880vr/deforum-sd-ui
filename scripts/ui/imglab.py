@@ -6,7 +6,7 @@ import streamlit as st
 import os
 from PIL import Image
 # from bs4 import BeautifulSoup
-from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
+#from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
 from streamlit.elements import image as STImage
 
 
