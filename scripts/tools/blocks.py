@@ -35,6 +35,27 @@ def save_func(self):
     self.set_interface(name='Image', value=image)
 save_block.add_compute(save_func)
 
+save_all_block = Block(name='Save All Images')
+save_all_block.add_option(name='empty_memory', type='checkbox')
+save_all_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
+save_all_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}.png')
+def save_all_func(self):
+    images = st.session_state["currentImages"]
+    a = 0
+    os.makedirs(self.get_option('path', exist_ok=True))
+    for i in images:
+        a = a + 1
+        counter = f'00{a}'
+        counter = counter[:3]
+        name = f'{self.get_option(name="name")}_{counter}.png'
+        path = os.path.join(self.get_option(name='path'), name)
+        i.save(path)
+    if self.get_option(name='empty_memory') == True:
+        st.session_state["currentImages"] = []
+    #path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+    #image.save(path)
+    #self.set_interface(name='Image', value=image)
+save_all_block.add_compute(save_all_func)
 
 
 
@@ -687,7 +708,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block], 'test functions':[debug_block]}
 
 
 
