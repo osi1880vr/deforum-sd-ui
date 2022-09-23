@@ -7,8 +7,8 @@ from scripts.tools.nsp.nsp_pantry import parser
 
 # streamlit imports
 from streamlit import StopException
-from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
-from streamlit.elements import image as STImage
+#from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
+#from streamlit.elements import image as STImage
 
 # other imports
 
