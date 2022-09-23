@@ -7,6 +7,9 @@ import torch
 
 from ldm.util import instantiate_from_config
 
+from scripts.tools.singleton import singleton
+my_singleton = singleton
+my_singleton.models={}
 
 def load_GFPGAN():
 	model_name = 'GFPGANv1.3'
@@ -102,21 +105,21 @@ def load_models(continue_prev_run=False, use_GFPGAN=False, use_RealESRGAN=False,
 	# check what models we want to use and if the they are already loaded.
 
 	if use_GFPGAN:
-		if "GFPGAN" in st.session_state:
+		if "GFPGAN" in my_singleton.models:
 			print("GFPGAN already loaded")
 		else:
 			# Load GFPGAN
 			if os.path.exists(st.session_state['defaults'].general.GFPGAN_dir):
 				try:
-					st.session_state["GFPGAN"] = load_GFPGAN()
+					my_singleton.models["GFPGAN"] = load_GFPGAN()
 					print("Loaded GFPGAN")
 				except Exception:
 					import traceback
 					print("Error loading GFPGAN:", file=sys.stderr)
 					print(traceback.format_exc(), file=sys.stderr)
 	else:
-		if "GFPGAN" in st.session_state:
-			del st.session_state["GFPGAN"]
+		if "GFPGAN" in my_singleton.models:
+			del my_singleton.models["GFPGAN"]
 
 	if use_RealESRGAN:
 		if "RealESRGAN" in st.session_state and st.session_state["RealESRGAN"].model.name == RealESRGAN_model:
@@ -126,29 +129,29 @@ def load_models(continue_prev_run=False, use_GFPGAN=False, use_RealESRGAN=False,
 			try:
 				# We first remove the variable in case it has something there,
 				# some errors can load the model incorrectly and leave things in memory.
-				del st.session_state["RealESRGAN"]
+				del my_singleton.models["RealESRGAN"]
 			except KeyError:
 				pass
 
 			if os.path.exists(st.session_state['defaults'].general.RealESRGAN_dir):
 				# st.session_state is used for keeping the models in memory across multiple pages or runs.
-				st.session_state["RealESRGAN"] = load_RealESRGAN(RealESRGAN_model)
-				print("Loaded RealESRGAN with model " + st.session_state["RealESRGAN"].model.name)
+				my_singleton.models["RealESRGAN"] = load_RealESRGAN(RealESRGAN_model)
+				print("Loaded RealESRGAN with model " + my_singleton.models["RealESRGAN"].model.name)
 
 	else:
-		if "RealESRGAN" in st.session_state:
-			del st.session_state["RealESRGAN"]
+		if "RealESRGAN" in my_singleton.models:
+			del my_singleton.models["RealESRGAN"]
 
-	if "model" in st.session_state:
+	if "model" in my_singleton.models:
 		print("Model already loaded")
 	else:
 		config = OmegaConf.load("configs/stable-diffusion/v1-inference.yaml")
-		st.session_state["model"] = load_model_from_config(config, st.session_state['defaults'].general.ckpt)
+		my_singleton.models["model"] = load_model_from_config(config, st.session_state['defaults'].general.ckpt)
 
 		st.session_state["device"] = torch.device(
 			f"cuda:{st.session_state['defaults'].general.gpu}") if torch.cuda.is_available() else torch.device("cpu")
-		st.session_state["model"] = (
-			st.session_state["model"] if st.session_state['defaults'].general.no_half else st.session_state[
+		my_singleton.models["model"] = (
+			my_singleton.models["model"] if st.session_state['defaults'].general.no_half else my_singleton.models[
 				"model"].half()).to(st.session_state["device"])
 
 		print("Model loaded.")

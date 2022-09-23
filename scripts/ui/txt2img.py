@@ -18,7 +18,7 @@ from scripts.tools.deforum_runner import runner
 
 #from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
 from streamlit.elements import image as STImage
-
+from scripts.tools.sd_utils import *
 # Temp imports
 
 
@@ -288,7 +288,38 @@ def layoutFunc():
 
 			st.session_state["txt2img"]["keyframes"] = None
 
-			def_runner.run_txt2img()
+			#def_runner.run_txt2img()
+
+
+
+			output_images, seeds, info, stats = txt2img(st.session_state["txt2img"]["prompt"],
+														st.session_state["txt2img"]["steps"],
+														st.session_state["txt2img"]["sampler"],
+														st.session_state["txt2img"]["RealESRGAN_model"],
+														st.session_state["txt2img"]["iterations"],
+														st.session_state["txt2img"]["batch_size"],
+														st.session_state["txt2img"]["scale"],
+														st.session_state["txt2img"]["seed"],
+														st.session_state["txt2img"]["H"],
+														st.session_state["txt2img"]["W"],
+														st.session_state["txt2img"]["separate_prompts"],
+														st.session_state["txt2img"]["normalize_prompt_weights"] ,
+														st.session_state["txt2img"]["save_individual_images"],
+														False,
+														st.session_state["txt2img"]["group_by_prompt"],
+														st.session_state["txt2img"]["save_as_jpg"],
+														st.session_state["txt2img"]["use_GFPGAN"],
+														st.session_state["txt2img"]["use_RealESRGAN"],
+														st.session_state["txt2img"]["RealESRGAN_model"],
+														fp=st.session_state['defaults'].general.fp,
+														variant_amount=st.session_state["txt2img"]["variant_amount"],
+														variant_seed=st.session_state["txt2img"]["variant_seed"],
+														write_info_files=st.session_state["txt2img"]["write_info_files"])
+
+
+
+
+
 
 
 # on import run init

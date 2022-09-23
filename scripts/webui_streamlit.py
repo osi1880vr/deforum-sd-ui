@@ -14,6 +14,14 @@ import os
 from omegaconf import OmegaConf
 import warnings
 
+from scripts.tools.singleton import singleton
+my_singleton = singleton
+
+singleton.test = 1
+
+print(singleton.test)
+
+
 # end of imports
 # ---------------------------------------------------------------------------------------------------------------
 
