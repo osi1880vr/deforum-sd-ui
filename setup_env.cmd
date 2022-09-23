@@ -70,6 +70,6 @@ IF EXIST "content\models\dpt_large-midas-2f21e586.pt" (
   echo all ready to fly
 
 ) ELSE (
-  echo Your model file does not exist! Place it in 'content\models\dpt_large-midas-2f21e586.pt' with the name 'model.ckpt'.
+  echo Your model file does not exist! Place it in 'content\models\dpt_large-midas-2f21e586.pt' with the name 'dpt_large-midas-2f21e586.pt'.
   pause
 )

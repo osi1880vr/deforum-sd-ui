@@ -2,7 +2,6 @@
 
 import torch
 import numpy as np
-#from tqdm.notebook import tqdm
 from tqdm import tqdm
 from functools import partial
 
@@ -51,7 +50,7 @@ class DDIMSampler(object):
         self.register_buffer('ddim_sqrt_one_minus_alphas', np.sqrt(1. - ddim_alphas))
         sigmas_for_original_sampling_steps = ddim_eta * torch.sqrt(
             (1 - self.alphas_cumprod_prev) / (1 - self.alphas_cumprod) * (
-                    1 - self.alphas_cumprod / self.alphas_cumprod_prev))
+                        1 - self.alphas_cumprod / self.alphas_cumprod_prev))
         self.register_buffer('ddim_sigmas_for_original_num_steps', sigmas_for_original_sampling_steps)
 
     @torch.no_grad()
@@ -235,7 +234,6 @@ class DDIMSampler(object):
         x_dec = x_latent
         for i, step in enumerate(iterator):
             index = total_steps - i - 1
-
             ts = torch.full((x_latent.shape[0],), step, device=x_latent.device, dtype=torch.long)
 
             if z_mask is not None and i < total_steps - 2:

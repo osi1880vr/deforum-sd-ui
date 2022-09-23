@@ -54,6 +54,10 @@ import skimage
 import piexif
 import piexif.helper
 from tqdm import trange
+from typing import Union
+
+from scripts.tools.singleton import singleton
+my_singleton = singleton
 
 # from scripts.tools.nsp.nsp_pantry import parser
 
@@ -192,21 +196,21 @@ def img2img(prompt: str = '',
     # use_RealESRGAN = 11 in toggles
 
     if sampler_name == 'PLMS':
-        sampler = PLMSSampler(st.session_state["model"])
+        sampler = PLMSSampler(my_singleton.models["model"])
     elif sampler_name == 'DDIM':
-        sampler = DDIMSampler(st.session_state["model"])
+        sampler = DDIMSampler(my_singleton.models["model"])
     elif sampler_name == 'k_dpm_2_a':
-        sampler = KDiffusionSampler(st.session_state["model"], 'dpm_2_ancestral')
+        sampler = KDiffusionSampler(my_singleton.models["model"], 'dpm_2_ancestral')
     elif sampler_name == 'k_dpm_2':
-        sampler = KDiffusionSampler(st.session_state["model"], 'dpm_2')
+        sampler = KDiffusionSampler(my_singleton.models["model"], 'dpm_2')
     elif sampler_name == 'k_euler_a':
-        sampler = KDiffusionSampler(st.session_state["model"], 'euler_ancestral')
+        sampler = KDiffusionSampler(my_singleton.models["model"], 'euler_ancestral')
     elif sampler_name == 'k_euler':
-        sampler = KDiffusionSampler(st.session_state["model"], 'euler')
+        sampler = KDiffusionSampler(my_singleton.models["model"], 'euler')
     elif sampler_name == 'k_heun':
-        sampler = KDiffusionSampler(st.session_state["model"], 'heun')
+        sampler = KDiffusionSampler(my_singleton.models["model"], 'heun')
     elif sampler_name == 'k_lms':
-        sampler = KDiffusionSampler(st.session_state["model"], 'lms')
+        sampler = KDiffusionSampler(my_singleton.models["model"], 'lms')
     else:
         raise Exception("Unknown sampler: " + sampler_name)
 
@@ -295,7 +299,7 @@ def img2img(prompt: str = '',
 
         init_image = 2. * image - 1.
         init_image = init_image.to(st.session_state["device"])
-        init_latent = (st.session_state["model"] if not st.session_state[
+        init_latent = (my_singleton.models["model"] if not st.session_state[
             'defaults'].general.optimized else st.session_state.modelFS).get_first_stage_encoding((st.session_state[
                                                                                                        "model"] if not
         st.session_state['defaults'].general.optimized else modelFS).encode_first_stage(
@@ -1134,28 +1138,26 @@ def generation_callback(img, i=0):
     except TypeError:
         pass
 
-    if i % int(st.session_state['defaults'].img2img.update_preview_frequency) == 0 and st.session_state[
-        'defaults'].img2img.update_preview:
+    if i % int(st.session_state['defaults'].img2img.update_preview_frequency) == 0 and st.session_state['defaults'].img2img.update_preview:
         # print (img)
         # print (type(img))
         # The following lines will convert the tensor we got on img to an actual image we can render on the UI.
         # It can probably be done in a better way for someone who knows what they're doing. I don't.
         # print (img,isinstance(img, torch.Tensor))
         if isinstance(img, torch.Tensor):
-            x_samples_ddim = (st.session_state["model"] if not st.session_state[
+            x_samples_ddim = (my_singleton.models["model"] if not st.session_state[
                 'defaults'].general.optimized else st.session_state.modelFS).decode_first_stage(img)
         else:
             # When using the k Diffusion samplers they return a dict instead of a tensor that look like this:
             # {'x': x, 'i': i, 'sigma': sigmas[i], 'sigma_hat': sigmas[i], 'denoised': denoised}
-            x_samples_ddim = (st.session_state["model"] if not st.session_state[
-                'defaults'].general.optimized else st.session_state.modelFS).decode_first_stage(img["denoised"])
+            x_samples_ddim = (my_singleton.models["model"] if not st.session_state['defaults'].general.optimized else st.session_state.modelFS).decode_first_stage(img["denoised"])
 
         x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+        if st.session_state[st.session_state["generation_mode"]]["batch_size"] == 1:
+            pil_image = transforms.ToPILImage()(x_samples_ddim.squeeze_(0))
 
-        pil_image = transforms.ToPILImage()(x_samples_ddim.squeeze_(0))
-
-        # update image on the UI so we can see the progress
-        st.session_state[st.session_state["generation_mode"]]["preview_image"].image(pil_image)
+            # update image on the UI so we can see the progress
+            st.session_state[st.session_state["generation_mode"]]["preview_image"].image(pil_image)
 
     # Show a progress bar so we can keep track of the progress even when the image progress is not been shown,
     # Dont worry, it doesnt affect the performance.
@@ -1163,9 +1165,9 @@ def generation_callback(img, i=0):
         percent = int(
             100 * float(i + 1 if i + 1 < st.session_state[st.session_state["generation_mode"]]["steps"] else
                         st.session_state[st.session_state["generation_mode"]]["steps"]) / float(
-                st.session_state[st.session_state["generation_mode"]]["steps"]))
+                st.session_state[st.session_state['generation_mode']]['steps']))
         st.session_state[st.session_state["generation_mode"]]["progress_bar_text"].text(
-            f"Running step: {i + 1 if i + 1 < st.session_state.sampling_steps else st.session_state.sampling_steps}/{st.session_state.sampling_steps} {percent if percent < 100 else 100}%")
+            f"Running step: {i + 1 if i + 1 < st.session_state[st.session_state['generation_mode']]['steps'] else st.session_state[st.session_state['generation_mode']]['steps']}/{st.session_state[st.session_state['generation_mode']]['steps']} {percent if percent < 100 else 100}%")
     else:
         if st.session_state["generation_mode"] == "img2img":
             round_sampling_steps = round(st.session_state[st.session_state["generation_mode"]]["steps"] *
@@ -1276,8 +1278,8 @@ def get_font(fontsize):
 
 
 def load_embeddings(fp):
-    if fp is not None and hasattr(st.session_state["model"], "embedding_manager"):
-        st.session_state["model"].embedding_manager.load(fp['name'])
+    if fp is not None and hasattr(my_singleton.models["model"], "embedding_manager"):
+        my_singleton.models["model"].embedding_manager.load(fp['name'])
 
 
 def image_grid(imgs, batch_size, force_n_rows=None, captions=None):
@@ -1402,12 +1404,12 @@ def draw_prompt_matrix(im, width, height, all_prompts):
 def check_prompt_length(prompt, comments):
     """this function tests if prompt is too long, and if so, adds a message to comments"""
 
-    tokenizer = (st.session_state["model"] if not st.session_state[
+    tokenizer = (my_singleton.models["model"] if not st.session_state[
         'defaults'].general.optimized else st.session_state.modelCS).cond_stage_model.tokenizer
-    max_length = (st.session_state["model"] if not st.session_state[
+    max_length = (my_singleton.models["model"] if not st.session_state[
         'defaults'].general.optimized else st.session_state.modelCS).cond_stage_model.max_length
 
-    info = (st.session_state["model"] if not st.session_state[
+    info = (my_singleton.models["model"] if not st.session_state[
         'defaults'].general.optimized else st.session_state.modelCS).cond_stage_model.tokenizer([prompt],
                                                                                                 truncation=True,
                                                                                                 max_length=max_length,
@@ -1630,7 +1632,7 @@ def process_images(
     mem_mon = MemUsageMonitor('MemMon')
     mem_mon.start()
 
-    if hasattr(st.session_state["model"], "embedding_manager"):
+    if hasattr(my_singleton.models["model"], "embedding_manager"):
         load_embeddings(fp)
 
     os.makedirs(outpath, exist_ok=True)
@@ -1688,7 +1690,7 @@ def process_images(
     grid_captions = []
     stats = []
     with torch.no_grad(), precision_scope("cuda"), (
-            st.session_state["model"].ema_scope() if not st.session_state[
+            my_singleton.models["model"].ema_scope() if not st.session_state[
                 'defaults'].general.optimized else nullcontext()):
         init_data = func_init()
         tic = time.time()
@@ -1716,7 +1718,7 @@ def process_images(
             if st.session_state['defaults'].general.optimized:
                 st.session_state.modelCS.to(st.session_state['defaults'].general.gpu)
 
-            uc = (st.session_state["model"] if not st.session_state[
+            uc = (my_singleton.models["model"] if not st.session_state[
                 'defaults'].general.optimized else st.session_state.modelCS).get_learned_conditioning(
                 len(prompts) * [""])
 
@@ -1732,11 +1734,11 @@ def process_images(
                 c = torch.zeros_like(uc)  # i dont know if this is correct.. but it works
                 for i in range(0, len(weighted_subprompts)):
                     # note if alpha negative, it functions same as torch.sub
-                    c = torch.add(c, (st.session_state["model"] if not st.session_state[
+                    c = torch.add(c, (my_singleton.models["model"] if not st.session_state[
                         'defaults'].general.optimized else st.session_state.modelCS).get_learned_conditioning(
                         weighted_subprompts[i][0]), alpha=weighted_subprompts[i][1])
             else:  # just behave like usual
-                c = (st.session_state["model"] if not st.session_state[
+                c = (my_singleton.models["model"] if not st.session_state[
                     'defaults'].general.optimized else st.session_state.modelCS).get_learned_conditioning(prompts)
 
             shape = [opt_C, height // opt_f, width // opt_f]
@@ -1750,7 +1752,7 @@ def process_images(
             if noise_mode == 1 or noise_mode == 3:
                 # TODO params for find_noise_to_image
                 x = torch.cat(batch_size * [find_noise_for_image.find_noise_for_image(
-                    st.session_state["model"], st.session_state["device"],
+                    my_singleton.models["model"], st.session_state["device"],
                     init_img.convert('RGB'), '', find_noise_steps, 0.0, normalize=True,
                     generation_callback=generation_callback,
                 )], dim=0)
@@ -1775,7 +1777,7 @@ def process_images(
             if st.session_state['defaults'].general.optimized:
                 st.session_state.modelFS.to(st.session_state['defaults'].general.gpu)
 
-            x_samples_ddim = (st.session_state["model"] if not st.session_state[
+            x_samples_ddim = (my_singleton.models["model"] if not st.session_state[
                 'defaults'].general.optimized else st.session_state.modelFS).decode_first_stage(samples_ddim)
             x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
 
@@ -1807,10 +1809,10 @@ def process_images(
                 original_sample = x_sample
                 original_filename = filename
 
-                if use_GFPGAN and st.session_state["GFPGAN"] is not None and not use_RealESRGAN:
+                if use_GFPGAN and my_singleton.models["GFPGAN"] is not None and not use_RealESRGAN:
                     # skip_save = True # #287 >_>
                     torch_gc()
-                    cropped_faces, restored_faces, restored_img = st.session_state["GFPGAN"].enhance(
+                    cropped_faces, restored_faces, restored_img = my_singleton.models["GFPGAN"].enhance(
                         x_sample[:, :, ::-1], has_aligned=False, only_center_face=False, paste_back=True)
                     gfpgan_sample = restored_img[:, :, ::-1]
                     gfpgan_image = Image.fromarray(gfpgan_sample)
@@ -1827,16 +1829,16 @@ def process_images(
                     if simple_templating:
                         grid_captions.append(captions[i] + "\ngfpgan")
 
-                if use_RealESRGAN and st.session_state["RealESRGAN"] is not None and not use_GFPGAN:
+                if use_RealESRGAN and my_singleton.models["RealESRGAN"] is not None and not use_GFPGAN:
                     # skip_save = True # #287 >_>
                     torch_gc()
 
-                    if st.session_state["RealESRGAN"].model.name != realesrgan_model_name:
+                    if my_singleton.models["RealESRGAN"].model.name != realesrgan_model_name:
                         # try_loading_RealESRGAN(realesrgan_model_name)
                         load_models(use_GFPGAN=use_GFPGAN, use_RealESRGAN=use_RealESRGAN,
                                     RealESRGAN_model=realesrgan_model_name)
 
-                    output, img_mode = st.session_state["RealESRGAN"].enhance(x_sample[:, :, ::-1])
+                    output, img_mode = my_singleton.models["RealESRGAN"].enhance(x_sample[:, :, ::-1])
                     esrgan_filename = original_filename + '-esrgan4x'
                     esrgan_sample = output[:, :, ::-1]
                     esrgan_image = Image.fromarray(esrgan_sample)
@@ -1856,20 +1858,20 @@ def process_images(
                     if simple_templating:
                         grid_captions.append(captions[i] + "\nesrgan")
 
-                if use_RealESRGAN and st.session_state["RealESRGAN"] is not None and use_GFPGAN and st.session_state[
+                if use_RealESRGAN and my_singleton.models["RealESRGAN"] is not None and use_GFPGAN and st.session_state[
                     "GFPGAN"] is not None:
                     # skip_save = True # #287 >_>
                     torch_gc()
-                    cropped_faces, restored_faces, restored_img = st.session_state["GFPGAN"].enhance(
+                    cropped_faces, restored_faces, restored_img = my_singleton.models["GFPGAN"].enhance(
                         x_sample[:, :, ::-1], has_aligned=False, only_center_face=False, paste_back=True)
                     gfpgan_sample = restored_img[:, :, ::-1]
 
-                    if st.session_state["RealESRGAN"].model.name != realesrgan_model_name:
+                    if my_singleton.models["RealESRGAN"].model.name != realesrgan_model_name:
                         # try_loading_RealESRGAN(realesrgan_model_name)
                         load_models(use_GFPGAN=use_GFPGAN, use_RealESRGAN=use_RealESRGAN,
                                     RealESRGAN_model=realesrgan_model_name)
 
-                    output, img_mode = st.session_state["RealESRGAN"].enhance(gfpgan_sample[:, :, ::-1])
+                    output, img_mode = my_singleton.models["RealESRGAN"].enhance(gfpgan_sample[:, :, ::-1])
                     gfpgan_esrgan_filename = original_filename + '-gfpgan-esrgan4x'
                     gfpgan_esrgan_sample = output[:, :, ::-1]
                     gfpgan_esrgan_image = Image.fromarray(gfpgan_esrgan_sample)
@@ -1893,17 +1895,17 @@ def process_images(
                     init_img = init_img.convert('RGB')
                     image = image.convert('RGB')
 
-                    if use_RealESRGAN and st.session_state["RealESRGAN"] is not None:
-                        if st.session_state["RealESRGAN"].model.name != realesrgan_model_name:
+                    if use_RealESRGAN and my_singleton.models["RealESRGAN"] is not None:
+                        if my_singleton.models["RealESRGAN"].model.name != realesrgan_model_name:
                             # try_loading_RealESRGAN(realesrgan_model_name)
                             load_models(use_GFPGAN=use_GFPGAN, use_RealESRGAN=use_RealESRGAN,
                                         RealESRGAN_model=realesrgan_model_name)
 
-                        output, img_mode = st.session_state["RealESRGAN"].enhance(np.array(init_img, dtype=np.uint8))
+                        output, img_mode = my_singleton.models["RealESRGAN"].enhance(np.array(init_img, dtype=np.uint8))
                         init_img = Image.fromarray(output)
                         init_img = init_img.convert('RGB')
 
-                        output, img_mode = st.session_state["RealESRGAN"].enhance(np.array(init_mask, dtype=np.uint8))
+                        output, img_mode = my_singleton.models["RealESRGAN"].enhance(np.array(init_mask, dtype=np.uint8))
                         init_mask = Image.fromarray(output)
                         init_mask = init_mask.convert('L')
 
@@ -1961,7 +1963,7 @@ def process_images(
 
     info = f"""
             {prompt}
-            Steps: {steps}, Sampler: {sampler_name}, CFG scale: {cfg_scale}, Seed: {seed}{', Denoising strength: ' + str(denoising_strength) if init_img is not None else ''}{', GFPGAN' if use_GFPGAN and st.session_state["GFPGAN"] is not None else ''}{', ' + realesrgan_model_name if use_RealESRGAN and st.session_state["RealESRGAN"] is not None else ''}{', Prompt Matrix Mode.' if prompt_matrix else ''}""".strip()
+            Steps: {steps}, Sampler: {sampler_name}, CFG scale: {cfg_scale}, Seed: {seed}{', Denoising strength: ' + str(denoising_strength) if init_img is not None else ''}{', GFPGAN' if use_GFPGAN and my_singleton.models["GFPGAN"] is not None else ''}{', ' + realesrgan_model_name if use_RealESRGAN and my_singleton.models["RealESRGAN"] is not None else ''}{', Prompt Matrix Mode.' if prompt_matrix else ''}""".strip()
     stats = f'''
             Took {round(time_diff, 2)}s total ({round(time_diff / (len(all_prompts)), 2)}s per image)
             Peak memory usage: {-(mem_max_used // -1_048_576)} MiB / {-(mem_total // -1_048_576)} MiB / {round(mem_max_used / mem_total * 100, 3)}%'''
@@ -2014,4 +2016,87 @@ def resize_image(resize_mode, im, width, height):
 
     return res
 
-#
+def txt2img(prompt: str, ddim_steps: int, sampler_name: str, realesrgan_model_name: str,
+            n_iter: int, batch_size: int, cfg_scale: float, seed: Union[int, str, None],
+            height: int, width: int, separate_prompts:bool = False, normalize_prompt_weights:bool = True,
+            save_individual_images: bool = True, save_grid: bool = True, group_by_prompt: bool = True,
+            save_as_jpg: bool = True, use_GFPGAN: bool = True, use_RealESRGAN: bool = True,
+            RealESRGAN_model: str = "RealESRGAN_x4plus_anime_6B", fp = None, variant_amount: float = None,
+            variant_seed: int = None, ddim_eta:float = 0.0, write_info_files:bool = True):
+    load_models()
+    outpath = st.session_state['defaults'].general.outdir_txt2img or st.session_state['defaults'].general.outdir or "outputs/txt2img-samples"
+
+    seed = seed_to_int(seed)
+
+    #prompt_matrix = 0 in toggles
+    #normalize_prompt_weights = 1 in toggles
+    #skip_save = 2 not in toggles
+    #save_grid = 3 not in toggles
+    #sort_samples = 4 in toggles
+    #write_info_files = 5 in toggles
+    #jpg_sample = 6 in toggles
+    #use_GFPGAN = 7 in toggles
+    #use_RealESRGAN = 8 in toggles
+
+    if sampler_name == 'plms':
+        sampler = PLMSSampler(my_singleton.models["model"])
+    elif sampler_name == 'ddim':
+        sampler = DDIMSampler(my_singleton.models["model"])
+    elif sampler_name == 'k_dpm_2_a':
+        sampler = KDiffusionSampler(my_singleton.models["model"],'dpm_2_ancestral')
+    elif sampler_name == 'k_dpm_2':
+        sampler = KDiffusionSampler(my_singleton.models["model"],'dpm_2')
+    elif sampler_name == 'k_euler_a':
+        sampler = KDiffusionSampler(my_singleton.models["model"],'euler_ancestral')
+    elif sampler_name == 'k_euler':
+        sampler = KDiffusionSampler(my_singleton.models["model"],'euler')
+    elif sampler_name == 'k_heun':
+        sampler = KDiffusionSampler(my_singleton.models["model"],'heun')
+    elif sampler_name == 'klms':
+        sampler = KDiffusionSampler(my_singleton.models["model"],'lms')
+    else:
+        raise Exception("Unknown sampler: " + sampler_name)
+
+    def init():
+        pass
+
+    def sample(init_data, x, conditioning, unconditional_conditioning, sampler_name):
+        samples_ddim, _ = sampler.sample(S=ddim_steps, conditioning=conditioning, batch_size=int(x.shape[0]), shape=x[0].shape, verbose=False, unconditional_guidance_scale=cfg_scale,
+                                         unconditional_conditioning=unconditional_conditioning, eta=ddim_eta, x_T=x, img_callback=generation_callback,
+                                         log_every_t=int(st.session_state['defaults'].general.update_preview_frequency))
+
+        return samples_ddim
+
+    #try:
+    output_images, seed, info, stats = process_images(
+        outpath=outpath,
+        func_init=init,
+        func_sample=sample,
+        prompt=prompt,
+        seed=seed,
+        sampler_name=sampler_name,
+        save_grid=save_grid,
+        batch_size=batch_size,
+        n_iter=n_iter,
+        steps=ddim_steps,
+        cfg_scale=cfg_scale,
+        width=width,
+        height=height,
+        prompt_matrix=separate_prompts,
+        use_GFPGAN=use_GFPGAN,
+        use_RealESRGAN=use_RealESRGAN,
+        realesrgan_model_name=realesrgan_model_name,
+        fp=fp,
+        ddim_eta=ddim_eta,
+        normalize_prompt_weights=normalize_prompt_weights,
+        save_individual_images=save_individual_images,
+        sort_samples=group_by_prompt,
+        write_info_files=write_info_files,
+        jpg_sample=save_as_jpg,
+        variant_amount=variant_amount,
+        variant_seed=variant_seed,
+    )
+
+    del sampler
+
+    return output_images, seed, info, stats
