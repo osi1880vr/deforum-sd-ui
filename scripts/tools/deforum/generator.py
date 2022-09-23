@@ -931,7 +931,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
 			image = Image.fromarray(x_sample.astype(np.uint8))
 			results.append(image)
 
-			if st.session_state[st.session_state["generation_mode"]]["use_GFPGAN"] == True:
+			if st.session_state["use_GFPGAN"] == True:
 				if "GFOGAN" not in st.session_state:
 					st.session_state["GFPGAN"] = load_GFPGAN()
 				# skip_save = True # #287 >_>

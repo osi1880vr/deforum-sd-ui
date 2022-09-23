@@ -214,11 +214,11 @@ def layoutFunc():
 					'defaults'].txt2img.save_as_jpg, help="Saves the images as jpg instead of png.")
 
 				if GFPGAN_available:
-					st.session_state["txt2img"]["use_GFPGAN"] = st.checkbox("Use GFPGAN", value=st.session_state[
+					st.session_state["use_GFPGAN"] = st.checkbox("Use GFPGAN", value=st.session_state[
 						'defaults'].txt2img.use_GFPGAN,
-																			help="Uses the GFPGAN model to improve faces after the generation. This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
+																 help="Uses the GFPGAN model to improve faces after the generation. This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
 				else:
-					st.session_state["txt2img"]["use_GFPGAN"] = False
+					st.session_state["use_GFPGAN"] = False
 
 				if RealESRGAN_available:
 					st.session_state["txt2img"]["use_RealESRGAN"] = st.checkbox("Use RealESRGAN",
@@ -275,11 +275,11 @@ def layoutFunc():
 				st.session_state["txt2img"]["seed"] = st.text_input("Seed:",
 																	value=st.session_state['defaults'].txt2img.seed,
 																	help=" The seed to use, if left blank a random seed will be generated.")
-			# basic_tab, advanced_tab = st.tabs(["Basic", "Advanced"])
+		# basic_tab, advanced_tab = st.tabs(["Basic", "Advanced"])
 
-			# with basic_tab:
-			# summit_on_enter = st.radio("Submit on enter?", ("Yes", "No"), horizontal=True,
-			# help="Press the Enter key to summit, when 'No' is selected you can use the Enter key to write multiple lines.")
+		# with basic_tab:
+		# summit_on_enter = st.radio("Submit on enter?", ("Yes", "No"), horizontal=True,
+		# help="Press the Enter key to summit, when 'No' is selected you can use the Enter key to write multiple lines.")
 
 
 
