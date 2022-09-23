@@ -226,11 +226,7 @@ class runner:
 
 			image_path = os.path.join(args.outdir, f"{args.timestring}_willsanitizeprompt.png")
 
-
-
-
-
-	def _run_txt2img(self):
+	def run_txt2img(self):
 
 		args, anim_args = self.get_args()
 
