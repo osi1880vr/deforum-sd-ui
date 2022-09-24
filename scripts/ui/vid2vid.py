@@ -110,7 +110,7 @@ def layoutFunc():
 	# with st.expander(""):
 	with col2:
 		preview_tab, prompt_tab, rendering_tab, settings_tab = st.tabs(["Preview",
-																		"Propmpt help",
+																		"Prompt help",
 																		"Rendering",
 																		"Settings"])
 
