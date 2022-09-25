@@ -33,12 +33,14 @@ class PluginInfo():
 
 
 def layoutFunc():
+
+    st.session_state["with_nodes"] = True
     if 'v' not in st.session_state:
-        c = 3
-        st.session_state['v'] = 2
+        c = 7
+        st.session_state['v'] = 3
 
     #with st.form("Nodes"):
-    col1, col2 = st.columns([3,2], gap="small")
+    col1, col2 = st.columns([7,3], gap="small")
     #    refresh_btn = col1.form_submit_button("Run node sequence")
 
     with col1:
@@ -51,6 +53,7 @@ def layoutFunc():
             barfi_result = st_barfi(base_blocks=default_blocks_category,
                                     compute_engine=compute_engine,
                                     load_schema=load_schema)
+        [st.write(index) for index in st.session_state['currentImages']]
     with col2:
 
         placeholder = st.empty()

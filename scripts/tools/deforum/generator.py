@@ -138,9 +138,11 @@ def render_image_batch(args):
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
                         fpath = os.path.join(args.outdir, filename)
                         image.save(fpath)
-                    st.session_state['node_pipe'] = image
+                    if st.session_state["with_nodes"] == True:
+                        st.session_state['node_pipe'] = image
                     image_pipe.image(image)
-                    st.session_state['currentImages'].append(fpath)
+                    if st.session_state["with_nodes"] == False:
+                        st.session_state['currentImages'].append(fpath)
                     index += 1
                 args.seed = next_seed(args)
 
@@ -775,7 +777,7 @@ def make_callback(sampler_name, dynamic_threshold=None, static_threshold=None, m
 
 def generate(args, return_latent=False, return_sample=False, return_c=False):
     if 'model' not in st.session_state:
-      st.session_state["model"] = load_models()
+        st.session_state["model"] = load_models()
     global device
     device = st.session_state["device"]
     seed_everything(args.seed)

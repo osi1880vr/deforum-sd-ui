@@ -18,8 +18,8 @@ open_block = Block(name='Open Image')
 open_block.add_option(name='path', type='input')
 open_block.add_output(name='Image')
 def open_func(self):
-  image = PIL.Image.open(self.get_option(name='path'))
-  self.set_interface(name='Image', value=image)
+    image = PIL.Image.open(self.get_option(name='path'))
+    self.set_interface(name='Image', value=image)
 open_block.add_compute(open_func)
 
 
@@ -30,11 +30,11 @@ save_block.add_option(name='name', type='input', value=f'{str(random.randint(100
 save_block.add_output(name='Image')
 save_block.add_output(name='Path')
 def save_func(self):
-  image = self.get_interface(name='Image Input')
-  path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
-  image.save(path)
-  self.set_interface(name='Image', value=image)
-  self.set_interface(name='Path', value=path)
+    image = self.get_interface(name='Image Input')
+    path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+    image.save(path)
+    self.set_interface(name='Image', value=image)
+    self.set_interface(name='Path', value=path)
 save_block.add_compute(save_func)
 
 save_all_block = Block(name='Save All Images')
@@ -43,32 +43,54 @@ save_all_block.add_option(name='path', type='input', value=st.session_state['def
 save_all_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}')
 save_all_block.add_output(name='output_list')
 def save_all_func(self):
-  images = st.session_state["currentImages"]
-  a = 0
-  path = self.get_option(name='path')
-  os.makedirs(path, exist_ok=True)
-  for i in images:
+    images = st.session_state["currentImages"]
+    a = 0
+    path = self.get_option(name='path')
+    os.makedirs(path, exist_ok=True)
+    for i in images:
 
-    a = a + 1
-    counter = f'00{a}'
-    counter = counter[:3]
-    name = self.get_option(name="name")
-    name = f'{name}_{counter}.png'
-    spath = os.path.join(path, name)
-    i.save(spath)
-  if self.get_option(name='empty_memory') == True and self.get_option(name='keep_temp') == True:
-    st.session_state["templist"] = st.session_state["currentImages"]
-    st.session_state["currentImages"] = []
-    self.set_interface(name='output_list', value=st.session_state["templist"])
-  elif self.get_option(name='empty_memory') == True and self.get_option(name='keep_temp') == False:
-    self.set_interface(name='output_list', value=st.session_state["currentImages"])
-    st.session_state["currentImages"] = []
+        a = a + 1
+        counter = f'00{a}'
+        counter = counter[:3]
+        name = self.get_option(name="name")
+        name = f'{name}_{counter}.png'
+        spath = os.path.join(path, name)
+        i.save(spath)
+    if self.get_option(name='empty_memory') == True and self.get_option(name='keep_temp') == True:
+        st.session_state["templist"] = st.session_state["currentImages"]
+        st.session_state["currentImages"] = []
+        self.set_interface(name='output_list', value=st.session_state["templist"])
+    elif self.get_option(name='empty_memory') == True and self.get_option(name='keep_temp') == False:
+        self.set_interface(name='output_list', value=st.session_state["currentImages"])
+        st.session_state["currentImages"] = []
 
-  #path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
-  #image.save(path)
-  #self.set_interface(name='Image', value=image)
+    #path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
+    #image.save(path)
+    #self.set_interface(name='Image', value=image)
 save_all_block.add_compute(save_all_func)
 
+if 'currentImages' not in st.session_state:
+    st.session_state['currentImages'] = []
+
+
+if st.session_state['currentImages'] != []:
+    print(st.session_state['currentImages'])
+    listIndexes = list.index(st.session_state["currentImages"])
+else:
+    listIndexes = ['no image yet']
+
+
+#Get list item
+list_out = Block(name='getListItem')
+list_out.add_option(name='images', type='select', items=listIndexes)
+list_out.add_option(name='index', type='integer', value=0)
+list_out.add_output(name='image')
+list_out.add_output(name='info')
+def list_out_func(self):
+    int1 = self.get_option(name='index')
+    self.set_interface(name='image', value=st.session_state["currentImages"][int1])
+    #self.set_interface(name='image', value='img')
+list_out.add_compute(list_out_func)
 
 
 #SD Custom Blocks:
@@ -219,34 +241,45 @@ dream_block = Block(name='Dream')
 dream_block.add_input(name='PromptIn')
 dream_block.add_input(name='SeedIn')
 dream_block.add_input(name='CFG ScaleIn')
+dream_block.add_option(name='active', type='checkbox', value=True)
 dream_block.add_option(name='seedInfo', type='display', value='SEED:')
-dream_block.add_option(name='Seed', type='input', value='')
+dream_block.add_option(name='Seed', type='integer', value=0)
+dream_block.add_option(name='Steps', type='integer', value=40)
+dream_block.add_option(name='CFGScale', type='number', value=12.5)
+
 dream_block.add_option(name='promptInfo', type='display', value='PROMPT:')
 dream_block.add_option(name='Prompt', type='input', value='')
 dream_block.add_option(name='Sampler', type='select', items=["ddim", "plms", "klms", "dpm2", "dpm2_ancestral", "heun", "euler", "euler_ancestral"], value='klms')
+
 dream_block.add_output(name='PromptOut')
 dream_block.add_output(name='ImageOut')
 dream_block.add_output(name='SeedOut')
 
 def dream_func(self):
-    st.session_state["generation_mode"] = "txt2img"
-    if self.get_interface(name='PromptIn') != None:
-        prompt = self.get_interface(name='PromptIn')
-    else:
-        prompt = self.get_option(name='Prompt')
+    if self.get_option(name='active') == True:
+        st.session_state["generation_mode"] = "txt2img"
+        if self.get_interface(name='PromptIn') != None:
+            prompt = self.get_interface(name='PromptIn')
+        else:
+            prompt = self.get_option(name='Prompt')
 
-    if self.get_interface(name='SeedIn') != None:
-        seed = self.get_interface(name='SeedIn')
-    else:
-        seed = self.get_option(name='Seed')
+        if self.get_interface(name='SeedIn') != None:
+            seed = self.get_interface(name='SeedIn')
+        else:
+            seed = self.get_option(name='Seed')
 
-    st.session_state["txt2img"]["seed"] = seed
-    st.session_state["txt2img"]["prompt"] = prompt
-    st.session_state["txt2img"]['sampler'] = self.get_option(name='Sampler')
-    st.session_state["txt2img"]["keyframes"] = None
+        st.session_state["txt2img"]["seed"] = seed
+        st.session_state["txt2img"]["prompt"] = prompt
+        st.session_state["txt2img"]['sampler'] = self.get_option(name='Sampler')
 
-    def_runner.run_txt2img()
-    self.set_interface(name='ImageOut', value=st.session_state["node_pipe"])
+        st.session_state["txt2img"]['steps'] = self.get_option(name='Steps')
+
+        st.session_state["txt2img"]['scale'] = self.get_option(name='CFGScale')
+
+        st.session_state["txt2img"]["keyframes"] = None
+
+        def_runner.run_txt2img()
+        self.set_interface(name='ImageOut', value=st.session_state["node_pipe"])
     self.set_interface(name='PromptOut', value=prompt)
     self.set_interface(name='SeedOut', value=seed)
 
@@ -715,7 +748,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 """
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block, list_out], 'test functions':[debug_block]}
 
 
 
