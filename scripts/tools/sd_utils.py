@@ -135,6 +135,8 @@ elif save_format[0] == 'webp':
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"] = str(st.session_state["defaults"].general.gpu)
 
+if "with_nodes" not in st.session_state:
+    st.session_state["with_nodes"] = False
 
 def torch_gc():
     gc.collect()
@@ -168,7 +170,6 @@ def img2img(prompt: str = '',
             random_seed_loopback: bool = False
             ):
     load_models()
-
     outpath = st.session_state['defaults'].general.outdir_img2img or st.session_state[
         'defaults'].general.outdir or "outputs/img2img-samples"
     # err = False
@@ -338,7 +339,7 @@ def img2img(prompt: str = '',
                                                                                                    'mask': z_mask,
                                                                                                    'x0': x0, 'xi': xi},
                                                                                        disable=False,
-                                                                                       callback=generation_callback)
+                                                                                       callback=None)
         else:
 
             x0, z_mask = init_data
