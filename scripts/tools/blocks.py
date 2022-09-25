@@ -9,12 +9,15 @@ from scripts.tools.sd_utils import img2img
 from scripts.tools.sd_utils import *
 from gfpgan import GFPGANer
 
+#import torchvision.transforms.functional as TF
+
+
 import PIL
 import torch
 def_runner = runner()
 
 #Open Image
-open_block = Block(name='Open Image')
+open_block = Block(name='open path')
 open_block.add_option(name='path', type='input')
 open_block.add_output(name='Image')
 def open_func(self):
@@ -23,7 +26,7 @@ def open_func(self):
 open_block.add_compute(open_func)
 
 
-save_block = Block(name='Save Image')
+save_block = Block(name='save to path')
 save_block.add_input(name='Image Input')
 save_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
 save_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}.png')
@@ -37,7 +40,7 @@ def save_func(self):
     self.set_interface(name='Path', value=path)
 save_block.add_compute(save_func)
 
-save_all_block = Block(name='Save All Images')
+save_all_block = Block(name='save cache to path')
 save_all_block.add_option(name='empty_memory', type='checkbox')
 save_all_block.add_option(name='path', type='input', value=st.session_state['defaults'].general.outdir)
 save_all_block.add_option(name='name', type='input', value=f'{str(random.randint(10000, 99999))}')
@@ -73,16 +76,11 @@ if 'currentImages' not in st.session_state:
     st.session_state['currentImages'] = []
 
 
-if st.session_state['currentImages'] != []:
-    print(st.session_state['currentImages'])
-    listIndexes = list.index(st.session_state["currentImages"])
-else:
-    listIndexes = ['no image yet']
 
 
 #Get list item
-list_out = Block(name='getListItem')
-list_out.add_option(name='images', type='select', items=listIndexes)
+list_out = Block(name='get image from cache')
+list_out.add_option(name='images', type='select', items=[''])
 list_out.add_option(name='index', type='integer', value=0)
 list_out.add_output(name='image')
 list_out.add_output(name='info')
@@ -95,7 +93,7 @@ list_out.add_compute(list_out_func)
 
 #SD Custom Blocks:
 #GFPGAN Block
-upscale_block = Block(name='GFPGAN')
+upscale_block = Block(name='gfpgan upscale')
 upscale_block.add_input(name='Input_Image')
 upscale_block.add_option(name='Upscale', type='integer', value=1)
 upscale_block.add_output(name='Restored_Img')
@@ -140,7 +138,7 @@ def img2img_runner():
 
 
 #img2img Block
-img2img_block = Block(name='img2img Node')
+img2img_block = Block(name='img2img node')
 img2img_block.add_input(name='2ImageIn')
 img2img_block.add_input(name='Var Amount')
 img2img_block.add_input(name='CFG Scale')
@@ -237,7 +235,7 @@ img2img_block.add_compute(img2img_func)
 
 #Dream Block - test
 #If an input is not connected, its value is none.
-dream_block = Block(name='Dream')
+dream_block = Block(name='txt2img node')
 dream_block.add_input(name='PromptIn')
 dream_block.add_input(name='SeedIn')
 dream_block.add_input(name='CFG ScaleIn')
@@ -286,7 +284,7 @@ def dream_func(self):
 dream_block.add_compute(dream_func)
 
 #Number Input
-num_block = Block(name='Int')
+num_block = Block(name='int')
 num_block.add_output(name='number')
 num_block.add_option(name='number', type='integer')
 def num_func(self):
@@ -295,7 +293,7 @@ num_block.add_compute(num_func)
 
 
 
-math_block = Block(name="Math")
+math_block = Block(name="math")
 math_block.add_input(name='X')
 math_block.add_input(name='Y')
 math_block.add_option(name='Option', type='select', items=['+', '-', '*', '/'], value='+')
@@ -315,7 +313,7 @@ math_block.add_compute(math_func)
 
 
 #Image Preview Block
-img_preview = Block(name='Image Preview')
+img_preview = Block(name='image cache/preview')
 img_preview.add_input(name='iimage')
 img_preview.add_output(name='image_out')
 def img_prev_func(self):
@@ -336,7 +334,7 @@ img_preview.add_compute(img_prev_func)
 #
 
 #Mandelbrot block
-mandel_block = Block(name='Mandelbrot')
+mandel_block = Block(name='mandelbrot')
 mandel_block.add_option(name='xa', type='slider', min=-2.5, max=2.5, value=-2)
 mandel_block.add_option(name='xb', type='slider', min=-2.5, max=2.5, value=1.0)
 mandel_block.add_option(name='ya', type='slider', min=-2.5, max=2.5, value=-1.5)
@@ -376,7 +374,7 @@ mandel_block.add_compute(mandel_func)
 
 
 #Random Julia fractal block
-julia_block = Block(name='Julia Fractal')
+julia_block = Block(name='julia fractal')
 julia_block.add_output(name='julia')
 def julia_func(self):
     # Julia fractal
@@ -414,7 +412,7 @@ julia_block.add_compute(julia_func)
 def blend_img(im1, im2, alpha):
     bimg = PIL.Image.blend(im1, im2, alpha)
     return bimg
-blend_block = Block(name='Blend')
+blend_block = Block(name='blend')
 blend_block.add_input(name='bImage_1')
 blend_block.add_input(name='bImage_2')
 blend_block.add_option(name='alpha', type='slider', min=0, max=1, value=0.5)
@@ -427,9 +425,31 @@ def blend_func(self):
     self.set_interface(name='blend_ImageOut', value=bimg)
 blend_block.add_compute(blend_func)
 
-#Invert Block
+#Adjust Block
 
-invert_block = Block(name='Invert Image')
+adj_block = Block(name='adjust image')
+adj_block.add_input(name='image')
+adj_block.add_option(name='brightness', type='slider', min=0, max=10, value=1)
+adj_block.add_option(name='contrast', type='slider', min=0, max=10, value=1)
+adj_block.add_option(name='sharpness', type='slider', min=0, max=10, value=1)
+adj_block.add_output(name='adjImage')
+def adjust_func(self):
+    im = self.get_interface(name='image')
+    enhancer = PIL.ImageEnhance.Contrast(im)
+    factor = self.get_option(name='contrast') #gives original image
+    im_output = enhancer.enhance(factor)
+    enhancer = PIL.ImageEnhance.Brightness(im_output)
+    factor = self.get_option(name='brightness') #gives original image
+    im_output = enhancer.enhance(factor)
+    enhancer = PIL.ImageEnhance.Sharpness(im_output)
+    factor = self.get_option(name='sharpness') #gives original image
+    im_output = enhancer.enhance(factor)
+    self.set_interface(name='adjImage', value=im_output)
+adj_block.add_compute(adjust_func)
+
+
+#Invert Block
+invert_block = Block(name='invert image')
 invert_block.add_input(name='iImage_1')
 invert_block.add_output(name='invert_ImageOut')
 def invert_func(self):
@@ -440,7 +460,7 @@ invert_block.add_compute(invert_func)
 
 
 #Image Filter
-gaussian_block = Block(name='Gaussian Blur')
+gaussian_block = Block(name='gaussian blur')
 gaussian_block.add_input(name='Input')
 gaussian_block.add_option(name='Radius', type='integer', value=2)
 gaussian_block.add_output(name='Output')
@@ -455,7 +475,7 @@ gaussian_block.add_compute(gaussian_func)
 
 
 #Convert Block
-imgfilter_block = Block(name='Basic Filters')
+imgfilter_block = Block(name='basic filters')
 imgfilter_block.add_input(name='Input')
 imgfilter_block.add_option(name='Mode', type='select', items=["BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE"], value="BLUR")
 imgfilter_block.add_output(name='Output')
@@ -486,7 +506,7 @@ imgfilter_block.add_compute(imgfilter_func)
 
 
 #Convert Block
-convert_block = Block(name='Greyscale')
+convert_block = Block(name='greyscale')
 convert_block.add_input(name='Input')
 convert_block.add_option(name='Mode', type='select', items=["L", "P", "RGB", "RGBA", "CMYK"], value='P')
 convert_block.add_output(name='Output')
@@ -502,7 +522,7 @@ convert_block.add_compute(convert_func)
 
 
 #Debug Block
-debug_block = Block(name='Debug')
+debug_block = Block(name='debug')
 debug_block.add_input(name='Input')
 debug_block.add_output(name='Output')
 def debug_func(self):
@@ -514,7 +534,7 @@ debug_block.add_compute(debug_func)
 
 
 #Duplicator_Block
-dup_block = Block(name='Duplicate')
+dup_block = Block(name='duplicate')
 dup_block.add_input(name='Input')
 dup_block.add_output(name='Output-1')
 dup_block.add_output(name='Output-2')
@@ -748,7 +768,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 """
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block, list_out], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, adj_block, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block, list_out], 'test functions':[debug_block]}
 
 
 
