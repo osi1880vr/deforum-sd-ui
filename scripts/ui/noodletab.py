@@ -26,12 +26,13 @@ except:
 
 class PluginInfo():
     plugname = "noodle"
-    description = "Noodle"
+    description = "aiNodes"
     isTab = True
-    displayPriority = 5
+    displayPriority = 1
 
-
-
+helpText = """Images fed into a Preview Node"""
+helpText2 = """will exist in memory, and can"""
+helpText3 = """be accessed with the getListItem tool."""
 def layoutFunc():
 
     st.session_state["with_nodes"] = True
@@ -40,22 +41,23 @@ def layoutFunc():
         st.session_state['v'] = 3
 
     #with st.form("Nodes"):
-    col1, col2 = st.columns([7,3], gap="small")
+    col1, col2, col3 = st.columns([6,2,1], gap="small")
     #    refresh_btn = col1.form_submit_button("Run node sequence")
+    with st.sidebar:
+        st.write(helpText)
+        st.write(helpText2)
+        st.write(helpText3)
 
+        load_schema = st.selectbox('Select a saved schema:', barfi_schemas())
+        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
     with col1:
 
 
-        load_schema = st.selectbox('Select a saved schema:', barfi_schemas())
-
-        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
         if compute_engine:
             barfi_result = st_barfi(base_blocks=default_blocks_category,
                                     compute_engine=compute_engine,
                                     load_schema=load_schema)
-        [st.write(index) for index in st.session_state['currentImages']]
     with col2:
-
         placeholder = st.empty()
 
         #populate the 3 images per column
@@ -67,16 +69,44 @@ def layoutFunc():
 
 
             #print (len(st.session_state['latestImages']))
-            images = list(reversed(st.session_state['currentImages']))
+            if 'currentImages' in st.session_state:
+                images = list(reversed(st.session_state['currentImages']))
 
-            with col_cont:
-                #st.session_state["node_preview_image"] = st.empty()
-                #if "node_preview_img_object" in st.session_state:
-                #    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
+                with col_cont:
+                    #st.session_state["node_preview_image"] = st.empty()
+                    #if "node_preview_img_object" in st.session_state:
+                    #    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
 
-                [st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
+                    #[st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
+                    [st.image(image) for image in images]
+
+    with col3:
 
 
+        if 'currentImages' in st.session_state:
+            a = 0
+            indexList = []
+            for i in st.session_state['currentImages']:
+
+                indexList.append("_")
+                indexList.append("_")
+                indexList.append("_")
+                indexList.append("_")
+                indexList.append("_")
+                indexList.append("_")
+                indexList.append("_")
+                indexList.append("")
+                indexList.append("")
+
+                indexList.append((i.mode))
+                indexList.append(i.size)
+                indexList.append(f'Image Index: [ {a} ]')
+
+
+
+                a = a + 1
+            indexList = reversed(indexList)
+            [st.write(index) for index in indexList]
 
         #print(barfi_result['Feed-1']['block'].get_interface(name='Output 1'))
         #st.write(barfi_result['Integer-1']['block'].get_interface(name='Output 1'))

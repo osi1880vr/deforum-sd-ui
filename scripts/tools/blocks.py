@@ -7,14 +7,63 @@ import cv2
 from scripts.tools.modelloader import load_models
 from scripts.tools.sd_utils import img2img
 from scripts.tools.sd_utils import *
+from scripts.tools.nsp.nsp_pantry import parser
+
 from gfpgan import GFPGANer
 
-#import torchvision.transforms.functional as TF
+import torchvision.transforms.functional as TF
+import torchvision.transforms as T
+from torchvision.utils import make_grid
 
+import matplotlib.pyplot as plt
 
 import PIL
 import torch
 def_runner = runner()
+
+#Noodle Prompt emitter node
+
+def fig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = PIL.Image.open(buf)
+    return img
+
+def img_reshape(img):
+    #img = Image.open('./images/'+img).convert('RGB')
+    #img = img.resize((300,300))
+    img = np.asarray(img)
+    return img
+
+def image_grid(array, ncols=4):
+    index, height, width, channels = array.shape
+    nrows = index//ncols
+
+    img_grid = (array.reshape(nrows, ncols, height, width, channels)
+                .swapaxes(1,2)
+                .reshape(height*nrows, width*ncols))
+
+    return img_grid
+
+
+
+grid_block = Block(name='grid')
+grid_block.add_input(name='trigger')
+grid_block.add_output('grid')
+def grid_block_func(self):
+    all_images = []
+    for image in st.session_state["currentImages"]:
+        all_images.append(T.functional.pil_to_tensor(image))
+    grid = make_grid(all_images, nrow=int(len(all_images) / 4))
+    grid = rearrange(grid, 'c h w -> h w c').cpu().numpy()
+    grid_image = Image.fromarray(grid.astype(np.uint8))
+    self.set_interface(name='grid', value=grid_image)
+
+
+grid_block.add_compute(grid_block_func)
 
 #Open Image
 open_block = Block(name='open path')
@@ -195,13 +244,15 @@ def img2img_func(self):
     print(init_img)
     if isinstance(init_img, list):
         init_img = init_img[0]
-
+    print("ok")
     init_img = init_img.convert('RGBA')
+    print("ok")
+
     output_images, seed, info, stats = img2img(prompt = prompt2,
                                                init_info = init_img,
                                                init_info_mask = None,
                                                mask_mode = 0,
-                                               mask_blur_strength = 3,
+                                               mask_blur_strength = 0,
                                                mask_restore = False,
                                                ddim_steps = steps,
                                                sampler_name = samplern,
@@ -218,9 +269,8 @@ def img2img_func(self):
                                                variant_amount = var_amount, variant_seed = seed - 1, ddim_eta = 0.0,
                                                write_info_files = False, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
                                                separate_prompts = False, normalize_prompt_weights = False,
-                                               save_individual_images = True, save_grid = False, group_by_prompt = True,
-                                               save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = False,
-                                               random_seed_loopback = False
+                                               save_individual_images = True, save_grid = False, group_by_prompt = False,
+                                               save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = True
                                                )
     self.set_interface(name='2Image', value=output_images[0])
     self.set_interface(name='Var AmountOut', value=var_amount)
@@ -524,9 +574,11 @@ convert_block.add_compute(convert_func)
 #Debug Block
 debug_block = Block(name='debug')
 debug_block.add_input(name='Input')
+debug_block.add_option(name='Test', type='display', value='init')
 debug_block.add_output(name='Output')
 def debug_func(self):
     data = self.get_interface(name='Input')
+    self.set_interface(name='Test', value='Success')
     self.set_interface(name='Output', value=data)
     print(f'Input Type: {type(data)}')
     print(f'Input Content: {data}')
@@ -768,7 +820,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 """
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions':[img_preview, adj_block, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block, list_out], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions': [img_preview, adj_block, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block, grid_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block, list_out], 'test functions':[debug_block]}
 
 
 
