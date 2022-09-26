@@ -247,38 +247,41 @@ def img2img_func(self):
     print("ok")
     init_img = init_img.convert('RGBA')
     print("ok")
-
-    output_images, seed, info, stats = img2img(prompt = prompt2,
-                                               init_info = init_img,
-                                               init_info_mask = None,
-                                               mask_mode = 0,
-                                               mask_blur_strength = 0,
-                                               mask_restore = False,
-                                               ddim_steps = steps,
-                                               sampler_name = samplern,
-                                               n_iter = 1,
-                                               cfg_scale = cfg_scale,
-                                               denoising_strength = 0.8,
-                                               seed = seed,
-                                               noise_mode = 0,
-                                               find_noise_steps = 100,
-                                               height = 512,
-                                               width = 512,
-                                               resize_mode = 0,
-                                               fp="./outputs",
-                                               variant_amount = var_amount, variant_seed = seed - 1, ddim_eta = 0.0,
-                                               write_info_files = False, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
-                                               separate_prompts = False, normalize_prompt_weights = False,
-                                               save_individual_images = True, save_grid = False, group_by_prompt = False,
-                                               save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = True
-                                               )
-    self.set_interface(name='2Image', value=output_images[0])
-    self.set_interface(name='Var AmountOut', value=var_amount)
-    self.set_interface(name='CFG ScaleOut', value=cfg_scale)
-    self.set_interface(name='StepsOut', value=steps)
-    self.set_interface(name='SamplerOut', value=samplern)
-    self.set_interface(name='SeedOut', value=seed)
-    self.set_interface(name='PromptOut', value=prompt2)
+    try:
+        output_images, seed, info, stats = img2img(prompt = prompt2,
+                                                   init_info = init_img,
+                                                   init_info_mask = None,
+                                                   mask_mode = 0,
+                                                   mask_blur_strength = 0,
+                                                   mask_restore = False,
+                                                   ddim_steps = steps,
+                                                   sampler_name = samplern,
+                                                   n_iter = 1,
+                                                   cfg_scale = cfg_scale,
+                                                   denoising_strength = 0.8,
+                                                   seed = seed,
+                                                   noise_mode = 0,
+                                                   find_noise_steps = 100,
+                                                   height = 512,
+                                                   width = 512,
+                                                   resize_mode = 0,
+                                                   fp="./outputs",
+                                                   variant_amount = var_amount, variant_seed = seed - 1, ddim_eta = 0.0,
+                                                   write_info_files = False, RealESRGAN_model = "RealESRGAN_x4plus_anime_6B",
+                                                   separate_prompts = False, normalize_prompt_weights = False,
+                                                   save_individual_images = True, save_grid = False, group_by_prompt = False,
+                                                   save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = True
+                                                   )
+    except (StopException) as e:
+        print(e)
+        print(f"Received Streamlit StopException")
+self.set_interface(name='2Image', value=output_images[0])
+self.set_interface(name='Var AmountOut', value=var_amount)
+self.set_interface(name='CFG ScaleOut', value=cfg_scale)
+self.set_interface(name='StepsOut', value=steps)
+self.set_interface(name='SamplerOut', value=samplern)
+self.set_interface(name='SeedOut', value=seed)
+self.set_interface(name='PromptOut', value=prompt2)
 img2img_block.add_compute(img2img_func)
 
 

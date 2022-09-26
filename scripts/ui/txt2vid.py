@@ -298,4 +298,9 @@ def layoutFunc():
 		if generate_button:
 			st.session_state["txt2vid"]["iterations"] = 1
 			st.session_state["txt2vid"]["batch_size"] = 1
+		try:
 			def_runner.run_batch()
+		except (StopException, KeyError) as e:
+			print(e)
+			print(f"Received Streamlit StopException")
+

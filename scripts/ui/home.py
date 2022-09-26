@@ -28,7 +28,7 @@ except:
 class PluginInfo():
 	plugname = "home"
 	description = "Home"
-	isTab = True
+	isTab = False
 	displayPriority = 0
 
 
