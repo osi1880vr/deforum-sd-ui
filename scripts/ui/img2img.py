@@ -260,11 +260,11 @@ def layoutFunc():
 
 
 
-		# if uploaded_images:
-		# image = Image.open(uploaded_images).convert('RGB')
-		##img_array = np.array(image) # if you want to pass it to OpenCV
-		# new_img = image.resize((width, height))
-		# st.image(new_img, use_column_width=True)
+	# if uploaded_images:
+	# image = Image.open(uploaded_images).convert('RGB')
+	##img_array = np.array(image) # if you want to pass it to OpenCV
+	# new_img = image.resize((width, height))
+	# st.image(new_img, use_column_width=True)
 
 	if generate_button:
 		# print("Loading models")
@@ -322,8 +322,8 @@ def layoutFunc():
 				print(e)
 				print(f"Received Streamlit StopException")
 
-	# this will render all the images at the end of the generation but its better if its moved to a second tab inside col2 and shown as a gallery.
-	# use the current col2 first tab to show the preview_img and update it as its generated.
-	# preview_image.image(output_images, width=750)
+# this will render all the images at the end of the generation but its better if its moved to a second tab inside col2 and shown as a gallery.
+# use the current col2 first tab to show the preview_img and update it as its generated.
+# preview_image.image(output_images, width=750)
 
-	# on import run init
+# on import run init

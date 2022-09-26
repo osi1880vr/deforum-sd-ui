@@ -3,7 +3,7 @@ from webui_streamlit import st
 import os, sys, re, random, datetime, time, math, gc
 
 # streamlit imports
-
+from streamlit import StopException
 
 # other imports
 import platform
