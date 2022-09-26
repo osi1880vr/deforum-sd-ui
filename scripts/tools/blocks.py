@@ -275,13 +275,13 @@ def img2img_func(self):
     except (StopException) as e:
         print(e)
         print(f"Received Streamlit StopException")
-self.set_interface(name='2Image', value=output_images[0])
-self.set_interface(name='Var AmountOut', value=var_amount)
-self.set_interface(name='CFG ScaleOut', value=cfg_scale)
-self.set_interface(name='StepsOut', value=steps)
-self.set_interface(name='SamplerOut', value=samplern)
-self.set_interface(name='SeedOut', value=seed)
-self.set_interface(name='PromptOut', value=prompt2)
+    self.set_interface(name='2Image', value=output_images[0])
+    self.set_interface(name='Var AmountOut', value=var_amount)
+    self.set_interface(name='CFG ScaleOut', value=cfg_scale)
+    self.set_interface(name='StepsOut', value=steps)
+    self.set_interface(name='SamplerOut', value=samplern)
+    self.set_interface(name='SeedOut', value=seed)
+    self.set_interface(name='PromptOut', value=prompt2)
 img2img_block.add_compute(img2img_func)
 
 
