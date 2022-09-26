@@ -51,7 +51,7 @@ class DDIMSampler(object):
         self.register_buffer('ddim_sqrt_one_minus_alphas', np.sqrt(1. - ddim_alphas))
         sigmas_for_original_sampling_steps = ddim_eta * torch.sqrt(
             (1 - self.alphas_cumprod_prev) / (1 - self.alphas_cumprod) * (
-                        1 - self.alphas_cumprod / self.alphas_cumprod_prev))
+                    1 - self.alphas_cumprod / self.alphas_cumprod_prev))
         self.register_buffer('ddim_sigmas_for_original_num_steps', sigmas_for_original_sampling_steps)
 
     @torch.no_grad()
@@ -127,6 +127,8 @@ class DDIMSampler(object):
         if x_T is None:
             img = torch.randn(shape, device=device)
         else:
+
+
             img = x_T
 
         if timesteps is None:
@@ -149,8 +151,9 @@ class DDIMSampler(object):
             if mask is not None:
                 assert x0 is not None
                 img_orig = self.model.q_sample(x0, ts)  # TODO: deterministic forward pass?
-                img = img_orig * mask + (1. - mask) * img
-
+                #img = img_orig * mask + (1. - mask) * img
+                tmp_mask = (mask > (1 - (step / 1000))) * 1
+                img = img_orig_with_noise * tmp_mask + (1. - tmp_mask) * img
             outs = self.p_sample_ddim(img, cond, ts, index=index, use_original_steps=ddim_use_original_steps,
                                       quantize_denoised=quantize_denoised, temperature=temperature,
                                       noise_dropout=noise_dropout, score_corrector=score_corrector,
@@ -190,8 +193,8 @@ class DDIMSampler(object):
                             c[k][i]]) for i in range(len(c[k]))]
                     else:
                         c_in[k] = torch.cat([
-                                unconditional_conditioning[k],
-                                c[k]])
+                            unconditional_conditioning[k],
+                            c[k]])
             else:
                 c_in = torch.cat([unconditional_conditioning, c])
             e_t_uncond, e_t = self.model.apply_model(x_in, t_in, c_in).chunk(2)
@@ -291,25 +294,25 @@ class DDIMSampler(object):
 
     @torch.no_grad()
     def decode(self, x_latent, cond, t_start, unconditional_guidance_scale=1.0, unconditional_conditioning=None,
-                  use_original_steps=False, img_callback=None):
+               use_original_steps=False, img_callback=None):
 
-            timesteps = np.arange(self.ddpm_num_timesteps) if use_original_steps else self.ddim_timesteps
-            timesteps = timesteps[:t_start]
+        timesteps = np.arange(self.ddpm_num_timesteps) if use_original_steps else self.ddim_timesteps
+        timesteps = timesteps[:t_start]
 
-            time_range = np.flip(timesteps)
-            total_steps = timesteps.shape[0]
-            print(f"Running DDIM Sampling with {total_steps} timesteps")
+        time_range = np.flip(timesteps)
+        total_steps = timesteps.shape[0]
+        print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-            iterator = tqdm(time_range, desc='Decoding image', total=total_steps)
-            x_dec = x_latent
-            for i, step in enumerate(iterator):
-                index = total_steps - i - 1
+        iterator = tqdm(time_range, desc='Decoding image', total=total_steps)
+        x_dec = x_latent
+        for i, step in enumerate(iterator):
+            index = total_steps - i - 1
 
-                ts = torch.full((x_latent.shape[0],), step, device=x_latent.device, dtype=torch.long)
-                x_dec, _ = self.p_sample_ddim(x_dec, cond, ts, index=index, use_original_steps=use_original_steps,
-                                              unconditional_guidance_scale=unconditional_guidance_scale,
-                                              unconditional_conditioning=unconditional_conditioning)
+            ts = torch.full((x_latent.shape[0],), step, device=x_latent.device, dtype=torch.long)
+            x_dec, _ = self.p_sample_ddim(x_dec, cond, ts, index=index, use_original_steps=use_original_steps,
+                                          unconditional_guidance_scale=unconditional_guidance_scale,
+                                          unconditional_conditioning=unconditional_conditioning)
 
-                if img_callback: img_callback(x_dec, i)
+            if img_callback: img_callback(x_dec, i)
 
-            return x_dec
+        return x_dec

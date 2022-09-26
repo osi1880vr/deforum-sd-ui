@@ -39,7 +39,7 @@ class PluginInfo():
 	plugname = "txt2img"
 	description = "Text to Image"
 	isTab = True
-	displayPriority = 2
+	displayPriority = 0
 
 
 if os.path.exists(os.path.join(st.session_state['defaults'].general.GFPGAN_dir, "GFPGANv1.3.pth")):
@@ -216,7 +216,7 @@ def layoutFunc():
 				if GFPGAN_available:
 					st.session_state["use_GFPGAN"] = st.checkbox("Use GFPGAN", value=st.session_state[
 						'defaults'].txt2img.use_GFPGAN,
-																			help="Uses the GFPGAN model to improve faces after the generation. This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
+																 help="Uses the GFPGAN model to improve faces after the generation. This greatly improve the quality and consistency of faces but uses extra VRAM. Disable if you need the extra VRAM.")
 				else:
 					st.session_state["use_GFPGAN"] = False
 
@@ -275,11 +275,11 @@ def layoutFunc():
 				st.session_state["txt2img"]["seed"] = st.text_input("Seed:",
 																	value=st.session_state['defaults'].txt2img.seed,
 																	help=" The seed to use, if left blank a random seed will be generated.")
-			# basic_tab, advanced_tab = st.tabs(["Basic", "Advanced"])
+		# basic_tab, advanced_tab = st.tabs(["Basic", "Advanced"])
 
-			# with basic_tab:
-			# summit_on_enter = st.radio("Submit on enter?", ("Yes", "No"), horizontal=True,
-			# help="Press the Enter key to summit, when 'No' is selected you can use the Enter key to write multiple lines.")
+		# with basic_tab:
+		# summit_on_enter = st.radio("Submit on enter?", ("Yes", "No"), horizontal=True,
+		# help="Press the Enter key to summit, when 'No' is selected you can use the Enter key to write multiple lines.")
 
 
 
@@ -287,8 +287,12 @@ def layoutFunc():
 		if generate_button:
 
 			st.session_state["txt2img"]["keyframes"] = None
+			try:
+				def_runner.run_txt2img()
+			except (StopException) as e:
+				print(e)
+				print(f"Received Streamlit StopException")
 
-			def_runner.run_txt2img()
 
 
 # on import run init

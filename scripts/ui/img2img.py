@@ -244,9 +244,10 @@ def layoutFunc():
 							st.text("Masked Image Preview")
 							st.image(final_img)
 
-			with result_tab:
 
-				# create an empty container for the image, progress bar, etc so we can update it later and use session_state to hold them globally.
+
+			# create an empty container for the image, progress bar, etc so we can update it later and use session_state to hold them globally.
+			with col3_img2img_layout:
 				preview_image = st.empty()
 				st.session_state["img2img"]["preview_image"] = preview_image
 
@@ -256,8 +257,7 @@ def layoutFunc():
 				st.session_state["img2img"]["progress_bar"] = st.empty()
 
 				message = st.empty()
-			with col3_img2img_layout:
-				pass
+
 
 
 		# if uploaded_images:
@@ -266,64 +266,64 @@ def layoutFunc():
 		# new_img = image.resize((width, height))
 		# st.image(new_img, use_column_width=True)
 
-		if generate_button:
-			# print("Loading models")
-			# load the models when we hit the generate button for the first time, it wont be loaded after that so dont worry.
+	if generate_button:
+		# print("Loading models")
+		# load the models when we hit the generate button for the first time, it wont be loaded after that so dont worry.
 
-			st.session_state["img2img"]["init_info"] = None
-			st.session_state[st.session_state['generation_mode']]['prompt_matrix'] = None
+		st.session_state["img2img"]["init_info"] = None
+		st.session_state[st.session_state['generation_mode']]['prompt_matrix'] = None
 
-			if uploaded_images:
-				image = Image.open(uploaded_images).convert('RGBA')
-				st.session_state["img2img"]["new_img"] = image.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
-				# img_array = np.array(image) # if you want to pass it to OpenCV
-				new_mask = None
-				if st.session_state["img2img"]["uploaded_masks"]:
-					mask = Image.open(st.session_state["img2img"]["uploaded_masks"]).convert('RGBA')
-					new_mask = mask.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
+		if uploaded_images:
+			image = Image.open(uploaded_images).convert('RGBA')
+			st.session_state["img2img"]["new_img"] = image.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
+			# img_array = np.array(image) # if you want to pass it to OpenCV
+			new_mask = None
+			if st.session_state["img2img"]["uploaded_masks"]:
+				mask = Image.open(st.session_state["img2img"]["uploaded_masks"]).convert('RGBA')
+				new_mask = mask.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
 
-				try:
-					output_images, seed, info, stats = img2img(prompt=st.session_state["img2img"]["prompt"],
-															   init_info=st.session_state["img2img"]["new_img"],
-															   init_info_mask=new_mask,
-															   mask_mode=st.session_state["img2img"]["mask_mode"],
-															   mask_restore=st.session_state["img2img"]["img2img_mask_restore"],
-															   ddim_steps=st.session_state["img2img"]["steps"],
-															   sampler_name=st.session_state["img2img"]["sampler_name"],
-															   n_iter=st.session_state["img2img"]["batch_count"],
-															   cfg_scale=st.session_state["img2img"]["cfg_scale"],
-															   denoising_strength=st.session_state["img2img"]["denoising_strength"],
-															   variant_seed=st.session_state["img2img"]["variant_seed"],
-															   seed=st.session_state["img2img"]["seed"],
-															   noise_mode=st.session_state["img2img"]["noise_mode"],
-															   find_noise_steps=st.session_state["img2img"]["find_noise_steps"],
-															   width=st.session_state["img2img"]["width"],
-															   height=st.session_state["img2img"]["height"],
-															   fp=st.session_state['defaults'].general.fp,
-															   variant_amount=st.session_state["img2img"]["variant_amount"],
-															   ddim_eta=0.0,
-															   write_info_files=st.session_state["img2img"]["write_info_files"],
-															   RealESRGAN_model=st.session_state["RealESRGAN_model"],
-															   separate_prompts=st.session_state["img2img"]["separate_prompts"],
-															   normalize_prompt_weights=st.session_state["img2img"]["normalize_prompt_weights"],
-															   save_individual_images=st.session_state["img2img"]["save_individual_images"],
-															   save_grid=st.session_state["img2img"]["save_grid"],
-															   group_by_prompt=st.session_state["img2img"]["group_by_prompt"],
-															   save_as_jpg=st.session_state["img2img"]["save_as_jpg"],
-															   use_GFPGAN=st.session_state["img2img"]["use_GFPGAN"],
-															   use_RealESRGAN=st.session_state["img2img"]["use_RealESRGAN"] if not st.session_state["img2img"]["loopback"] else False,
-															   loopback=st.session_state["img2img"]["loopback"]
-															   )
+			try:
+				output_images, seed, info, stats = img2img(prompt=st.session_state["img2img"]["prompt"],
+														   init_info=st.session_state["img2img"]["new_img"],
+														   init_info_mask=new_mask,
+														   mask_mode=st.session_state["img2img"]["mask_mode"],
+														   mask_restore=st.session_state["img2img"]["img2img_mask_restore"],
+														   ddim_steps=st.session_state["img2img"]["steps"],
+														   sampler_name=st.session_state["img2img"]["sampler_name"],
+														   n_iter=st.session_state["img2img"]["batch_count"],
+														   cfg_scale=st.session_state["img2img"]["cfg_scale"],
+														   denoising_strength=st.session_state["img2img"]["denoising_strength"],
+														   variant_seed=st.session_state["img2img"]["variant_seed"],
+														   seed=st.session_state["img2img"]["seed"],
+														   noise_mode=st.session_state["img2img"]["noise_mode"],
+														   find_noise_steps=st.session_state["img2img"]["find_noise_steps"],
+														   width=st.session_state["img2img"]["width"],
+														   height=st.session_state["img2img"]["height"],
+														   fp=st.session_state['defaults'].general.fp,
+														   variant_amount=st.session_state["img2img"]["variant_amount"],
+														   ddim_eta=0.0,
+														   write_info_files=st.session_state["img2img"]["write_info_files"],
+														   RealESRGAN_model=st.session_state["RealESRGAN_model"],
+														   separate_prompts=st.session_state["img2img"]["separate_prompts"],
+														   normalize_prompt_weights=st.session_state["img2img"]["normalize_prompt_weights"],
+														   save_individual_images=st.session_state["img2img"]["save_individual_images"],
+														   save_grid=st.session_state["img2img"]["save_grid"],
+														   group_by_prompt=st.session_state["img2img"]["group_by_prompt"],
+														   save_as_jpg=st.session_state["img2img"]["save_as_jpg"],
+														   use_GFPGAN=st.session_state["img2img"]["use_GFPGAN"],
+														   use_RealESRGAN=st.session_state["img2img"]["use_RealESRGAN"] if not st.session_state["img2img"]["loopback"] else False,
+														   loopback=st.session_state["img2img"]["loopback"]
+														   )
 
-					# show a message when the generation is complete.
-					message.success('Render Complete: ' + info + '; Stats: ' + stats, icon="✅")
+				# show a message when the generation is complete.
+				message.success('Render Complete: ' + info + '; Stats: ' + stats, icon="✅")
 
-				except (StopException, KeyError) as e:
-					print(e)
-					print(f"Received Streamlit StopException")
+			except (StopException, KeyError) as e:
+				print(e)
+				print(f"Received Streamlit StopException")
 
 	# this will render all the images at the end of the generation but its better if its moved to a second tab inside col2 and shown as a gallery.
 	# use the current col2 first tab to show the preview_img and update it as its generated.
-# preview_image.image(output_images, width=750)
+	# preview_image.image(output_images, width=750)
 
-# on import run init
+	# on import run init

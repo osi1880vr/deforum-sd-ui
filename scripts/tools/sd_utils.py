@@ -481,7 +481,8 @@ def img2img(prompt: str = '',
         )
 
     del sampler
-
+    print(output_images)
+    st.session_state["img2img"]["preview_image"] = st.image(output_images[0])
     return output_images, seed, info, stats
 
 
