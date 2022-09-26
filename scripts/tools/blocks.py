@@ -8,6 +8,7 @@ from scripts.tools.modelloader import load_models
 from scripts.tools.sd_utils import img2img
 from scripts.tools.sd_utils import *
 from scripts.tools.nsp.nsp_pantry import parser
+from scripts.tools.node_func import *
 
 from gfpgan import GFPGANer
 
@@ -48,6 +49,17 @@ def image_grid(array, ncols=4):
 
     return img_grid
 
+def var_runner(img):
+    outputimgs = variations(img, outdir='output', var_samples=4, var_plms='k_lms', v_cfg_scale=7.5, v_steps=20, v_W=512, v_H=512, v_ddim_eta=0, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
+    return outputimgs
+var_block = Block(name='Variations')
+var_block.add_input(name='image')
+var_block.add_output(name='variations')
+def var_func(self):
+    img = self.get_interface(name='image')
+    outputimgs = var_runner(img)
+    self.set_interface(name='variations', value=outputimgs)
+var_block.add_compute(var_func)
 
 
 grid_block = Block(name='grid')
@@ -375,7 +387,11 @@ def img_prev_func(self):
         #st.session_state["node_preview_img_object"] = iimg
         if "currentImages" not in st.session_state:
             st.session_state["currentImages"] = []
-        st.session_state["currentImages"].append(iimg)
+        if isinstance(iimg, list):
+            for i in iimg:
+                st.session_state["currentImages"].append(i)
+        else:
+            st.session_state["currentImages"].append(iimg)
         self.set_interface(name='image_out', value=iimg)
     #return st.session_state["node_preview_image"]
 img_preview.add_compute(img_prev_func)
@@ -822,7 +838,7 @@ def integer_block_func(self):
 integer_block.add_compute(integer_block_func)
 """
 
-default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block], 'image functions': [img_preview, adj_block, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block, grid_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block, list_out], 'test functions':[debug_block]}
+default_blocks_category = {'generators': [dream_block, img2img_block, mandel_block, julia_block, var_block], 'image functions': [img_preview, adj_block, upscale_block, convert_block, blend_block, invert_block, gaussian_block, imgfilter_block, grid_block], 'math':[num_block, math_block], 'file':[open_block, save_block, save_all_block, list_out], 'test functions':[debug_block]}
 
 
 

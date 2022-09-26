@@ -4,12 +4,13 @@ from scripts.tools.sd_utils import *
 
 # streamlit imports
 from streamlit import StopException
+from scripts.tools.node_func import *
 
 from PIL import Image, ImageOps
 
 #from scripts.tools.img2img import img2img
 
-# Temp imports 
+# Temp imports
 
 
 # end of imports
@@ -56,7 +57,7 @@ def layoutFunc():
 		col1_img2img_layout, col2_img2img_layout, col3_img2img_layout = st.columns([1, 2, 2], gap="small")
 
 		with col1_img2img_layout:
-			# If we have custom models available on the "models/custom" 
+			# If we have custom models available on the "models/custom"
 			# folder then we show a menu to select which model we want to use, otherwise we use the main model for SD
 			"""
       if st.session_state["CustomModel_available"]:
@@ -283,6 +284,8 @@ def layoutFunc():
 				new_mask = mask.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
 
 			try:
+				output_imgs = variations(img, outdir='output', var_samples=4, var_plms='k_lms', v_cfg_scale=7.5, v_steps=20, v_W=512, v_H=512, v_ddim_eta=0, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
+				"""
 				output_images, seed, info, stats = img2img(prompt=st.session_state["img2img"]["prompt"],
 														   init_info=st.session_state["img2img"]["new_img"],
 														   init_info_mask=new_mask,
@@ -314,16 +317,16 @@ def layoutFunc():
 														   use_RealESRGAN=st.session_state["img2img"]["use_RealESRGAN"] if not st.session_state["img2img"]["loopback"] else False,
 														   loopback=st.session_state["img2img"]["loopback"]
 														   )
-
+										
 				# show a message when the generation is complete.
 				message.success('Render Complete: ' + info + '; Stats: ' + stats, icon="✅")
-
+				"""
 			except (StopException, KeyError) as e:
 				print(e)
 				print(f"Received Streamlit StopException")
 
-# this will render all the images at the end of the generation but its better if its moved to a second tab inside col2 and shown as a gallery.
-# use the current col2 first tab to show the preview_img and update it as its generated.
-# preview_image.image(output_images, width=750)
+			# this will render all the images at the end of the generation but its better if its moved to a second tab inside col2 and shown as a gallery.
+			# use the current col2 first tab to show the preview_img and update it as its generated.
+			# preview_image.image(output_images, width=750)
 
-# on import run init
+			# on import run init

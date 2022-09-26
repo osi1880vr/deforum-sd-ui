@@ -6,7 +6,7 @@ from scripts.tools.deforum_runner import runner
 from scripts.tools.nsp.nsp_pantry import parser
 
 # streamlit imports
-from streamlit import StopException
+#from streamlit import StopException
 #from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
 from streamlit.elements import image as STImage
 
@@ -294,13 +294,9 @@ def layoutFunc():
 				st.session_state["txt2vid"]["resume_from_timestring"] = st.checkbox('Resume From Timestring', value=False)
 				st.session_state["txt2vid"]["resume_timestring"] = st.text_input("Resume Timestring:", value=st.session_state[
 					'defaults'].txt2vid.resume_timestring, help="Some Video Path")
+				st.session_state["txt2vid"]["iterations"] = 1
+				st.session_state["txt2vid"]["batch_size"] = 1
+				if generate_button:
 
-		if generate_button:
-			st.session_state["txt2vid"]["iterations"] = 1
-			st.session_state["txt2vid"]["batch_size"] = 1
-		try:
-			def_runner.run_batch()
-		except (StopException, KeyError) as e:
-			print(e)
-			print(f"Received Streamlit StopException")
 
+					def_runner.run_batch()

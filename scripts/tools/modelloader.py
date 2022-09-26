@@ -137,7 +137,8 @@ def load_models(continue_prev_run=False, use_GFPGAN=False, use_RealESRGAN=False,
 	else:
 		if "RealESRGAN" in st.session_state:
 			del st.session_state["RealESRGAN"]
-
+	if "model_var" in st.session_state:
+		del st.session_state["model_var"]
 	if "model" in st.session_state:
 		print("Model already loaded")
 	else:

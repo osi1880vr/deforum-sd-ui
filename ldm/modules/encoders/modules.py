@@ -150,8 +150,6 @@ class FrozenCLIPEmbedder(AbstractEncoder):
         super().__init__()
         self.tokenizer = CLIPTokenizer.from_pretrained(version)
         self.transformer = CLIPTextModel.from_pretrained(version)
-        #self.tokenizer = CLIPTokenizer.from_pretrained(version, revision="0993c71e8ad62658387de2714a69f723ddfffacb")
-        #self.transformer = CLIPTextModel.from_pretrained(version, revision="0993c71e8ad62658387de2714a69f723ddfffacb")
         self.device = device
         self.max_length = max_length   # TODO: typical value?
         self.freeze()
@@ -174,9 +172,23 @@ class FrozenCLIPEmbedder(AbstractEncoder):
     def encode(self, text):
         return self(text)
 
+class ProjectedFrozenCLIPEmbedder(AbstractEncoder):
+    def __init__(self, version="openai/clip-vit-large-patch14", device="cuda", max_length=77):  # clip-vit-base-patch32
+        super().__init__()
+        self.embedder = FrozenCLIPEmbedder(version=version, device=device, max_length=max_length)
+        self.projection = torch.nn.Linear(768, 768)
+
+    def forward(self, text):
+        z = self.embedder(text)
+        return self.projection(z)
+
+    def encode(self, text):
+        return self(text)
+
 class FrozenCLIPImageEmbedder(AbstractEncoder):
     """
         Uses the CLIP image encoder.
+        Not actually frozen...
         """
     def __init__(
             self,
@@ -184,7 +196,7 @@ class FrozenCLIPImageEmbedder(AbstractEncoder):
             jit=False,
             device='cuda' if torch.cuda.is_available() else 'cpu',
             antialias=False,
-        ):
+    ):
         super().__init__()
         self.model, _ = clip.load(name=model, device=device, jit=jit)
         self.device = device
