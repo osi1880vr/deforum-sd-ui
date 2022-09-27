@@ -1,4 +1,0 @@
-yaml~=0.2.5
-tqdm~=4.63.0
-setuptools~=61.2.0
-requests~=2.27.1

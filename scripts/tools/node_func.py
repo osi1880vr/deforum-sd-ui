@@ -65,8 +65,8 @@ def load_var_model_from_config(config_var, ckpt_var, device, verbose=False, half
 
 def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_W, v_H, v_ddim_eta, v_GFPGAN, v_bg_upsampling, v_upscale):
     #im_path="data/example_conditioning/superresolution/sample_0.jpg",
-    ckpt_var="/gdrive/MyDrive/sd-clip-vit-l14-img-embed_ema_only.ckpt"
-    config_var="/content/deforum-sd-ui-colab/configs/stable-diffusion/sd-image-condition-finetune.yaml"
+    ckpt_var=st.session_state.defaults.general.clip
+    config_var=st.session_state.defaults.general.finetune
     outpath=outdir
     scale=v_cfg_scale
     h=v_H

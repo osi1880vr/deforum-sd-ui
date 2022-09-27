@@ -275,16 +275,17 @@ def layoutFunc():
 		st.session_state[st.session_state['generation_mode']]['prompt_matrix'] = None
 
 		if uploaded_images:
-			image = Image.open(uploaded_images).convert('RGBA')
+			image = Image.open(uploaded_images).convert('RGB')
 			st.session_state["img2img"]["new_img"] = image.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
 			# img_array = np.array(image) # if you want to pass it to OpenCV
 			new_mask = None
 			if st.session_state["img2img"]["uploaded_masks"]:
-				mask = Image.open(st.session_state["img2img"]["uploaded_masks"]).convert('RGBA')
+				mask = Image.open(st.session_state["img2img"]["uploaded_masks"]).convert('RGB')
 				new_mask = mask.resize((st.session_state["img2img"]["width"], st.session_state["img2img"]["height"]))
 
 			try:
-
+				output_imgs = variations(image, outdir='output', var_samples=4, var_plms='k_lms', v_cfg_scale=7.5, v_steps=20, v_W=512, v_H=512, v_ddim_eta=0, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
+				"""
 				output_images, seed, info, stats = img2img(prompt=st.session_state["img2img"]["prompt"],
 														   init_info=st.session_state["img2img"]["new_img"],
 														   init_info_mask=new_mask,
@@ -316,10 +317,10 @@ def layoutFunc():
 														   use_RealESRGAN=st.session_state["img2img"]["use_RealESRGAN"] if not st.session_state["img2img"]["loopback"] else False,
 														   loopback=st.session_state["img2img"]["loopback"]
 														   )
-
+										
 				# show a message when the generation is complete.
 				message.success('Render Complete: ' + info + '; Stats: ' + stats, icon="✅")
-
+				"""
 			except (StopException, KeyError) as e:
 				print(e)
 				print(f"Received Streamlit StopException")
