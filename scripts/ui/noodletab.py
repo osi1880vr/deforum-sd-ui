@@ -85,43 +85,47 @@ def layoutFunc():
         st.session_state['v'] = 3
 
     #with st.form("Nodes"):
-    topc1, topc2 = st.columns([1,3], gap="large")
-    with topc1:
-        with st.expander("drawers"):
-            if st.session_state['defaults'].general.default_path_mode == "subfolders":
-                drawerPath = os.joinpath(st.session_state['defaults'].general.outdir, "_node_drawers")
-            else:
-                drawerPath = f'{st.session_state["defaults"].general.outdir}/_node_drawers/'
 
-            drawerlist = listdirs(drawerPath)
-            load_schema = st.selectbox("Select node graph", barfi_schemas())
-            load_drawer = st.selectbox("Select Drawer", drawerlist)
-            d_name = st.text_input("Drawer Name", value="testdrawer")
-            s_btn = st.button('save drawer')
-            l_btn = st.button('load drawer')
+    #outputimgs = variations(["/content/deforum-sd-ui-colab/output/samples/00001.png"], outdir='output', var_samples=4, var_plms="k_lms", v_cfg_scale=7.5, v_steps=5, v_W=512, v_H=512, v_ddim_eta=0, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
+
+
+    drawers = st.empty()
+    with drawers.container():
+        st.session_state["node_info"] = st.empty()
+        st.session_state["node_progress"] = st.empty()
+
+        #    refresh_btn = col1.form_submit_button("Run node sequence")
+        with st.expander("drawers"):
+            dcol1, dcol2 = st.columns([3,2], gap="medium")
+            with dcol1:
+                compute_engine = st.checkbox('Activate barfi compute engine', value=False)
+                btn = st.button('clear cache')
+                d_name = st.text_input("Drawer Name", value="testdrawer")
+                s_btn = st.button('save drawer')
+                l_btn = st.button('load drawer')
+            with dcol2:
+                if st.session_state['defaults'].general.default_path_mode == "subfolders":
+                    drawerPath = os.joinpath(st.session_state['defaults'].general.outdir, "_node_drawers")
+                else:
+                    drawerPath = f'{st.session_state["defaults"].general.outdir}/_node_drawers/'
+
+                drawerlist = listdirs(drawerPath)
+                load_schema = st.selectbox("Select node graph", barfi_schemas())
+                load_drawer = st.selectbox("Select Drawer", drawerlist)
+
+            if btn:
+                st.session_state['currentImages'] = []
+
             if s_btn:
                 saveDrawerImagesToPath(d_name)
             if l_btn:
-                print(load_drawer)
                 images = getDrawerImagesFromPath(load_drawer)
                 st.session_state["currentImages"] = []
                 for i in images:
                     img = Image.open(i)
                     st.session_state["currentImages"].append(img)
-    with topc2:
-        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
-        btn = st.button('clear cache')
-        if btn:
-            st.session_state['currentImages'] = []
-            #outputimgs = variations(["/content/deforum-sd-ui-colab/output/samples/00001.png"], outdir='output', var_samples=4, var_plms="k_lms", v_cfg_scale=7.5, v_steps=5, v_W=512, v_H=512, v_ddim_eta=0, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
+    col1, col2, col3= st.columns([6,1,1], gap="small")
 
-
-
-        st.session_state["node_info"] = st.empty()
-        st.session_state["node_progress"] = st.empty()
-
-    col1, col2, col3 = st.columns([6,1,1], gap="small")
-    #    refresh_btn = col1.form_submit_button("Run node sequence")
 
     with col1:
 
@@ -130,23 +134,6 @@ def layoutFunc():
                                     compute_engine=compute_engine,
                                     load_schema=load_schema)
 
-
-
-            #[st.write(index) for index in indexList]
-
-        #print(barfi_result['Feed-1']['block'].get_interface(name='Output 1'))
-        #st.write(barfi_result['Integer-1']['block'].get_interface(name='Output 1'))
-        #st.write(barfi_result['Label Encoder-1']['block'].get_interface(name='Labeled Data'))
-        #st.write(barfi_result)
-        #print(type(barfi_result))
-        #print(barfi_result.keys())
-        #print(barfi_result.values())
-        #for a in barfi_result.keys():
-        #  print(a)
-        #for a in barfi_result.values():
-        #    #print(a.keys())
-        #    print(a["interfaces"].keys())
-        #    print(a["interfaces"].values())
 
     with col2:
         output = st.empty()
