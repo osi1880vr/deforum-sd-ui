@@ -60,10 +60,14 @@ def load_var_model_from_config(config_var, ckpt_var, device, verbose=False, half
         torch_gc()
         model.half().to(device)
         model.eval()
+    torch_gc()
+
     return model
 
 
 def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_W, v_H, v_ddim_eta, v_GFPGAN, v_bg_upsampling, v_upscale):
+    torch_gc()
+
     #im_path="data/example_conditioning/superresolution/sample_0.jpg",
     ckpt_var=st.session_state.defaults.general.clip
     config_var=st.session_state.defaults.general.finetune
@@ -99,6 +103,10 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
     config_var = OmegaConf.load(config_var)
     if "model_var" not in st.session_state:
         st.session_state["model_var"] = load_var_model_from_config(config_var, ckpt_var, device)
+    else:
+        print("Variation model already loaded...")
+
+
     model_wrap = K.external.CompVisDenoiser(st.session_state["model_var"])
     sigma_min, sigma_max = model_wrap.sigmas[0].item(), model_wrap.sigmas[-1].item()
     sigmas = model_wrap.get_sigmas(ddim_steps)
@@ -123,25 +131,25 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
             image_list.append(im)
     else:
         image_list.append(input_im)
+    value = 80/len(image_list)
+    startp = 20
+
     for input_im in image_list:
         input_im = transforms.ToTensor()(input_im).unsqueeze(0).to(device)
         input_im = input_im*2-1
-        x_samples_ddim = sample_model(input_im, st.session_state["model_var"], sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
+        x_samples_ddim = sample_model(input_im, sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
+
         for x_sample in x_samples_ddim:
-            #x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-            #Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join(sample_path, f"{base_count:05}.png"))
-            print(type(x_sample))
-            print(x_sample)
             x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"))
             paths.append(os.path.join(sample_path, f"{base_count:05}.png"))
-
-
             base_count += 1
+    torch_gc()
     return paths
 
-def sample_model(input_im, model_var, sampler, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg):
+def sample_model(input_im, sampler, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg):
     precision_scope = autocast if precision=="autocast" else nullcontext
     print(f"creating {n_samples} variations")
+    torch_gc()
 
     with torch.no_grad():
         with precision_scope("cuda"):
@@ -185,4 +193,6 @@ def sample_model(input_im, model_var, sampler, precision, h, w, ddim_steps, n_sa
 
                 #x_samples_ddim = st.session_state["model_var"].decode_first_stage(samples_ddim)
                 #return torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                torch_gc()
+
                 return results

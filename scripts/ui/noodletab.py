@@ -5,7 +5,12 @@ import streamlit.components.v1 as components
 from barfi import st_barfi, barfi_schemas, Block
 from scripts.tools.blocks import *
 import PIL
+import sys
 
+from contextlib import contextmanager, redirect_stdout
+from io import StringIO
+from time import sleep
+from threading import current_thread
 
 from scripts.tools.deforum_runner import runner
 def_runner = runner()
@@ -30,6 +35,9 @@ class PluginInfo():
     isTab = True
     displayPriority = 1
 
+
+
+
 helpText = """Images fed into a Preview Node"""
 helpText2 = """will exist in memory, and can"""
 helpText3 = """be accessed with the getListItem tool."""
@@ -41,13 +49,19 @@ def layoutFunc():
         st.session_state['v'] = 3
 
     #with st.form("Nodes"):
+    topc1, topc2 = st.columns([1,3], gap="large")
+    with topc1:
+        load_schema = st.selectbox("Select node graph", barfi_schemas())
 
-    col1, col2= st.columns([6,2], gap="small")
+    with topc2:
+        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
+        st.session_state["node_info"] = st.empty()
+        st.session_state["node_progress"] = st.empty()
+
+    col1, col2, col3 = st.columns([6,1,1], gap="small")
     #    refresh_btn = col1.form_submit_button("Run node sequence")
 
     with col1:
-        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
-        load_schema = st.selectbox("", barfi_schemas())
 
         if compute_engine:
             barfi_result = st_barfi(base_blocks=default_blocks_category,
@@ -73,6 +87,7 @@ def layoutFunc():
         #    print(a["interfaces"].values())
 
     with col2:
+        output = st.empty()
 
         placeholder = st.empty()
 
@@ -81,7 +96,7 @@ def layoutFunc():
         #print(type(st.session_state["node_preview_img_object"]))
         with placeholder.container():
 
-            col_cont = st.container()
+            col_cont1 = st.container()
 
 
             #print (len(st.session_state['latestImages']))
@@ -96,18 +111,56 @@ def layoutFunc():
             #[st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
             #        [st.image(image) for image in images]
             if 'currentImages' in st.session_state:
-                images = list(reversed(st.session_state['currentImages']))
-                a = len(st.session_state['currentImages']) - 1
-                b = 0
-                for i in st.session_state['currentImages']:
-                    with col_cont:
-                        st.write(f'Image Index: [ {a} ]')
-                        st.image(images[b])
+                images = list(st.session_state['currentImages'])
+                start = 0
+                if (len(images) % 2) == 0:
+                    half = len(images)/2
+                else:
+                    half = (len(images) + 1.5) / 2
+                half = int(half)
+                for i in range(half):
+                    with col_cont1:
+                        st.write(f"Image Index: [ **{start}** ] size:{images[start].size} mode:{images[start].mode}")
+                        st.image(images[start])
+                        start = start + 2
+
+    with col3:
+        output = st.empty()
+
+        placeholder = st.empty()
+
+        #populate the 3 images per column
+
+        #print(type(st.session_state["node_preview_img_object"]))
+        with placeholder.container():
+
+            col_cont2 = st.container()
 
 
-                        b = b + 1
-                        a = a - 1
+            #print (len(st.session_state['latestImages']))
+            #if 'currentImages' in st.session_state:
 
+
+            #    with col_cont:
+            #st.session_state["node_preview_image"] = st.empty()
+            #if "node_preview_img_object" in st.session_state:
+            #    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
+
+            #[st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
+            #        [st.image(image) for image in images]
+            if 'currentImages' in st.session_state:
+                images = list(st.session_state['currentImages'])
+                start = 1
+                if (len(images) % 2) == 0:
+                    half = len(images)/2
+                else:
+                    half = (len(images) + 0.5) / 2
+                half = int(half)
+                for i in range(half):
+                    with col_cont2:
+                        st.write(f"Image Index: [ **{start}** ] size:{images[start].size} mode:{images[start].mode}")
+                        st.image(images[start])
+                        start = start + 2
 
 def createHTMLGallery():
     list1 = []
