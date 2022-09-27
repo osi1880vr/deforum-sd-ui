@@ -110,7 +110,7 @@ def layoutFunc():
 
 	# the pagination doesnt work for now so its better to disable the buttons.
 
-	if gallery_refresh.button("Refresh", key=5):
+	if gallery_refresh.button("Refresh", key="vRefresh"):
 		st.session_state["vgalleryPage"] = 0
 
 	if gallery_next.button("Next", key=7):
@@ -120,7 +120,7 @@ def layoutFunc():
 		else:
 			st.session_state["vgalleryPage"] += 1
 
-	if gallery_prev.button("Previous", key=6):
+	if gallery_prev.button("Previous", key="vPrevious"):
 
 		if st.session_state["vgalleryPage"] - 1 < 0:
 			st.session_state["vgalleryPage"] = gallery_last_page

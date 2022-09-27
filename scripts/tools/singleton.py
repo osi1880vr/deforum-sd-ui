@@ -8,7 +8,7 @@ class Singleton:
     flask_running = False
 
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: object, **kwargs: object) -> object:
         if not cls._instance:
             with cls._lock:
                 # another thread could have created the instance
