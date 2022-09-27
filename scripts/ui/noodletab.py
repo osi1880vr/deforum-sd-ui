@@ -1,5 +1,5 @@
 # base webui import and utils.
-import streamlit as st
+from webui_streamlit import st
 import streamlit.components.v1 as components
 #from ui.sd_utils import *
 from barfi import st_barfi, barfi_schemas, Block
@@ -41,7 +41,7 @@ def layoutFunc():
         st.session_state['v'] = 3
 
     #with st.form("Nodes"):
-    col1, col2, col3 = st.columns([6,2,1], gap="small")
+    col1, col2= st.columns([6,2], gap="small")
     #    refresh_btn = col1.form_submit_button("Run node sequence")
     with st.sidebar:
         st.write(helpText)
@@ -49,8 +49,9 @@ def layoutFunc():
         st.write(helpText3)
 
         load_schema = st.selectbox('Select a saved schema:', barfi_schemas())
-        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
     with col1:
+        compute_engine = st.checkbox('Activate barfi compute engine', value=False)
+
 
 
         if compute_engine:
@@ -69,44 +70,32 @@ def layoutFunc():
 
 
             #print (len(st.session_state['latestImages']))
+            #if 'currentImages' in st.session_state:
+
+
+            #    with col_cont:
+            #st.session_state["node_preview_image"] = st.empty()
+            #if "node_preview_img_object" in st.session_state:
+            #    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
+
+            #[st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
+            #        [st.image(image) for image in images]
             if 'currentImages' in st.session_state:
                 images = list(reversed(st.session_state['currentImages']))
-
-                with col_cont:
-                    #st.session_state["node_preview_image"] = st.empty()
-                    #if "node_preview_img_object" in st.session_state:
-                    #    st.session_state["node_preview_image"] = st.image(st.session_state["node_preview_img_object"])
-
-                    #[st.image(images[index]) for index in [0, 1, 2, 3, 4, 5] if index < len(images)]
-                    [st.image(image) for image in images]
-
-    with col3:
-
-
-        if 'currentImages' in st.session_state:
-            a = 0
-            indexList = []
-            for i in st.session_state['currentImages']:
-
-                indexList.append("_")
-                indexList.append("_")
-                indexList.append("_")
-                indexList.append("_")
-                indexList.append("_")
-                indexList.append("_")
-                indexList.append("_")
-                indexList.append("")
-                indexList.append("")
-
-                indexList.append((i.mode))
-                indexList.append(i.size)
-                indexList.append(f'Image Index: [ {a} ]')
+                a = 0
+                for i in st.session_state['currentImages']:
+                    with col_cont:
+                        st.write(f'Image Index: [ {a} ]')
+                        st.image(images[a])
 
 
 
-                a = a + 1
-            indexList = reversed(indexList)
-            [st.write(index) for index in indexList]
+                        a = a + 1
+
+
+
+
+            #[st.write(index) for index in indexList]
 
         #print(barfi_result['Feed-1']['block'].get_interface(name='Output 1'))
         #st.write(barfi_result['Integer-1']['block'].get_interface(name='Output 1'))

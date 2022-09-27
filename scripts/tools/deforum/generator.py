@@ -11,7 +11,7 @@ import torch
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.models.diffusion.plms import PLMSSampler
 import requests
-#from streamlit import StopException
+from streamlit import StopException
 from ldm.util import instantiate_from_config
 import cv2
 import math
@@ -31,17 +31,19 @@ import pathlib
 
 from tools.modelloader import load_models, load_GFPGAN
 import platform
-import streamlit as st
 
-sys.path.extend([
-    'src/taming-transformers',
-    'src/clip',
-    'src/stable-diffusion/',
-    'src/k-diffusion',
-    'src/pytorch3d-lite',
-    'src/AdaBins',
-    'src/MiDaS',
-])
+from webui_streamlit import st
+if "Linux" in platform.platform():
+
+    sys.path.extend([
+        'src/taming-transformers',
+        'src/clip',
+        'src/stable-diffusion/',
+        'src/k-diffusion',
+        'src/pytorch3d-lite',
+        'src/AdaBins',
+        'src/MiDaS',
+    ])
 
 if "Linux" in platform.platform():
     ffmpeg = 'ffmpeg'
@@ -894,8 +896,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
                                                      c,
                                                      t_enc,
                                                      unconditional_guidance_scale=args.scale,
-                                                     unconditional_conditioning=uc,
-                                                     img_callback=callback)
+                                                     unconditional_conditioning=uc)
                         elif args.sampler == 'plms':  # no "decode" function in plms, so use "sample"
                             shape = [args.C, args.H // args.f, args.W // args.f]
                             samples, _ = sampler.sample(S=args.steps,
@@ -906,8 +907,7 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
                                                         unconditional_guidance_scale=args.scale,
                                                         unconditional_conditioning=uc,
                                                         eta=args.ddim_eta,
-                                                        x_T=z_enc,
-                                                        img_callback=callback)
+                                                        x_T=z_enc)
                         else:
                             raise Exception(f"Sampler {args.sampler} not recognised.")
 
