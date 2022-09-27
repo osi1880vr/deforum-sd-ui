@@ -1,3 +1,4 @@
+from ldm.modules.diffusionmodules.model import Model
 from omegaconf import OmegaConf
 import torch
 from ldm.util import instantiate_from_config
@@ -7,7 +8,9 @@ from einops import rearrange, repeat
 import os
 import gc
 import k_diffusion as K
-import streamlit as st
+#import streamlit as st
+from webui_streamlit import st
+
 import torch.nn as nn
 from streamlit import StopException
 from torch import autocast
@@ -45,26 +48,25 @@ def load_var_model_from_config(config_var, ckpt_var, device, verbose=False, half
     if "model" in st.session_state:
         del st.session_state["model"]
     if "model_var" not in st.session_state:
-        st.session_state["model_var"] = instantiate_from_config(config_var.model)
-    else:
-        print("Variation model already loaded.")
-    m, u = st.session_state["model_var"].load_state_dict(sd, strict=False)
-    if len(m) > 0 and verbose:
-        print("missing keys:")
-        print(m)
-    if len(u) > 0 and verbose:
-        print("unexpected keys:")
-        print(u)
-    #model.to("cpu")
-    torch_gc()
-    st.session_state["model_var"].half().to(device)
-    st.session_state["model_var"].eval()
+        model = instantiate_from_config(config_var.model)
+        m, u = model.load_state_dict(sd, strict=False)
+        if len(m) > 0 and verbose:
+            print("missing keys:")
+            print(m)
+        if len(u) > 0 and verbose:
+            print("unexpected keys:")
+            print(u)
+        #model.to("cpu")
+        torch_gc()
+        model.half().to(device)
+        model.eval()
+    return model
 
 
 def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_W, v_H, v_ddim_eta, v_GFPGAN, v_bg_upsampling, v_upscale):
     #im_path="data/example_conditioning/superresolution/sample_0.jpg",
     ckpt_var="/gdrive/MyDrive/sd-clip-vit-l14-img-embed_ema_only.ckpt"
-    config_var="./configs/stable-diffusion/sd-image-condition-finetune.yaml"
+    config_var="/content/deforum-sd-ui-colab/configs/stable-diffusion/sd-image-condition-finetune.yaml"
     outpath=outdir
     scale=v_cfg_scale
     h=v_H
@@ -99,7 +101,6 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
     #input_im = load_im(im_path).to(device)
     config_var = OmegaConf.load(config_var)
     if "model_var" not in st.session_state:
-
         st.session_state["model_var"] = load_var_model_from_config(config_var, ckpt_var, device)
     model_wrap = K.external.CompVisDenoiser(st.session_state["model_var"])
     sigma_min, sigma_max = model_wrap.sigmas[0].item(), model_wrap.sigmas[-1].item()
@@ -131,9 +132,9 @@ def sample_model(input_im, model_var, sampler, precision, h, w, ddim_steps, n_sa
     precision_scope = autocast if precision=="autocast" else nullcontext
     with torch.no_grad():
         with precision_scope("cuda"):
-            with model_var.ema_scope():
+            with st.session_state["model_var"].ema_scope():
 
-                c = model_var.get_learned_conditioning(input_im).tile(n_samples,1,1)
+                c = st.session_state["model_var"].get_learned_conditioning(input_im).tile(n_samples,1,1)
 
                 if scale != 1.0:
                     uc = torch.zeros_like(c)
@@ -157,5 +158,5 @@ def sample_model(input_im, model_var, sampler, precision, h, w, ddim_steps, n_sa
                 #x_samples_ddim = accelerator.gather(x_samples_ddim)
                 samples_ddim = K.sampling.__dict__[f'sample_{sampler}'](model_wrap_cfg, x, sigmas, extra_args={'cond': c, 'uncond': uc, 'cond_scale': scale}, disable=False)
 
-                x_samples_ddim = model_var.decode_first_stage(samples_ddim)
+                x_samples_ddim = st.session_state["model_var"].decode_first_stage(samples_ddim)
                 return torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
