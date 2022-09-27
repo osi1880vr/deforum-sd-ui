@@ -65,7 +65,7 @@ def sanitize(prompt):
 
 
 def render_image_batch(args):
-    if 'model' not in st.session_state:
+    if "model" not in st.session_state:
         st.session_state["model"] = load_models()
     if st.session_state[st.session_state["generation_mode"]]["pathmode"] == 'root':
         args.outdir = f'{args.outdir}/_batch_images'
@@ -141,9 +141,10 @@ def render_image_batch(args):
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
                         fpath = os.path.join(args.outdir, filename)
                         image.save(fpath)
+                        image_pipe.image(image)
+
                     if st.session_state["with_nodes"] == True:
                         st.session_state['node_pipe'] = image
-                    image_pipe.image(image)
                     if st.session_state["with_nodes"] == False:
                         st.session_state['currentImages'].append(fpath)
                     index += 1
@@ -328,7 +329,7 @@ def sample_to_cv2(sample: torch.Tensor, type=np.uint8) -> np.ndarray:
 
 def render_animation(args, anim_args, animation_prompts, model_path, half_precision=True):
     global device
-    if 'model' not in st.session_state:
+    if "model" not in st.session_state:
         st.session_state["model"] = load_models()
 
     # animations use key framed prompts
@@ -779,8 +780,6 @@ def make_callback(sampler_name, dynamic_threshold=None, static_threshold=None, m
 
 
 def generate(args, return_latent=False, return_sample=False, return_c=False):
-    if 'model' not in st.session_state:
-        st.session_state["model"] = load_models()
 
     global device
     device = st.session_state["device"]

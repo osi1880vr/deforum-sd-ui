@@ -86,7 +86,6 @@ def load_model_from_config(config, ckpt, verbose=False):
 	model.eval()
 	return model
 
-#@st.cache
 def load_models(continue_prev_run=False, use_GFPGAN=False, use_RealESRGAN=False, RealESRGAN_model="RealESRGAN_x4plus"):
 	"""Load the different models. We also reuse the models that are already in memory to speed things up instead of loading them again. """
 
@@ -153,3 +152,4 @@ def load_models(continue_prev_run=False, use_GFPGAN=False, use_RealESRGAN=False,
 				"model"].half()).to(st.session_state["device"])
 
 		print("Model loaded.")
+		return st.session_state["model"]
