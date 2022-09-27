@@ -6,6 +6,8 @@ general:
   gpu: 0
   outdir: "/gdrive/MyDrive/sd_anims_new"
   ckpt: "/gdrive/MyDrive/sd-v1-4.ckpt"
+  clip: "/gdrive/MyDrive/sd-clip-vit-l14-img-embed_ema_only.ckpt"
+  finetune: "configs/stable-diffusion/sd-image-condition-finetune.yaml"
   default_model: "Stable Diffusion v1.4"
   default_model_config: "configs/stable-diffusion/v1-inference.yaml"
   default_model_path: "/gdrive/MyDrive/sd-v1-4.ckpt"
