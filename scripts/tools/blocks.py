@@ -52,14 +52,33 @@ def image_grid(array, ncols=4):
     return img_grid
 
 def var_runner(img):
-    outputimgs = variations(img, outdir='output', var_samples=4, var_plms='k_lms', v_cfg_scale=7.5, v_steps=20, v_W=512, v_H=512, v_ddim_eta=0, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
     return outputimgs
+
+
 var_block = Block(name='Variations')
 var_block.add_input(name='image')
+
+var_block.add_option(name='samples', type='integer', value=4)
+var_block.add_option(name='cfg_scale', type='slider', min=0, max=50, value=7.5)
+var_block.add_option(name='steps', type='integer', value=20)
+var_block.add_option(name='sampler', type='select', items=["k_lms", "k_euler", "k_euler_a", "k_dpm_2", "k_dpm_2_a", "k_heun", "PLMS", "DDIM"], value="k_lms")
+var_block.add_option(name='w', type='integer', value=512)
+var_block.add_option(name='h', type='integer', value=512)
+var_block.add_option(name='ddim_eta', type='slider', min=0, max=1, value=0)
+
+
+
 var_block.add_output(name='variations')
 def var_func(self):
     img = self.get_interface(name='image')
-    outputimgs = var_runner(img)
+    var_samples = self.get_option(name='samples')
+    var_plms = self.get_option(name='sampler')
+    v_cfg_scale = self.get_option(name='cfg_scale')
+    v_steps = self.get_option(name='steps')
+    v_W = self.get_option(name='w')
+    v_H = self.get_option(name='h')
+    v_ddim_eta = self.get_option(name='ddim_eta')
+    outputimgs = variations(img, outdir='output', var_samples=var_samples, var_plms=var_plms, v_cfg_scale=v_cfg_scale, v_steps=v_steps, v_W=v_W, v_H=v_H, v_ddim_eta=v_ddim_eta, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
     self.set_interface(name='variations', value=outputimgs)
 var_block.add_compute(var_func)
 

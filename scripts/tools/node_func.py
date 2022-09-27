@@ -122,9 +122,12 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
 
     x_samples_ddim = sample_model(input_im, st.session_state["model_var"], sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
     for x_sample in x_samples_ddim:
-        x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-        Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join(sample_path, f"{base_count:05}.png"))
-        paths.append(f"{sample_path}/{base_count:05}.png")
+        #x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+        #Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join(sample_path, f"{base_count:05}.png"))
+        print(type(x_sample))
+        print(x_sample)
+        x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"))
+        paths.append(os.path.join(sample_path, f"{base_count:05}.png"))
 
 
         base_count += 1
@@ -132,10 +135,11 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
 
 def sample_model(input_im, model_var, sampler, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg):
     precision_scope = autocast if precision=="autocast" else nullcontext
+    print(f"creating {n_samples} variations")
+
     with torch.no_grad():
         with precision_scope("cuda"):
             with st.session_state["model_var"].ema_scope():
-
                 c = st.session_state["model_var"].get_learned_conditioning(input_im).tile(n_samples,1,1)
 
                 if scale != 1.0:
@@ -159,6 +163,20 @@ def sample_model(input_im, model_var, sampler, precision, h, w, ddim_steps, n_sa
 
                 #x_samples_ddim = accelerator.gather(x_samples_ddim)
                 samples_ddim = K.sampling.__dict__[f'sample_{sampler}'](model_wrap_cfg, x, sigmas, extra_args={'cond': c, 'uncond': uc, 'cond_scale': scale}, disable=False)
+                #x_sample = 255. * rearrange(x_sample[0].cpu().numpy(), 'c h w -> h w c')
+                #x_sample = x_sample.astype(np.uint8)
+                #image = Image.fromarray(x_sample)
+                #results.append(image)
+                results = []
+                for i in range(len(samples_ddim)):
+                    print(type(i))
+                    x_samples_ddim = st.session_state["model_var"].decode_first_stage(samples_ddim[i].unsqueeze(0))
+                    x_sample = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                    x_sample = 255. * rearrange(x_sample[0].cpu().numpy(), 'c h w -> h w c')
+                    x_sample = x_sample.astype(np.uint8)
+                    image = Image.fromarray(x_sample)
+                    results.append(image)
 
-                x_samples_ddim = st.session_state["model_var"].decode_first_stage(samples_ddim)
-                return torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                #x_samples_ddim = st.session_state["model_var"].decode_first_stage(samples_ddim)
+                #return torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
+                return results
