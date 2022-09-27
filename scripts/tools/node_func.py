@@ -93,11 +93,8 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
     elif var_plms == 'k_lms':
         sampler_name = 'lms'
 
-
     device = 'cuda'
     print(input_im)
-    input_im = transforms.ToTensor()(input_im).unsqueeze(0).to(device)
-    input_im = input_im*2-1
     #input_im = load_im(im_path).to(device)
     config_var = OmegaConf.load(config_var)
     if "model_var" not in st.session_state:
@@ -119,18 +116,27 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
     os.makedirs(sample_path, exist_ok=True)
     base_count = len(os.listdir(sample_path))
     paths = list()
+    image_list = []
+    if isinstance(input_im, list):
+        for img in input_im:
+            im = Image.open(img)
+            image_list.append(im)
+    else:
+        image_list.append(input_im)
+    for input_im in image_list:
+        input_im = transforms.ToTensor()(input_im).unsqueeze(0).to(device)
+        input_im = input_im*2-1
+        x_samples_ddim = sample_model(input_im, st.session_state["model_var"], sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
+        for x_sample in x_samples_ddim:
+            #x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+            #Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join(sample_path, f"{base_count:05}.png"))
+            print(type(x_sample))
+            print(x_sample)
+            x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"))
+            paths.append(os.path.join(sample_path, f"{base_count:05}.png"))
 
-    x_samples_ddim = sample_model(input_im, st.session_state["model_var"], sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
-    for x_sample in x_samples_ddim:
-        #x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-        #Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join(sample_path, f"{base_count:05}.png"))
-        print(type(x_sample))
-        print(x_sample)
-        x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"))
-        paths.append(os.path.join(sample_path, f"{base_count:05}.png"))
 
-
-        base_count += 1
+            base_count += 1
     return paths
 
 def sample_model(input_im, model_var, sampler, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg):

@@ -154,6 +154,7 @@ def save_all_func(self):
     #self.set_interface(name='Image', value=image)
 save_all_block.add_compute(save_all_func)
 
+
 if 'currentImages' not in st.session_state:
     st.session_state['currentImages'] = []
 
