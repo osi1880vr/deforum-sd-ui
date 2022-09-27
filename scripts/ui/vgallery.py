@@ -46,7 +46,6 @@ def getLatestGeneratedVideosFromPath():
 	ext = ('mp4')
 	# get the latest 10 images from the output folder without walking the subfolders
 	for r, d, f in os.walk(generatedVideosPath):
-
 		for file in f:
 			if file.endswith(ext):
 				files.append(os.path.join(r, file))
@@ -56,8 +55,6 @@ def getLatestGeneratedVideosFromPath():
 	latest.reverse()
 
 	# reverse the list so the latest images are first and truncate to
-	# a reasonable number of images, 10 pages worth
-	# return [Image.open(f) for f in latest]
 	return [f for f in latest]
 
 
@@ -133,6 +130,8 @@ def layoutFunc():
 	gallery_end_idx = (1 + st.session_state["vgalleryPage"]) * gallery_N
 
 	# ---------------------------------------------------------
+	# print (len(st.session_state['latestImages']))
+	videos = list(reversed(st.session_state['latestVideos']))[gallery_start_idx:(gallery_start_idx + gallery_N)]
 
 	placeholder = st.empty()
 
@@ -143,8 +142,7 @@ def layoutFunc():
 		col2_cont = st.container()
 		col3_cont = st.container()
 
-		# print (len(st.session_state['latestImages']))
-		videos = list(reversed(st.session_state['latestVideos']))[gallery_start_idx:(gallery_start_idx + gallery_N)]
+
 
 		with col1_cont:
 			with col1:
