@@ -4,6 +4,8 @@ import streamlit.components.v1 as components
 #from ui.sd_utils import *
 from barfi import st_barfi, barfi_schemas, Block
 from scripts.tools.blocks import *
+from scripts.tools.node_func import *
+
 import PIL
 import sys
 
@@ -35,7 +37,41 @@ class PluginInfo():
     isTab = True
     displayPriority = 1
 
+def getDrawerImagesFromPath(drawer):
+    if st.session_state['defaults'].general.default_path_mode == "subfolders":
+        generatedImagesPath = os.path.join(st.session_state['defaults'].general.outdir, "_node_drawers", drawer)
+    else:
+        generatedImagesPath = f'{st.session_state["defaults"].general.outdir}/_node_drawers/{drawer}'
+    os.makedirs(generatedImagesPath, exist_ok=True)
+    # get all the files from the folders and subfolders
+    files = []
+    ext = ('jpeg', 'jpg', "png")
+    # get the latest 10 images from the output folder without walking the subfolders
+    for r, d, f in os.walk(generatedImagesPath):
+        for file in f:
+            if file.endswith(ext):
+                files.append(os.path.join(r, file))
+    # sort the files by date
+    files.sort(reverse=True, key=os.path.getmtime)
+    latest = files
+    latest.reverse()
 
+    return latest #[Image.open(f) for f in latest[:100]]
+
+def saveDrawerImagesToPath(drawer):
+    if st.session_state['defaults'].general.default_path_mode == "subfolders":
+        path = os.path.join(st.session_state['defaults'].general.outdir, "_node_drawers", drawer)
+    else:
+        path = f'{st.session_state["defaults"].general.outdir}/_node_drawers/{drawer}'
+    os.makedirs(path, exist_ok=True)
+    drawer_idx = 0
+    for image in st.session_state['currentImages']:
+        filename = f'{drawer}_{drawer_idx:05}.png'
+        fpath = os.path.join(path, filename)
+        image.save(fpath)
+        drawer_idx += 1
+def listdirs(folder):
+    return [d for d in os.listdir(folder) if os.path.isdir(os.path.join(folder, d))]
 
 
 helpText = """Images fed into a Preview Node"""
@@ -51,10 +87,36 @@ def layoutFunc():
     #with st.form("Nodes"):
     topc1, topc2 = st.columns([1,3], gap="large")
     with topc1:
-        load_schema = st.selectbox("Select node graph", barfi_schemas())
+        with st.expander("drawers"):
+            if st.session_state['defaults'].general.default_path_mode == "subfolders":
+                drawerPath = os.joinpath(st.session_state['defaults'].general.outdir, "_node_drawers")
+            else:
+                drawerPath = f'{st.session_state["defaults"].general.outdir}/_node_drawers/'
 
+            drawerlist = listdirs(drawerPath)
+            load_schema = st.selectbox("Select node graph", barfi_schemas())
+            load_drawer = st.selectbox("Select Drawer", drawerlist)
+            d_name = st.text_input("Drawer Name", value="testdrawer")
+            s_btn = st.button('save drawer')
+            l_btn = st.button('load drawer')
+            if s_btn:
+                saveDrawerImagesToPath(d_name)
+            if l_btn:
+                print(load_drawer)
+                images = getDrawerImagesFromPath(load_drawer)
+                st.session_state["currentImages"] = []
+                for i in images:
+                    img = Image.open(i)
+                    st.session_state["currentImages"].append(img)
     with topc2:
         compute_engine = st.checkbox('Activate barfi compute engine', value=False)
+        btn = st.button('clear cache')
+        if btn:
+            st.session_state['currentImages'] = []
+            #outputimgs = variations(["/content/deforum-sd-ui-colab/output/samples/00001.png"], outdir='output', var_samples=4, var_plms="k_lms", v_cfg_scale=7.5, v_steps=5, v_W=512, v_H=512, v_ddim_eta=0, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
+
+
+
         st.session_state["node_info"] = st.empty()
         st.session_state["node_progress"] = st.empty()
 

@@ -28,6 +28,7 @@ from omegaconf import OmegaConf
 import random
 import sys
 import pathlib
+import gc
 
 from tools.modelloader import load_models, load_GFPGAN
 import platform
@@ -63,6 +64,10 @@ def sanitize(prompt):
     tmp = ''.join(filter(whitelist.__contains__, prompt))
     return tmp.replace(' ', '_')
 
+def torch_gc():
+    gc.collect()
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
 
 def render_image_batch(args):
     if "model" not in st.session_state:
@@ -143,9 +148,9 @@ def render_image_batch(args):
                         image.save(fpath)
                         image_pipe.image(image)
 
-                    if st.session_state["with_nodes"] == True:
+                    if "with_nodes" in st.session_state:
                         st.session_state['node_pipe'] = image
-                    if st.session_state["with_nodes"] == False:
+                    else:
                         st.session_state['currentImages'].append(fpath)
                     index += 1
                 args.seed = next_seed(args)
@@ -157,6 +162,7 @@ def render_image_batch(args):
             filename = f"{args.timestring}_{iprompt:05d}_grid_{args.seed}.png"
             grid_image = Image.fromarray(grid.astype(np.uint8))
             grid_image.save(os.path.join(args.outdir, filename))
+    torch_gc()
 
 
 class DeformAnimKeys:
@@ -964,6 +970,8 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
 
             results.append(gfpgan_image)  # 287
 
+    del sampler
+    torch_gc()
     return results
 
 
