@@ -95,7 +95,7 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
 
 
     device = 'cuda'
-
+    print(input_im)
     input_im = transforms.ToTensor()(input_im).unsqueeze(0).to(device)
     input_im = input_im*2-1
     #input_im = load_im(im_path).to(device)
@@ -119,11 +119,13 @@ def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_
     os.makedirs(sample_path, exist_ok=True)
     base_count = len(os.listdir(sample_path))
     paths = list()
+
     x_samples_ddim = sample_model(input_im, st.session_state["model_var"], sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
     for x_sample in x_samples_ddim:
         x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
         Image.fromarray(x_sample.astype(np.uint8)).save(os.path.join(sample_path, f"{base_count:05}.png"))
         paths.append(f"{sample_path}/{base_count:05}.png")
+
 
         base_count += 1
     return paths

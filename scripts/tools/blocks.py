@@ -1,6 +1,8 @@
 from barfi import Block
 from scripts.tools.deforum_runner import runner
-import streamlit as st
+#import streamlit as st
+from webui_streamlit import st
+
 import random
 import numpy as np
 import cv2
@@ -389,7 +391,7 @@ def img_prev_func(self):
             st.session_state["currentImages"] = []
         if isinstance(iimg, list):
             for i in iimg:
-                st.session_state["currentImages"].append(i)
+                st.session_state["currentImages"].append(PIL.Image.open(i))
         else:
             st.session_state["currentImages"].append(iimg)
         self.set_interface(name='image_out', value=iimg)
