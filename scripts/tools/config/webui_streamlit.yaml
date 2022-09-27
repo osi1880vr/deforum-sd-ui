@@ -4,7 +4,7 @@
 # of the properties below.
 general:
   gpu: 0
-  outdir: outputs
+  outdir: "outputs"
   ckpt: "content/models/sd-v1-4.ckpt"
   clip: "content/models/sd-clip-vit-l14-img-embed_ema_only.ckpt"
   finetune: "configs/stable-diffusion/sd-image-condition-finetune.yaml"
