@@ -97,15 +97,16 @@ def layoutFunc():
             #        [st.image(image) for image in images]
             if 'currentImages' in st.session_state:
                 images = list(reversed(st.session_state['currentImages']))
-                a = 0
+                a = len(st.session_state['currentImages']) - 1
+                b = 0
                 for i in st.session_state['currentImages']:
                     with col_cont:
                         st.write(f'Image Index: [ {a} ]')
-                        st.image(images[a])
+                        st.image(images[b])
 
 
-
-                        a = a + 1
+                        b = b + 1
+                        a = a - 1
 
 
 def createHTMLGallery():
