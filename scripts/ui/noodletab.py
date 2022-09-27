@@ -41,24 +41,39 @@ def layoutFunc():
         st.session_state['v'] = 3
 
     #with st.form("Nodes"):
+
     col1, col2= st.columns([6,2], gap="small")
     #    refresh_btn = col1.form_submit_button("Run node sequence")
-    with st.sidebar:
-        st.write(helpText)
-        st.write(helpText2)
-        st.write(helpText3)
 
-        load_schema = st.selectbox('Select a saved schema:', barfi_schemas())
     with col1:
         compute_engine = st.checkbox('Activate barfi compute engine', value=False)
-
-
+        load_schema = st.selectbox("", barfi_schemas())
 
         if compute_engine:
             barfi_result = st_barfi(base_blocks=default_blocks_category,
                                     compute_engine=compute_engine,
                                     load_schema=load_schema)
+
+
+
+            #[st.write(index) for index in indexList]
+
+        #print(barfi_result['Feed-1']['block'].get_interface(name='Output 1'))
+        #st.write(barfi_result['Integer-1']['block'].get_interface(name='Output 1'))
+        #st.write(barfi_result['Label Encoder-1']['block'].get_interface(name='Labeled Data'))
+        #st.write(barfi_result)
+        #print(type(barfi_result))
+        #print(barfi_result.keys())
+        #print(barfi_result.values())
+        #for a in barfi_result.keys():
+        #  print(a)
+        #for a in barfi_result.values():
+        #    #print(a.keys())
+        #    print(a["interfaces"].keys())
+        #    print(a["interfaces"].values())
+
     with col2:
+
         placeholder = st.empty()
 
         #populate the 3 images per column
@@ -91,26 +106,6 @@ def layoutFunc():
 
 
                         a = a + 1
-
-
-
-
-            #[st.write(index) for index in indexList]
-
-        #print(barfi_result['Feed-1']['block'].get_interface(name='Output 1'))
-        #st.write(barfi_result['Integer-1']['block'].get_interface(name='Output 1'))
-        #st.write(barfi_result['Label Encoder-1']['block'].get_interface(name='Labeled Data'))
-        #st.write(barfi_result)
-        #print(type(barfi_result))
-        #print(barfi_result.keys())
-        #print(barfi_result.values())
-        #for a in barfi_result.keys():
-        #  print(a)
-        #for a in barfi_result.values():
-        #    #print(a.keys())
-        #    print(a["interfaces"].keys())
-        #    print(a["interfaces"].values())
-
 
 
 def createHTMLGallery():
