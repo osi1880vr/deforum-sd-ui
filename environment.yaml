@@ -51,4 +51,8 @@ dependencies:
     - regex==2019.11.1
     - timm
     - barfi
+    - streamlit_server_state
+    - streamlit_nested_layout
+    - toml
+
 
