@@ -4,7 +4,7 @@ import streamlit.components.v1 as components
 #from ui.sd_utils import *
 from barfi import st_barfi, barfi_schemas, Block
 from scripts.tools.blocks import *
-from scripts.tools.node_func import *
+from scripts.tools.img2var import *
 
 import PIL
 import sys

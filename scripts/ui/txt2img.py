@@ -132,10 +132,7 @@ def layoutFunc():
 																		 key='txt2img_prompt_temp')
 
 			with rendering_tab:
-				basic_tab, mask_tab, init_image_tab = st.tabs(["Basic",
-															   "Mask",
-															   "Init"
-															   ])
+				basic_tab, mask_tab, init_image_tab = st.tabs(["Basic", "Mask", "Init" ])
 				with basic_tab:
 					st.session_state["txt2img"]["ddim_eta"] = st.number_input('DDIM ETA',
 																			  value=st.session_state[
@@ -240,7 +237,7 @@ def layoutFunc():
 																				'defaults'].txt2img.seed,
 																			help="The seed to use when generating a variant, if left blank a random seed will be generated.")
 
-			with col3:
+		with col3:
 				# If we have custom models available on the "models/custom"
 				# folder then we show a menu to select which model we want to use, otherwise we use the main model for SD
 				# if st.session_state["CustomModel_available"]:

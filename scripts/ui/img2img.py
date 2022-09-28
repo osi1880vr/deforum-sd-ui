@@ -4,7 +4,6 @@ from scripts.tools.sd_utils import *
 
 # streamlit imports
 from streamlit import StopException
-from scripts.tools.node_func import *
 
 from PIL import Image, ImageOps
 
