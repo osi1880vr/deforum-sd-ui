@@ -1,13 +1,19 @@
 # base webui import and utils.
 import streamlit as st
+from streamlit import StopException
+from streamlit_drawable_canvas import st_canvas
+
 from scripts.tools.sd_utils import *
 
 # streamlit imports
-from streamlit import StopException
+
 
 from PIL import Image, ImageOps
+import cv2
 
 #from scripts.tools.img2img import img2img
+
+from scripts.tools.mask_painter import *
 
 # Temp imports
 
@@ -190,6 +196,7 @@ def layoutFunc():
 													  is set to 1 step.")
 
 		with col2_img2img_layout:
+			#editor_tab, mask_painter_tab, result_tab  = st.tabs(["Editor", "Mask Painter", "Result"])
 			editor_tab, result_tab  = st.tabs(["Editor", "Result"])
 
 			with editor_tab:
@@ -243,20 +250,48 @@ def layoutFunc():
 						with masked_image_holder.container():
 							st.text("Masked Image Preview")
 							st.image(final_img)
+			"""
+			with mask_painter_tab:
+				st.title("Signature")
 
+				
+				
+				
+				def signaturefunk():
+					canvas_result = st_canvas(
+						fill_color="#eee",
+						stroke_width=5,
+						stroke_color="black",
+						background_color="white",
+						update_streamlit=False,
+						height=512,
+						width=512,
+						drawing_mode="freedraw",
+					)
 
+				signaturefunk()
 
-			# create an empty container for the image, progress bar, etc so we can update it later and use session_state to hold them globally.
-			with col3_img2img_layout:
-				preview_image = st.empty()
-				st.session_state["img2img"]["preview_image"] = preview_image
+				# save image
+				if canvas_result.image_data is not None:
+					cv2.imwrite(f"img.jpg",  canvas_result.image_data)
+				else:
+					st.write("no image to save")
 
-				# st.session_state["loading"] = st.empty()
+			"""
 
-				st.session_state["img2img"]["progress_bar_text"] = st.empty()
-				st.session_state["img2img"]["progress_bar"] = st.empty()
+			with result_tab:
 
-				message = st.empty()
+				# create an empty container for the image, progress bar, etc so we can update it later and use session_state to hold them globally.
+				with col3_img2img_layout:
+					preview_image = st.empty()
+					st.session_state["img2img"]["preview_image"] = preview_image
+
+					# st.session_state["loading"] = st.empty()
+
+					st.session_state["img2img"]["progress_bar_text"] = st.empty()
+					st.session_state["img2img"]["progress_bar"] = st.empty()
+
+					message = st.empty()
 
 
 
