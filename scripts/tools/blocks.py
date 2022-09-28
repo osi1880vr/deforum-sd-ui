@@ -51,8 +51,6 @@ def image_grid(array, ncols=4):
 
     return img_grid
 
-def var_runner(img):
-    return outputimgs
 
 
 var_block = Block(name='Variations')
@@ -363,7 +361,10 @@ def dream_func(self):
         st.session_state["txt2img"]["keyframes"] = None
         #st.session_state["txt2img"]["iterations"] = 1
         def_runner.run_txt2img()
-        self.set_interface(name='ImageOut', value=st.session_state["node_pipe"])
+
+        img = st.session_state["node_pipe"]
+
+        self.set_interface(name='ImageOut', value=img)
     self.set_interface(name='PromptOut', value=prompt)
     self.set_interface(name='SeedOut', value=seed)
 
@@ -544,7 +545,8 @@ invert_block.add_input(name='iImage_1')
 invert_block.add_output(name='invert_ImageOut')
 def invert_func(self):
     im1 = self.get_interface(name='iImage_1')
-    iimg = PIL.ImageOps.invert(im1)
+    iimg = PIL.ImageOps.invert(im1).convert('RGB')
+
     self.set_interface(name='invert_ImageOut', value=iimg)
 invert_block.add_compute(invert_func)
 
