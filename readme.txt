@@ -1,6 +1,16 @@
-very first public drop of our ui.
-We did plenty ourself, came up with new ideas and we took stuff from others.
-Please check thelicense ;)
+Very first public drop of our ui which was heavily inspired by some other work out there, there is plenty and plenty inspiration.
+Since it is impossible to say who took what from whom at what time we like to say thank you to all of you.
+There is one guy who insisted in having his name named even that history tells he was a thief too,
+so to protect the innocent we do not name names here
+
+All we say is something what is said to be said by many people but by one very special guy who may rest in peace and
+that`s a name here it is Mr. Steve Jobs who as history tells said this:
+Good artists copy and the brilliant one steal as hard as they can and get away with it.
+
+So its up to you to think what you want.If you like the result use it, if you got any bad feelings, well dont use it then.
+
+But we also did plenty ourself, came up with new ideas which we think others will steal or copy too very soon.
+Feel free to do so but please check the license ;)
 
 it is still under heavy development so please expect errors, hickups and headache.
 If there is any error please let us know, we are happy to help and also happy to fix stuff.
