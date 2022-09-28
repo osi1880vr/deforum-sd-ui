@@ -91,7 +91,7 @@ def layoutFunc():
 			st.session_state["txt2img"]["iterations"] = st.slider("Iterations:", min_value=1, max_value=2048,
 																  value=st.session_state['defaults'].txt2img.iterations,
 																  step=1)
-			st.session_state["txt2img"]["batch_size"] = st.slider("Batchsize:", min_value=1, max_value=50,
+			st.session_state["txt2img"]["batch_size"] = st.slider("Batchsize:", min_value=1, max_value=150,
 																  value=st.session_state['defaults'].txt2img.batch_size,
 																  step=1)
 

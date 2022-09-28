@@ -255,8 +255,6 @@ def layoutFunc():
 				st.title("Signature")
 
 				
-				
-				
 				def signaturefunk():
 					canvas_result = st_canvas(
 						fill_color="#eee",
