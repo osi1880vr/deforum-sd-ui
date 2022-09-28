@@ -40,6 +40,16 @@ general:
   optimized_config: "optimizedSD/v1-inference.yaml"
   update_preview: True
   update_preview_frequency: 5
+  streamlit_telemetry: False
+  default_theme: dark
+  huggingface_token: ""
+  use_sd_concepts_library: True
+  sd_concepts_library_folder: "models/custom/sd-concepts-library"
+  gfpgan_gpu: 0
+  esrgan_gpu: 0
+  enable_attention_slicing: False
+  enable_minimal_memory_usage : False
+
 
 txt2img:
   prompt:
@@ -394,61 +404,27 @@ img2img:
   write_info_files: True
 
 img2var:
-  prompt:
+
+  var_samples: 4
+  sampler_name: k_lms
+  cfg_scale: 12.0
   sampling_steps: 30
-  # Adding an int to toggles enables the corresponding feature.
-  # 0: Create prompt matrix (separate multiple prompts using |, and get all combinations of them)
-  # 1: Normalize Prompt Weights (ensure sum of weights add up to 1.0)
-  # 2: Loopback (use images from previous batch when creating next batch)
-  # 3: Random loopback seed
-  # 4: Save individual images
-  # 5: Save grid
-  # 6: Sort samples by prompt
-  # 7: Write sample info files
-  # 8: jpg samples
-  # 9: Fix faces using GFPGAN
-  # 10: Upscale images using Real-ESRGAN
-  sampler_name: "k_euler"
-  denoising_strength: 0.45
-  # 0: Keep masked area
-  # 1: Regenerate only masked area
-  mask_mode_list: 0
-  mask_restore: False
-  # 0: Just resize
-  # 1: Crop and resize
-  # 2: Resize and fill
-  resize_mode: 0
-
-  noise_mode_list: 0
-
-
-  # Leave blank for random seed:
-  seed: ""
-  ddim_eta: 0.0
-  cfg_scale: 7.5
-  batch_count: 1
-  batch_size: 1
-  height: 512
   width: 512
-  # Textual inversion embeddings file path:
-  fp: ""
-  loopback: True
-  random_seed_loopback: True
-  separate_prompts: False
-  update_preview: True
-  update_preview_frequency: 5
-  normalize_prompt_weights: True
-  save_individual_images: True
-  save_grid: True
-  group_by_prompt: True
-  save_as_jpg: False
+  height: 512
+  ddim_eta: 1.0
   use_GFPGAN: False
-  use_RealESRGAN: False
-  RealESRGAN_model: "RealESRGAN_x4plus"
-  variant_amount: 0.0
-  variant_seed: ""
-  write_info_files: True
-
+  bg_upsampling: False
+  upscale:  1
 
 gfpgan:
   strength: 100
+
+concepts_library:
+  concepts_per_page: 12
+
+textual_inversion:
+  pretrained_model_name_or_path: "models/ldm/stable-diffusion-v1-4"
+  tokenizer_name: ""
+
+daisi_app:
+  running_on_daisi_io: False
