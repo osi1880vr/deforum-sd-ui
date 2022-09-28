@@ -84,7 +84,7 @@ def layoutFunc():
 		bcol5_cont = st.container()
 		# the pagination work for now so its better to enable the buttons.
 		with gallery_minus_10:
-			with bcol1_cont:
+			with bcol2_cont:
 				if gallery_prev.button("-90", key="-90"):
 					if st.session_state["galleryPage"] - 10 < 0:
 						st.session_state["galleryPage"] = gallery_last_page
@@ -92,7 +92,7 @@ def layoutFunc():
 						st.session_state["galleryPage"] -= 10
 
 		with gallery_prev:
-			with bcol2_cont:
+			with bcol1_cont:
 				if gallery_prev.button("Previous", key="Previous"):
 
 					if st.session_state["galleryPage"] - 1 < 0:

@@ -61,7 +61,7 @@ def load_var_model_from_config(config_var, ckpt_var, device, verbose=False, half
         st.session_state["model_var"].eval()
     torch_gc()
 
-def variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_W, v_H, v_ddim_eta, v_GFPGAN, v_bg_upsampling, v_upscale):
+def get_variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps, v_W, v_H, v_ddim_eta, v_GFPGAN, v_bg_upsampling, v_upscale):
     torch_gc()
     if "model" in st.session_state:
         del st.session_state["model"]

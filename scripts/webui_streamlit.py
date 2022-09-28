@@ -1,5 +1,7 @@
 # base webui import and utils.
+
 import streamlit as st
+
 import importlib
 # streamlit imports
 # import streamlit_nested_layout
@@ -11,8 +13,12 @@ import importlib
 import os
 
 # import k_diffusion as K
+from time import sleep
+
 from omegaconf import OmegaConf
 import warnings
+
+from tools.singleton import Singleton
 
 # end of imports
 # ---------------------------------------------------------------------------------------------------------------
@@ -24,6 +30,13 @@ try:
 	logging.set_verbosity_error()
 except:
 	pass
+
+
+
+my_singleton = Singleton()
+
+
+
 
 # remove some annoying deprecation warnings that show every now and then.
 warnings.filterwarnings("ignore", category=DeprecationWarning)

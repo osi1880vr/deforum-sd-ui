@@ -10,7 +10,7 @@ from scripts.tools.modelloader import load_models
 from scripts.tools.sd_utils import img2img
 from scripts.tools.sd_utils import *
 from scripts.tools.nsp.nsp_pantry import parser
-from scripts.tools.node_func import *
+from scripts.tools.img2var import *
 
 from gfpgan import GFPGANer
 
@@ -76,7 +76,7 @@ def var_func(self):
     v_W = self.get_option(name='w')
     v_H = self.get_option(name='h')
     v_ddim_eta = self.get_option(name='ddim_eta')
-    outputimgs = variations(img, outdir='output', var_samples=var_samples, var_plms=var_plms, v_cfg_scale=v_cfg_scale, v_steps=v_steps, v_W=v_W, v_H=v_H, v_ddim_eta=v_ddim_eta, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
+    outputimgs = get_variations(img, outdir='output', var_samples=var_samples, var_plms=var_plms, v_cfg_scale=v_cfg_scale, v_steps=v_steps, v_W=v_W, v_H=v_H, v_ddim_eta=v_ddim_eta, v_GFPGAN=False, v_bg_upsampling=False, v_upscale=1)
     self.set_interface(name='variations', value=outputimgs)
 var_block.add_compute(var_func)
 
