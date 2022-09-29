@@ -21,6 +21,7 @@ from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 
 import PIL
+from PIL.PngImagePlugin import PngInfo
 import torch
 def_runner = runner()
 
@@ -68,7 +69,7 @@ var_block.add_option(name='ddim_eta', type='slider', min=0, max=1, value=0)
 
 var_block.add_output(name='variations')
 def var_func(self):
-    img = self.get_interface(name='image')
+    img = PIL.Image.open(self.get_interface(name='image'))
     var_samples = self.get_option(name='samples')
     var_plms = self.get_option(name='sampler')
     v_cfg_scale = self.get_option(name='cfg_scale')
@@ -87,11 +88,18 @@ grid_block.add_output('grid')
 def grid_block_func(self):
     all_images = []
     for image in st.session_state["currentImages"]:
-        all_images.append(T.functional.pil_to_tensor(image))
+        img = PIL.Image.open(image)
+        all_images.append(T.functional.pil_to_tensor(img))
     grid = make_grid(all_images, nrow=int(len(all_images) / 4))
     grid = rearrange(grid, 'c h w -> h w c').cpu().numpy()
     grid_image = Image.fromarray(grid.astype(np.uint8))
-    self.set_interface(name='grid', value=grid_image)
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"grid_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("grid image", str(grid_image.size))
+    grid_path = grid_image.save(fpath, pnginfo=meta)
+    self.set_interface(name='grid', value=fpath)
 
 
 grid_block.add_compute(grid_block_func)
@@ -113,7 +121,7 @@ save_block.add_option(name='name', type='input', value=f'{str(random.randint(100
 save_block.add_output(name='Image')
 save_block.add_output(name='Path')
 def save_func(self):
-    image = self.get_interface(name='Image Input')
+    image = PIL.Image.open(self.get_interface(name='Image Input'))
     path = os.path.join(self.get_option(name='path'), self.get_option(name='name'))
     image.save(path)
     self.set_interface(name='Image', value=image)
@@ -180,7 +188,7 @@ upscale_block.add_option(name='Upscale', type='integer', value=1)
 upscale_block.add_output(name='Restored_Img')
 def upscale_func(self):
     upscale = int(self.get_option(name='Upscale'))
-    data = self.get_interface(name='Input_Image')
+    data = PIL.Image.open(self.get_interface(name='Input_Image'))
     arch = 'clean'
     channel_multiplier = 2
     model_name = 'GFPGANv1.3'
@@ -203,7 +211,17 @@ def upscale_func(self):
         input_img, has_aligned=False, only_center_face=False, paste_back=True)
     image = cv2.cvtColor(restored_img, cv2.COLOR_BGR2RGB)
     gfpgan_image = PIL.Image.fromarray(image)
-    self.set_interface(name='Restored_Img', value=gfpgan_image)
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"gfpgan_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("gfpgan", str(upscale))
+    gfpgan_path = gfpgan_image.save(fpath, pnginfo=meta)
+
+
+
+    self.set_interface(name='Restored_Img', value=fpath)
 upscale_block.add_compute(upscale_func)
 
 def img2img_runner():
@@ -272,7 +290,7 @@ def img2img_func(self):
     else:
         seed = self.get_option(name='seed')
 
-    init_img = self.get_interface(name='2ImageIn')
+    init_img = PIL.Image.open(self.get_interface(name='2ImageIn'))
     print(init_img)
     if isinstance(init_img, list):
         init_img = init_img[0]
@@ -304,8 +322,19 @@ def img2img_func(self):
                                                save_individual_images = True, save_grid = False, group_by_prompt = False,
                                                save_as_jpg = False, use_GFPGAN = False, use_RealESRGAN = False, loopback = True
                                                )
+    paths = []
+    for image in output_images:
+        print(image)
+        path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+        os.makedirs(path, exist_ok=True)
+        fpath = os.path.join(path, f"img2img_{time.strftime('%Y%m%d%H%M%S')}.png")
+        meta = PngInfo()
+        meta.add_text("img2img", str(seed))
+        image.save(fpath, pnginfo=meta)
+        paths.append(fpath)
 
-    self.set_interface(name='2Image', value=output_images[0])
+
+    self.set_interface(name='2Image', value=paths)
     self.set_interface(name='Var AmountOut', value=var_amount)
     self.set_interface(name='CFG ScaleOut', value=cfg_scale)
     self.set_interface(name='StepsOut', value=steps)
@@ -404,17 +433,19 @@ img_preview = Block(name='image cache/preview')
 img_preview.add_input(name='iimage')
 img_preview.add_output(name='image_out')
 def img_prev_func(self):
-    st.session_state["node_preview_img_object"] = None
+
     if self.get_interface(name='iimage') != None:
         iimg = self.get_interface(name='iimage')
         #st.session_state["node_preview_img_object"] = iimg
         if "currentImages" not in st.session_state:
             st.session_state["currentImages"] = []
+        print(st.session_state["currentImages"])
         if isinstance(iimg, list):
             for i in iimg:
-                st.session_state["currentImages"].append(PIL.Image.open(i))
+                st.session_state["currentImages"].append(i)
         else:
             st.session_state["currentImages"].append(iimg)
+        print(st.session_state("currentImages"))
         self.set_interface(name='image_out', value=iimg)
     #return st.session_state["node_preview_image"]
 img_preview.add_compute(img_prev_func)
@@ -458,7 +489,16 @@ def mandel_func(self):
             g = i % 8 * 32
             b = i % 16 * 16
             mimage.putpixel((x, y), b * 65536 + g * 256 + r)
-    self.set_interface(name='mandel', value=mimage)
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"mandelbrot_fractal_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("mandel_fractal", str(xa))
+    mimage_path = mimage.save(fpath, pnginfo=meta)
+
+
+    self.set_interface(name='mandel', value=fpath)
 
 
 mandel_block.add_compute(mandel_func)
@@ -496,7 +536,15 @@ def julia_func(self):
             g = i % 8 * 32
             b = i % 16 * 16
             image.putpixel((x, y), b * 65536 + g * 256 + r)
-    self.set_interface(name='julia', value=image)
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"gfpgan_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("julia_fractal_", "random")
+    julia_path = image.save(fpath, pnginfo=meta)
+
+    self.set_interface(name='julia', value=fpath)
 julia_block.add_compute(julia_func)
 
 #Blend Block
@@ -509,11 +557,22 @@ blend_block.add_input(name='bImage_2')
 blend_block.add_option(name='alpha', type='slider', min=0, max=1, value=0.5)
 blend_block.add_output(name='blend_ImageOut')
 def blend_func(self):
-    im1 = self.get_interface(name='bImage_1').convert('RGB')
-    im2 = self.get_interface(name='bImage_2').convert('RGB')
+    im1 = PIL.Image.open(self.get_interface(name='bImage_1')).convert('RGB')
+    im2 = PIL.Image.open(self.get_interface(name='bImage_2')).convert('RGB')
     alpha = self.get_option(name='alpha')
     bimg = PIL.Image.blend(im1, im2, alpha)
-    self.set_interface(name='blend_ImageOut', value=bimg)
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"blend_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("blend", str(alpha))
+    blend_path = bimg.save(fpath, pnginfo=meta)
+
+
+
+
+    self.set_interface(name='blend_ImageOut', value=fpath)
 blend_block.add_compute(blend_func)
 
 #Adjust Block
@@ -525,7 +584,7 @@ adj_block.add_option(name='contrast', type='slider', min=0, max=10, value=1)
 adj_block.add_option(name='sharpness', type='slider', min=0, max=10, value=1)
 adj_block.add_output(name='adjImage')
 def adjust_func(self):
-    im = self.get_interface(name='image')
+    im = PIL.Image.open(self.get_interface(name='image'))
     enhancer = PIL.ImageEnhance.Contrast(im)
     factor = self.get_option(name='contrast') #gives original image
     im_output = enhancer.enhance(factor)
@@ -535,7 +594,17 @@ def adjust_func(self):
     enhancer = PIL.ImageEnhance.Sharpness(im_output)
     factor = self.get_option(name='sharpness') #gives original image
     im_output = enhancer.enhance(factor)
-    self.set_interface(name='adjImage', value=im_output)
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"adjust_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("adjust", "-")
+    im_path = im_output.save(fpath, pnginfo=meta)
+
+
+
+    self.set_interface(name='adjImage', value=fpath)
 adj_block.add_compute(adjust_func)
 
 
@@ -544,10 +613,17 @@ invert_block = Block(name='invert image')
 invert_block.add_input(name='iImage_1')
 invert_block.add_output(name='invert_ImageOut')
 def invert_func(self):
-    im1 = self.get_interface(name='iImage_1')
+    im1 = PIL.Image.open(self.get_interface(name='iImage_1'))
     iimg = PIL.ImageOps.invert(im1).convert('RGB')
 
-    self.set_interface(name='invert_ImageOut', value=iimg)
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"invert_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("invert", "-")
+    invert_path = iimg.save(fpath, pnginfo=meta)
+
+    self.set_interface(name='invert_ImageOut', value=fpath)
 invert_block.add_compute(invert_func)
 
 
@@ -557,12 +633,22 @@ gaussian_block.add_input(name='Input')
 gaussian_block.add_option(name='Radius', type='integer', value=2)
 gaussian_block.add_output(name='Output')
 def gaussian_func(self):
-    img = self.get_interface(name='Input')
+    img = PIL.Image.open(self.get_interface(name='Input'))
     radius = self.get_option(name='Radius')
     #mode = self.get_option(name='Mode')
     #print(mode)
     img = img.filter(PIL.ImageFilter.GaussianBlur(radius=radius))
-    self.set_interface(name='Output', value = img)
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"blur_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("blur", str(radius))
+    blur_path = img.save(fpath, pnginfo=meta)
+
+
+
+    self.set_interface(name='Output', value = fpath)
 gaussian_block.add_compute(gaussian_func)
 
 
@@ -572,7 +658,7 @@ imgfilter_block.add_input(name='Input')
 imgfilter_block.add_option(name='Mode', type='select', items=["BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE"], value="BLUR")
 imgfilter_block.add_output(name='Output')
 def imgfilter_func(self):
-    img = self.get_interface(name='Input')
+    img = PIL.Image.open(self.get_interface(name='Input'))
     if self.get_option(name='Mode') == 'BLUR':
         img = img.filter(PIL.ImageFilter.BLUR)
     elif self.get_option(name='Mode') == 'CONTOUR':
@@ -593,7 +679,16 @@ def imgfilter_func(self):
         img = img.filter(PIL.ImageFilter.SMOOTH)
     elif self.get_option(name='Mode') == 'SMOOTH_MORE':
         img = img.filter(PIL.ImageFilter.SMOOTH_MORE)
-    self.set_interface(name='Output', value = img)
+
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"filter_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("filter", str(self.get_option(name='Mode')))
+    filter_path = img.save(fpath, pnginfo=meta)
+
+    self.set_interface(name='Output', value = fpath)
 imgfilter_block.add_compute(imgfilter_func)
 
 
@@ -603,12 +698,20 @@ convert_block.add_input(name='Input')
 convert_block.add_option(name='Mode', type='select', items=["L", "P", "RGB", "RGBA", "CMYK"], value='P')
 convert_block.add_output(name='Output')
 def convert_func(self):
-    img = self.get_interface(name='Input')
+    img = PIL.Image.open(self.get_interface(name='Input'))
     #mode = self.get_option(name='Mode')
     #print(mode)
     img = PIL.ImageOps.grayscale(img)
     img = img.convert(self.get_option(name='Mode'))
-    self.set_interface(name='Output', value=img)
+
+    path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
+    os.makedirs(path, exist_ok=True)
+    fpath = os.path.join(path, f"convert_{time.strftime('%Y%m%d%H%M%S')}.png")
+    meta = PngInfo()
+    meta.add_text("filter", str(self.get_option(name='Mode')))
+    convert_path = img.save(fpath, pnginfo=meta)
+
+    self.set_interface(name='Output', value=fpath)
 convert_block.add_compute(convert_func)
 
 
