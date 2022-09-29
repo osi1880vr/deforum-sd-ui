@@ -96,9 +96,13 @@ def grid_block_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"grid_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("grid image", str(grid_image.size))
-    grid_path = grid_image.save(fpath, pnginfo=meta)
+
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        meta.add_text("grid image", str(grid_image.size))
+        grid_image.save(fpath, pnginfo=meta)
+    else:
+        grid_image.save(fpath)
     self.set_interface(name='grid', value=fpath)
 
 
@@ -215,9 +219,21 @@ def upscale_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"gfpgan_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("gfpgan", str(upscale))
-    gfpgan_path = gfpgan_image.save(fpath, pnginfo=meta)
+
+
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        try:
+            orig_meta = data.text
+        except:
+            orig_meta = ""
+        if orig_meta != "":
+            for key, value in orig_meta.items():
+                meta.add_text(key, value)
+        meta.add_text("gfpgan", str(upscale))
+        gfpgan_image.save(fpath, pnginfo=meta)
+    else:
+        gfpgan_image.save(fpath)
 
 
 
@@ -313,9 +329,19 @@ def img2img_func(self):
         path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
         os.makedirs(path, exist_ok=True)
         fpath = os.path.join(path, f"img2img_{time.strftime('%Y%m%d%H%M%S')}.png")
-        meta = PngInfo()
-        meta.add_text("img2img", str(seed))
-        image.save(fpath, pnginfo=meta)
+        if st.session_state["defaults"].general.save_metadata:
+            meta = PngInfo()
+            try:
+                orig_meta = init_img.text
+            except:
+                orig_meta = ""
+            if orig_meta != "":
+                for key, value in orig_meta.items():
+                    meta.add_text(key, value)
+            meta.add_text("img2img", str(seed))
+            image.save(fpath, pnginfo=meta)
+        else:
+            image.save(fpath)
         paths.append(fpath)
 
 
@@ -476,9 +502,14 @@ def mandel_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"mandelbrot_fractal_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("generate", "mandelbrot")
-    mimage.save(fpath, pnginfo=meta)
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        meta.add_text("generate", "mandelbrot")
+        mimage.save(fpath, pnginfo=meta)
+    else:
+        mimage.save(fpath)
+
+
 
 
     self.set_interface(name='mandel', value=fpath)
@@ -523,9 +554,12 @@ def julia_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"julia_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("generate", "julia")
-    image.save(fpath, pnginfo=meta)
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        meta.add_text("generate", "julia")
+        image.save(fpath, pnginfo=meta)
+    else:
+        image.save(fpath)
 
     self.set_interface(name='julia', value=fpath)
 julia_block.add_compute(julia_func)
@@ -606,9 +640,21 @@ def adjust_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"adjust_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("adjust", "-")
-    im_path = im_output.save(fpath, pnginfo=meta)
+
+
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        try:
+            orig_meta = im.text
+        except:
+            orig_meta = ""
+        if orig_meta != "":
+            for key, value in orig_meta.items():
+                meta.add_text(key, value)
+        meta.add_text("adjust", "-")
+        im_path = im_output.save(fpath, pnginfo=meta)
+    else:
+        im_path = im_output.save(fpath)
 
 
 
@@ -627,9 +673,22 @@ def invert_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"invert_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("invert", "-")
-    invert_path = iimg.save(fpath, pnginfo=meta)
+
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        try:
+            orig_meta = im1.text
+        except:
+            orig_meta = ""
+        if orig_meta != "":
+            for key, value in orig_meta.items():
+                meta.add_text(key, value)
+        meta.add_text("invert", "-")
+        invert_path = iimg.save(fpath, pnginfo=meta)
+    else:
+        invert_path = iimg.save(fpath)
+
+
 
     self.set_interface(name='invert_ImageOut', value=fpath)
 invert_block.add_compute(invert_func)
@@ -644,16 +703,25 @@ def gaussian_func(self):
     img = PIL.Image.open(self.get_interface(name='Input'))
     radius = self.get_option(name='Radius')
     #mode = self.get_option(name='Mode')
-    img = img.filter(PIL.ImageFilter.GaussianBlur(radius=radius))
+    bimg = img.filter(PIL.ImageFilter.GaussianBlur(radius=radius))
 
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"blur_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("blur", str(radius))
-    blur_path = img.save(fpath, pnginfo=meta)
 
-
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        try:
+            orig_meta = img.text
+        except:
+            orig_meta = ""
+        if orig_meta != "":
+            for key, value in orig_meta.items():
+                meta.add_text(key, value)
+        meta.add_text("blur", str(radius))
+        blur_path = bimg.save(fpath, pnginfo=meta)
+    else:
+        blur_path = bimg.save(fpath)
 
     self.set_interface(name='Output', value = fpath)
 gaussian_block.add_compute(gaussian_func)
@@ -666,6 +734,11 @@ imgfilter_block.add_option(name='Mode', type='select', items=["BLUR", "CONTOUR",
 imgfilter_block.add_output(name='Output')
 def imgfilter_func(self):
     img = PIL.Image.open(self.get_interface(name='Input'))
+    try:
+        orig_meta = img.text
+    except:
+        orig_meta = ""
+
     if self.get_option(name='Mode') == 'BLUR':
         img = img.filter(PIL.ImageFilter.BLUR)
     elif self.get_option(name='Mode') == 'CONTOUR':
@@ -691,9 +764,16 @@ def imgfilter_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"filter_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("filter", str(self.get_option(name='Mode')))
-    filter_path = img.save(fpath, pnginfo=meta)
+
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        if orig_meta != "":
+            for key, value in orig_meta.items():
+                meta.add_text(key, value)
+        meta.add_text("filter", str(self.get_option(name='Mode')))
+        filter_path = img.save(fpath, pnginfo=meta)
+    else:
+        filter_path = img.save(fpath)
 
     self.set_interface(name='Output', value = fpath)
 imgfilter_block.add_compute(imgfilter_func)
@@ -713,9 +793,20 @@ def convert_func(self):
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"convert_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("filter", str(self.get_option(name='Mode')))
-    convert_path = img.save(fpath, pnginfo=meta)
+
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+        try:
+            orig_meta = img.text
+        except:
+            orig_meta = ""
+        if orig_meta != "":
+            for key, value in orig_meta.items():
+                meta.add_text(key, value)
+        meta.add_text("convert", str(self.get_option(name='Mode')))
+        convert_path = img.save(fpath, pnginfo=meta)
+    else:
+        convert_path = img.save(fpath)
 
     self.set_interface(name='Output', value=fpath)
 convert_block.add_compute(convert_func)

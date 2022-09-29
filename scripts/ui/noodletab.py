@@ -96,22 +96,28 @@ def layoutFunc():
 
         #    refresh_btn = col1.form_submit_button("Run node sequence")
         with st.expander("drawers"):
-            dcol1, dcol2 = st.columns([3,2], gap="medium")
+            dcol1, dcol2 = st.columns([3,2], gap="small")
+            bcol1, bcol2, bcol3= st.columns([1,1,1], gap="small")
             with dcol1:
                 compute_engine = st.checkbox('Activate barfi compute engine', value=False)
-                btn = st.button('clear cache')
                 d_name = st.text_input("Drawer Name", value="testdrawer")
-                s_btn = st.button('save drawer')
-                l_btn = st.button('load drawer')
             with dcol2:
+                st.session_state["show_meta"] = st.checkbox('Show Metadata', value=True)
                 if st.session_state['defaults'].general.default_path_mode == "subfolders":
                     drawerPath = os.joinpath(st.session_state['defaults'].general.outdir, "_node_drawers")
                 else:
                     drawerPath = f'{st.session_state["defaults"].general.outdir}/_node_drawers/'
-
                 drawerlist = listdirs(drawerPath)
                 load_schema = st.selectbox("Select node graph", barfi_schemas())
                 load_drawer = st.selectbox("Select Drawer", drawerlist)
+            with bcol1:
+                btn = st.button('clear cache')
+            with bcol2:
+                s_btn = st.button('save drawer')
+            with bcol3:
+                l_btn = st.button('load drawer')
+
+
 
             if btn:
                 st.session_state['currentImages'] = []
@@ -169,11 +175,14 @@ def layoutFunc():
                 half = int(half)
                 for i in range(half):
                     with col_cont1:
-                        try:
-                            t = Image.open(images[start]).info
-                        except:
-                            t = "no_meta"
-                        st.write(f"Image Index: [ **{start}** ] {t}")
+                        if st.session_state["show_meta"]:
+                            try:
+                                t = Image.open(images[start]).info
+                            except:
+                                t = "no_meta"
+                            st.write(f"Image Index: [ **{start}** ] {t}")
+                        else:
+                            st.write(f"Image Index: [ **{start}** ]")
                         st.image(images[start])
                         start = start + 2
 
@@ -211,11 +220,14 @@ def layoutFunc():
                 half = int(half)
                 for i in range(half):
                     with col_cont2:
-                        try:
-                            t = Image.open(images[start]).info
-                        except:
-                            t = "no_meta"
-                        st.write(f"Image Index: [ **{start}** ] {t}")
+                        if st.session_state["show_meta"]:
+                            try:
+                                t = Image.open(images[start]).info
+                            except:
+                                t = "no_meta"
+                            st.write(f"Image Index: [ **{start}** ] {t}")
+                        else:
+                            st.write(f"Image Index: [ **{start}** ]")
                         st.image(images[start])
                         start = start + 2
 

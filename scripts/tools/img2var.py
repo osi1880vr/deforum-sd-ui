@@ -142,7 +142,7 @@ def get_variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps
         for x_sample in x_samples_ddim:
 
             meta = PngInfo()
-            if orig_meta != ""
+            if orig_meta != "":
                 for key, value in orig_meta.items():
                     meta.add_text(key, value)
             #meta.add_text(orig_meta)
