@@ -169,8 +169,10 @@ def layoutFunc():
                 half = int(half)
                 for i in range(half):
                     with col_cont1:
-                        print(images[start])
-                        t = Image.open(images[start]).text
+                        try:
+                            t = Image.open(images[start]).info
+                        except:
+                            t = "no_meta"
                         st.write(f"Image Index: [ **{start}** ] {t}")
                         st.image(images[start])
                         start = start + 2
@@ -209,7 +211,10 @@ def layoutFunc():
                 half = int(half)
                 for i in range(half):
                     with col_cont2:
-                        t = Image.open(images[start]).text
+                        try:
+                            t = Image.open(images[start]).info
+                        except:
+                            t = "no_meta"
                         st.write(f"Image Index: [ **{start}** ] {t}")
                         st.image(images[start])
                         start = start + 2

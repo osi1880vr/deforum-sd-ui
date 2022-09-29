@@ -152,13 +152,16 @@ def render_image_batch(args):
                         #image.save(fpath)
 
                         #img = Image.open(fpath)
-                        meta = PngInfo()
-                        meta.add_text("Prompt", str(prompt))
-                        meta.add_text("Seed", str(args.seed))
-                        meta.add_text("Sampler", str(args.sampler))
-                        meta.add_text("Steps", str(args.steps))
-                        meta.add_text("Cfg Scale", str(args.scale))
-                        image.save(fpath, pnginfo=meta)
+                        if st.session_state['defaults'].general.save_metadata:
+                            meta = PngInfo()
+                            meta.add_text("Prompt", str(prompt))
+                            meta.add_text("Seed", str(args.seed))
+                            meta.add_text("Sampler", str(args.sampler))
+                            meta.add_text("Steps", str(args.steps))
+                            meta.add_text("Cfg Scale", str(args.scale))
+                            image.save(fpath, pnginfo=meta)
+                        else:
+                            image.save(fpath)
 
 
                         image_pipe.image(image)

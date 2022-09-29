@@ -131,15 +131,28 @@ def get_variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps
     startp = 20
 
     for input_im in image_list:
+        try:
+            orig_meta = input_im.info
+        except:
+            orig_meta = ""
         input_im = transforms.ToTensor()(input_im).unsqueeze(0).to(device)
         input_im = input_im*2-1
         x_samples_ddim = sample_model(input_im, sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
 
         for x_sample in x_samples_ddim:
-            meta = PngInfo()
-            meta.add_text("variation", str(base_count))
 
-            x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"), pnginfo=meta)
+            meta = PngInfo()
+            if orig_meta != ""
+                for key, value in orig_meta.items():
+                    meta.add_text(key, value)
+            #meta.add_text(orig_meta)
+            if st.session_state['defaults'].general.save_metadata:
+
+                meta.add_text("variation", str(base_count))
+
+                x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"), pnginfo=meta)
+            else:
+                x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"))
             paths.append(os.path.join(sample_path, f"{base_count:05}.png"))
             base_count += 1
     torch_gc()

@@ -223,19 +223,6 @@ def upscale_func(self):
 
     self.set_interface(name='Restored_Img', value=fpath)
 upscale_block.add_compute(upscale_func)
-
-def img2img_runner():
-    print(st.session_state["img2img"]["new_img"])
-    print(st.session_state["img2img"]["steps"])
-    print(st.session_state["img2img"]["seed"])
-    print(st.session_state["img2img"]["cfg_scale"])
-    print(st.session_state["img2img"]["prompt"])
-    print(st.session_state["img2img"]["variant_amount"])
-    print(st.session_state["img2img"]["denoising_strength"])
-    output_images, seed, info, stats = img2img()
-    return output_images
-
-
 #img2img Block
 img2img_block = Block(name='img2img node')
 img2img_block.add_input(name='2ImageIn')
@@ -291,7 +278,6 @@ def img2img_func(self):
         seed = self.get_option(name='seed')
 
     init_img = PIL.Image.open(self.get_interface(name='2ImageIn'))
-    print(init_img)
     if isinstance(init_img, list):
         init_img = init_img[0]
     print("ok")
@@ -324,7 +310,6 @@ def img2img_func(self):
                                                )
     paths = []
     for image in output_images:
-        print(image)
         path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
         os.makedirs(path, exist_ok=True)
         fpath = os.path.join(path, f"img2img_{time.strftime('%Y%m%d%H%M%S')}.png")
@@ -439,13 +424,11 @@ def img_prev_func(self):
         #st.session_state["node_preview_img_object"] = iimg
         if "currentImages" not in st.session_state:
             st.session_state["currentImages"] = []
-        print(st.session_state["currentImages"])
         if isinstance(iimg, list):
             for i in iimg:
                 st.session_state["currentImages"].append(i)
         else:
             st.session_state["currentImages"].append(iimg)
-        print(st.session_state("currentImages"))
         self.set_interface(name='image_out', value=iimg)
     #return st.session_state["node_preview_image"]
 img_preview.add_compute(img_prev_func)
@@ -494,8 +477,8 @@ def mandel_func(self):
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"mandelbrot_fractal_{time.strftime('%Y%m%d%H%M%S')}.png")
     meta = PngInfo()
-    meta.add_text("mandel_fractal", str(xa))
-    mimage_path = mimage.save(fpath, pnginfo=meta)
+    meta.add_text("generate", "mandelbrot")
+    mimage.save(fpath, pnginfo=meta)
 
 
     self.set_interface(name='mandel', value=fpath)
@@ -539,35 +522,60 @@ def julia_func(self):
 
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
-    fpath = os.path.join(path, f"gfpgan_{time.strftime('%Y%m%d%H%M%S')}.png")
+    fpath = os.path.join(path, f"julia_{time.strftime('%Y%m%d%H%M%S')}.png")
     meta = PngInfo()
-    meta.add_text("julia_fractal_", "random")
-    julia_path = image.save(fpath, pnginfo=meta)
+    meta.add_text("generate", "julia")
+    image.save(fpath, pnginfo=meta)
 
     self.set_interface(name='julia', value=fpath)
 julia_block.add_compute(julia_func)
 
 #Blend Block
-def blend_img(im1, im2, alpha):
-    bimg = PIL.Image.blend(im1, im2, alpha)
-    return bimg
+
 blend_block = Block(name='blend')
 blend_block.add_input(name='bImage_1')
 blend_block.add_input(name='bImage_2')
 blend_block.add_option(name='alpha', type='slider', min=0, max=1, value=0.5)
 blend_block.add_output(name='blend_ImageOut')
 def blend_func(self):
-    im1 = PIL.Image.open(self.get_interface(name='bImage_1')).convert('RGB')
-    im2 = PIL.Image.open(self.get_interface(name='bImage_2')).convert('RGB')
+    im1 = PIL.Image.open(self.get_interface(name='bImage_1'))
+    im2 = PIL.Image.open(self.get_interface(name='bImage_2'))
+    try:
+        im1meta = im1.text
+        im2meta = im2.text
+    except:
+        im1meta = ""
+        im2meta = ""
+
+    if im1.mode != 'RGB':
+        im1 = im1.convert('RGB')
+    if im2.mode != 'RGB':
+        im2 = im2.convert('RGB')
+
     alpha = self.get_option(name='alpha')
     bimg = PIL.Image.blend(im1, im2, alpha)
 
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
     os.makedirs(path, exist_ok=True)
     fpath = os.path.join(path, f"blend_{time.strftime('%Y%m%d%H%M%S')}.png")
-    meta = PngInfo()
-    meta.add_text("blend", str(alpha))
-    blend_path = bimg.save(fpath, pnginfo=meta)
+    if st.session_state["defaults"].general.save_metadata:
+        meta = PngInfo()
+
+        x = 0
+        if im1meta != None:
+            for a, b in im1meta.items():
+                meta.add_text(f"{a}_{x}", str(b))
+                x += 1
+        if im2meta != None:
+            for c, d in im2meta.items():
+
+                meta.add_text(f"{c}_{x}", str(d))
+                x += 1
+        meta.add_text("generate", "blend")
+
+        bimg.save(fpath, pnginfo=meta)
+    else:
+        bimg.save(fpath)
 
 
 
@@ -636,7 +644,6 @@ def gaussian_func(self):
     img = PIL.Image.open(self.get_interface(name='Input'))
     radius = self.get_option(name='Radius')
     #mode = self.get_option(name='Mode')
-    #print(mode)
     img = img.filter(PIL.ImageFilter.GaussianBlur(radius=radius))
 
     path = os.path.join(st.session_state['defaults'].general.outdir, "_node_temp")
@@ -700,7 +707,6 @@ convert_block.add_output(name='Output')
 def convert_func(self):
     img = PIL.Image.open(self.get_interface(name='Input'))
     #mode = self.get_option(name='Mode')
-    #print(mode)
     img = PIL.ImageOps.grayscale(img)
     img = img.convert(self.get_option(name='Mode'))
 
