@@ -54,5 +54,9 @@ dependencies:
     - streamlit_server_state
     - streamlit_nested_layout
     - toml
+    - svgpathtools
+    - streamlit_drawable_canvas
+    - streamlit_tensorboard
+
 
 
