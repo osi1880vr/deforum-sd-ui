@@ -4,6 +4,7 @@ import torch
 from ldm.util import instantiate_from_config
 from torchvision import transforms
 from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 from einops import rearrange, repeat
 import os
 import gc
@@ -115,7 +116,7 @@ def get_variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps
 
     os.makedirs(outpath, exist_ok=True)
 
-    sample_path = os.path.join(outpath, "samples")
+    sample_path = os.path.join(outpath, "_batch_images")
     os.makedirs(sample_path, exist_ok=True)
     base_count = len(os.listdir(sample_path))
     paths = list()
@@ -135,7 +136,10 @@ def get_variations(input_im, outdir, var_samples, var_plms, v_cfg_scale, v_steps
         x_samples_ddim = sample_model(input_im, sampler_name, precision, h, w, ddim_steps, n_samples, scale, ddim_eta, sigmas, model_wrap_cfg)
 
         for x_sample in x_samples_ddim:
-            x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"))
+            meta = PngInfo()
+            meta.add_text("variation", str(base_count))
+
+            x_sample.save(os.path.join(sample_path, f"{base_count:05}.png"), pnginfo=meta)
             paths.append(os.path.join(sample_path, f"{base_count:05}.png"))
             base_count += 1
     torch_gc()

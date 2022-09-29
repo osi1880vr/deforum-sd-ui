@@ -8,6 +8,8 @@ from PIL import Image
 # from bs4 import BeautifulSoup
 #from streamlit.runtime.in_memory_file_manager import in_memory_file_manager
 from streamlit.elements import image as STImage
+from scripts.tools.prompt_gen import generate_prompt
+
 
 
 # Temp imports
@@ -17,7 +19,7 @@ from streamlit.elements import image as STImage
 # ---------------------------------------------------------------------------------------------------------------
 class PluginInfo():
 	plugname = "imglab"
-	description = "Image Lab"
+	description = "aiPrompts"
 	isTab = True
 	displayPriority = 4
 
@@ -164,13 +166,10 @@ def createHTMLGallery(images):
 def layoutFunc():
 	col1, col2 = st.columns(2)
 	with col1:
-		st.session_state['uploaded_file'] = st.file_uploader("Choose an image or images", type=["png", "jpg", "jpeg"],
-															 accept_multiple_files=True, on_change=changeImage)
-		if 'previewImg' not in st.session_state:
-			st.session_state['previewImg'] = st.empty()
-		else:
-			if len(st.session_state['uploaded_file']) > 0:
-				st.session_state['previewImg'].empty()
-				st.session_state['previewImg'].image(st.session_state['uploaded_file'][0], use_column_width=True)
-			else:
-				st.session_state['previewImg'] = st.empty()
+		st.session_state["txt2img"]["prompt_gen"] = st.text_area ("AI Prompt Input", value='', key='txt2img_aiprompt_in')
+		st.session_state["txt2img"]["prompt_out"] = st.empty()
+		ai_prompt_btn = st.button("Generate prompt")
+
+		if ai_prompt_btn:
+			p = generate_prompt(st.session_state["txt2img"]["prompt_gen"])
+			st.session_state["txt2img"]["prompt_out"] = st.info(p)
