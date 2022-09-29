@@ -96,13 +96,18 @@ def layoutFunc():
 
         #    refresh_btn = col1.form_submit_button("Run node sequence")
         with st.expander("drawers"):
+            acol1, acol2, acol3 = st.columns([1,1,1], gap="small")
             dcol1, dcol2 = st.columns([3,2], gap="small")
             bcol1, bcol2, bcol3= st.columns([1,1,1], gap="small")
-            with dcol1:
+            with acol1:
                 compute_engine = st.checkbox('Activate barfi compute engine', value=False)
+            with acol2:
+                st.session_state["show_meta"] = st.checkbox('Show Metadata', value=True)
+            with acol3:
+                st.session_state["defaults"].general.save_metadata = st.checkbox('Save Metadata', value=True)
+            with dcol1:
                 d_name = st.text_input("Drawer Name", value="testdrawer")
             with dcol2:
-                st.session_state["show_meta"] = st.checkbox('Show Metadata', value=True)
                 if st.session_state['defaults'].general.default_path_mode == "subfolders":
                     drawerPath = os.joinpath(st.session_state['defaults'].general.outdir, "_node_drawers")
                 else:
