@@ -32,6 +32,8 @@ import gc
 
 from tools.modelloader import load_models, load_GFPGAN
 import platform
+from PIL.PngImagePlugin import PngInfo
+
 
 from webui_streamlit import st
 if "Linux" in platform.platform():
@@ -77,6 +79,7 @@ def render_image_batch(args):
     # = args.prompts
 
     prompts = list(args.prompts.split("\n"))
+    prompts = [line for line in prompts if line.strip() != ""]
 
     args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
     # create output folder for the batch
@@ -125,7 +128,6 @@ def render_image_batch(args):
         args.prompt = prompt
         print(f"Prompt {iprompt + 1} of {len(prompts)}")
         print(f"{args.prompt}")
-
         all_images = []
 
         for batch_index in range(args.n_batch):
@@ -136,6 +138,7 @@ def render_image_batch(args):
             for image in init_array:  # iterates the init images
                 args.init_image = image
                 results = generate(args)
+                x = 0
                 for image in results:
                     if args.make_grid:
                         all_images.append(T.functional.pil_to_tensor(image))
@@ -145,11 +148,23 @@ def render_image_batch(args):
                         else:
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
                         fpath = os.path.join(args.outdir, filename)
-                        image.save(fpath)
+
+                        #image.save(fpath)
+
+                        #img = Image.open(fpath)
+                        meta = PngInfo()
+                        meta.add_text("Prompt", str(prompt))
+                        meta.add_text("Seed", str(args.seed))
+                        meta.add_text("Sampler", str(args.sampler))
+                        meta.add_text("Steps", str(args.steps))
+                        meta.add_text("Cfg Scale", str(args.scale))
+                        image.save(fpath, pnginfo=meta)
+
+
                         image_pipe.image(image)
 
                     if "with_nodes" in st.session_state:
-                        st.session_state['node_pipe'] = image
+                        st.session_state['node_pipe'] = fpath
                     else:
                         st.session_state['currentImages'].append(fpath)
                     index += 1
@@ -864,7 +879,6 @@ def generate(args, return_latent=False, return_sample=False, return_c=False):
                              init_latent=init_latent,
                              sigmas=k_sigmas,
                              sampler=sampler)
-
     results = []
     with torch.no_grad():
         with precision_scope("cuda"):

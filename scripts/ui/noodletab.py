@@ -169,7 +169,9 @@ def layoutFunc():
                 half = int(half)
                 for i in range(half):
                     with col_cont1:
-                        st.write(f"Image Index: [ **{start}** ] size:{images[start].size} mode:{images[start].mode}")
+                        print(images[start])
+                        t = Image.open(images[start]).text
+                        st.write(f"Image Index: [ **{start}** ] {t}")
                         st.image(images[start])
                         start = start + 2
 
@@ -207,7 +209,8 @@ def layoutFunc():
                 half = int(half)
                 for i in range(half):
                     with col_cont2:
-                        st.write(f"Image Index: [ **{start}** ] size:{images[start].size} mode:{images[start].mode}")
+                        t = Image.open(images[start]).text
+                        st.write(f"Image Index: [ **{start}** ] {t}")
                         st.image(images[start])
                         start = start + 2
 
